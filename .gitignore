@@ -1,0 +1,9 @@
+build
+.DS_Store
+_Archived Items
+xcuserdata
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+git_version_hash.h
+Icon?

@@ -6,7 +6,25 @@
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
+
+#import <TargetConditionals.h>
+
+#ifdef __IPHONE_OS_VERSION_MIN_REQUIRED
+#define OPTEST_IOS_SPECIFIC 1
+#elif defined(__MAC_OS_X_VERSION_MIN_REQUIRED)
+#define OPTEST_OSX_SPECIFIC 1
+#endif
+
+#if TARGET_OS_IPHONE
+#import <UIKit/UIKit.h>
+#else
+#import <Cocoa/Cocoa.h>
+#endif
+
 #import <XCTest/XCTest.h>
+#include  "optest.h"
+#include  "c4.h"
+
 
 @interface C4Tests : XCTestCase
 
@@ -14,9 +32,50 @@
 
 @implementation C4Tests
 
+unsigned int gLogLevel	= OPTESTLOG_LEVEL_ERROR;
+
+-(void) CheckError: (C4Err) err
+{
+    NSString* errorStr = nil;
+    
+    if(IsC4Err(err))
+    {
+        char str[256];
+        
+        if(IsntC4Err( C4_GetErrorString(err, sizeof(str), str)))
+        {
+            errorStr = [ NSString stringWithFormat:@"Error %d:  %s\n", err, str ];
+        }
+        else
+        {
+            errorStr = [ NSString stringWithFormat:@"Error %d\n", err ];
+            
+        }
+        
+        XCTFail(@"Fail: %@", errorStr);
+        
+    }
+    
+}
+
+//void OutputString(char *s)
+//{
+//    
+//}
+
+
 - (void)setUp {
     [super setUp];
+    
+    C4Err err = kC4Err_NoErr;
+    
+    err = C4_Init(); CKERR;
     // Put setup code here. This method is called before the invocation of each test method in the class.
+    
+done:
+    
+    [self CheckError:err];
+    
 }
 
 - (void)tearDown {
@@ -24,16 +83,72 @@
     [super tearDown];
 }
 
-- (void)testExample {
+
+ 
+
+////////////////////////
+
+- (void)testHash {
     // This is an example of a functional test case.
-    // Use XCTAssert and related functions to verify your tests produce the correct results.
+    C4Err err = kC4Err_NoErr;
+    
+    err = TestHash();CKERR;
+    
+done:
+    
+    [self CheckError:err];
 }
 
-- (void)testPerformanceExample {
-    // This is an example of a performance test case.
-    [self measureBlock:^{
-        // Put the code you want to measure the time of here.
-    }];
+
+
+- (void)testHMAC {
+    // This is an example of a functional test case.
+    C4Err err = kC4Err_NoErr;
+    
+    err = TestHMAC();CKERR;
+    
+done:
+    
+    [self CheckError:err];
 }
+
+
+
+- (void)testCiphers {
+    // This is an example of a functional test case.
+    C4Err err = kC4Err_NoErr;
+    
+    err = TestCiphers();CKERR;
+    
+done:
+    
+    [self CheckError:err];
+}
+
+
+- (void)testECC {
+    // This is an example of a functional test case.
+    C4Err err = kC4Err_NoErr;
+    
+    err = TestECC();CKERR;
+    
+done:
+    
+    [self CheckError:err];
+}
+
+
+- (void)testP2K {
+    // This is an example of a functional test case.
+    C4Err err = kC4Err_NoErr;
+    
+    err = TestP2K();CKERR;
+    
+done:
+    
+    [self CheckError:err];
+}
+
+
 
 @end
