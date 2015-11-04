@@ -9,6 +9,10 @@
 #ifndef C4_h
 #define C4_h
 
+#ifdef __APPLE__
+#define _USES_COMMON_CRYPTO_ 1
+#endif
+
 #include "c4pubtypes.h"
 #include "c4crypto.h"
 #include "c4bufferutilities.h"

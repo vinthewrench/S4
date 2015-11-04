@@ -16,8 +16,6 @@
 
 #ifdef __APPLE__
 #import "git_version_hash.h"
-
-#define _USES_COMMON_CRYPTO_ 1
 #else
 #define GIT_COMMIT_HASH __DATE__
 #endif
@@ -25,6 +23,9 @@
 #if _USES_COMMON_CRYPTO_
 #include <CommonCrypto/CommonCrypto.h>
 #include <CommonCrypto/CommonRandom.h>
+
+#define kCCHmacAlgInvalid UINT32_MAX
+
 #endif
 
 
@@ -157,10 +158,17 @@ C4Err  C4_GetVersionString(size_t	bufSize, char *outString)
     ValidateParam(outString);
     *outString = 0;
     
-    char version_string[64];
+    char version_string[128];
     
-    snprintf(version_string, sizeof(version_string), "%s (%03d) %s", C4_SHORT_VERSION_STRING,
-             C4_BUILD_NUMBER, GIT_COMMIT_HASH);
+    snprintf(version_string, sizeof(version_string), "%s%s (%03d) %s",
+             C4_SHORT_VERSION_STRING,
+#if _USES_COMMON_CRYPTO_
+             "CC",
+#else
+             "",
+#endif
+            C4_BUILD_NUMBER,
+             GIT_COMMIT_HASH);
     
     if(strlen(version_string) +1 > bufSize)
         RETERR (kC4Err_BufferTooSmall);
@@ -241,7 +249,29 @@ struct HASH_Context
 #define kHASH_ContextMagic		0x63344861
     uint32_t                magic;
     HASH_Algorithm          algor;
-    hash_state              state;
+    size_t                  hashsize;
+
+#if _USES_COMMON_CRYPTO_
+    CCHmacAlgorithm         ccAlgor;
+#endif
+
+     union
+    {
+        hash_state              tc_state;
+#if _USES_COMMON_CRYPTO_
+        CC_MD5_CTX              ccMD5_state;
+        CC_SHA1_CTX             ccSHA1_state;
+        CC_SHA256_CTX           ccSHA256_state;
+        CC_SHA512_CTX           ccSHA512_state;
+ #endif
+        
+    }state;
+
+ 
+    int (*process)(void *ctx, const unsigned char *in, unsigned long inlen);
+    
+    int (*done)(void *ctx, unsigned char *out);
+
 };
 
 
@@ -318,6 +348,114 @@ done:
     
 }
 
+#if  _USES_COMMON_CRYPTO_
+
+int sCCHashUpdateMD5(void *ctx, const unsigned char *in, unsigned long inlen)
+{
+    CC_MD5_Update(ctx, in, (CC_LONG)inlen);
+    return CRYPT_OK;
+}
+
+int sCCHashUpdateSHA1(void *ctx, const unsigned char *in, unsigned long inlen)
+{
+    CC_SHA1_Update(ctx, in, (CC_LONG)inlen);
+    return CRYPT_OK;
+}
+
+int sCCHashUpdateSHA224(void *ctx, const unsigned char *in, unsigned long inlen)
+{
+    CC_SHA224_Update(ctx, in, (CC_LONG)inlen);
+    return CRYPT_OK;
+}
+
+int sCCHashUpdateSHA256(void *ctx, const unsigned char *in, unsigned long inlen)
+{
+    CC_SHA256_Update(ctx, in, (CC_LONG)inlen);
+    return CRYPT_OK;
+}
+
+int sCCHashUpdateSHA384(void *ctx, const unsigned char *in, unsigned long inlen)
+{
+    CC_SHA384_Update(ctx, in, (CC_LONG)inlen);
+    return CRYPT_OK;
+}
+
+int sCCHashUpdateSHA512(void *ctx, const unsigned char *in, unsigned long inlen)
+{
+    CC_SHA512_Update(ctx, in, (CC_LONG)inlen);
+    return CRYPT_OK;
+}
+
+
+int sCCHashFinalMD5(void *ctx, unsigned char *out)
+{
+     CC_MD5_Final(out, ctx);
+    
+#ifdef LTC_CLEAN_STACK
+    zeromem(ctx, sizeof(CC_SHA1_CTX));
+#endif
+    
+    return CRYPT_OK;
+}
+
+int sCCHashFinalSHA1(void *ctx, unsigned char *out)
+{
+    CC_SHA1_Final(out, ctx);
+    
+#ifdef LTC_CLEAN_STACK
+    zeromem(ctx, sizeof(CC_SHA1_CTX));
+#endif
+    
+    return CRYPT_OK;
+ }
+
+int sCCHashFinalSHA224(void *ctx, unsigned char *out)
+{
+    CC_SHA224_Final(out, ctx);
+    
+#ifdef LTC_CLEAN_STACK
+    zeromem(ctx, sizeof(CC_SHA1_CTX));
+#endif
+    
+    return CRYPT_OK;
+}
+
+int sCCHashFinalSHA256(void *ctx, unsigned char *out)
+{
+    CC_SHA256_Final(out, ctx);
+    
+#ifdef LTC_CLEAN_STACK
+    zeromem(ctx, sizeof(CC_SHA1_CTX));
+#endif
+    
+    return CRYPT_OK;
+}
+
+
+int sCCHashFinalSHA384(void *ctx, unsigned char *out)
+{
+    CC_SHA384_Final(out, ctx);
+    
+#ifdef LTC_CLEAN_STACK
+    zeromem(ctx, sizeof(CC_SHA1_CTX));
+#endif
+    
+    return CRYPT_OK;
+}
+
+
+int sCCHashFinalSHA512(void *ctx, unsigned char *out)
+{
+    CC_SHA512_Final(out, ctx);
+    
+#ifdef LTC_CLEAN_STACK
+    zeromem(ctx, sizeof(CC_SHA1_CTX));
+#endif
+    
+    return CRYPT_OK;
+}
+
+#endif
 
 
 C4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
@@ -334,15 +472,96 @@ C4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
     hashCTX->magic = kHASH_ContextMagic;
     hashCTX->algor = algorithm;
     
+#if _USES_COMMON_CRYPTO_
+    
+    switch(algorithm)
+    {
+        case kHASH_Algorithm_MD5:
+            hashCTX->ccAlgor = kCCHmacAlgMD5;
+            hashCTX->process = (void*) sCCHashUpdateMD5;
+            hashCTX->done = (void*) sCCHashFinalMD5;
+            hashCTX->hashsize = 16;
+            CC_MD5_Init(&hashCTX->state.ccMD5_state);
+             break;
+            
+        case kHASH_Algorithm_SHA1:
+            hashCTX->ccAlgor = kCCHmacAlgSHA1;
+            hashCTX->hashsize = 20;
+            hashCTX->process = (void*) sCCHashUpdateSHA1;
+            hashCTX->done = (void*) sCCHashFinalSHA1;;
+           CC_SHA1_Init(&hashCTX->state.ccSHA1_state);
+            break;
+            
+        case kHASH_Algorithm_SHA224:
+            hashCTX->ccAlgor = kCCHmacAlgSHA224;
+            hashCTX->hashsize = 28;
+            hashCTX->process = (void*) sCCHashUpdateSHA224;
+            hashCTX->done = (void*) sCCHashFinalSHA224;
+            CC_SHA224_Init(&hashCTX->state.ccSHA256_state);
+            break;
+            
+        case kHASH_Algorithm_SHA256:
+            hashCTX->ccAlgor = kCCHmacAlgSHA256;
+            hashCTX->hashsize = 32;
+            hashCTX->process = (void*) sCCHashUpdateSHA256;
+            hashCTX->done = (void*) sCCHashFinalSHA256;;
+           CC_SHA256_Init(&hashCTX->state.ccSHA256_state);
+            break;
+            
+        case kHASH_Algorithm_SHA384:
+            hashCTX->ccAlgor = kCCHmacAlgSHA384;
+            hashCTX->hashsize = 48;
+            hashCTX->process = (void*) sCCHashUpdateSHA384;
+            hashCTX->done = (void*) sCCHashFinalSHA384;
+           CC_SHA384_Init(&hashCTX->state.ccSHA512_state);
+            break;
+            
+        case kHASH_Algorithm_SHA512:
+            hashCTX->ccAlgor = kCCHmacAlgSHA512;
+            hashCTX->hashsize = 64;
+            hashCTX->process = (void*) sCCHashUpdateSHA512;
+            hashCTX->done = (void*) sCCHashFinalSHA512;
+            CC_SHA512_Init(&hashCTX->state.ccSHA512_state);
+            break;
+            
+        default:
+            hashCTX->ccAlgor =  kCCHmacAlgInvalid;
+            break;
+    }
+    
+      if(hashCTX->ccAlgor == kCCHmacAlgInvalid)
+    {
+        desc = sDescriptorForHash(algorithm);
+        hashCTX->hashsize = desc->hashsize;
+        hashCTX->process = (void*) desc->process;
+        hashCTX->done =     (void*) desc->done;
+        
+        if(IsNull(desc))
+            RETERR( kC4Err_BadHashNumber);
+        
+        if(desc->init)
+            err = (desc->init)(&hashCTX->state.tc_state);
+        CKERR;
+        
+    }
+    
+#else
+    
     desc = sDescriptorForHash(algorithm);
+    hashCTX->hashsize = desc->hashsize;
+    hashCTX->process = (void*) desc->process;
+    hashCTX->done =     (void*) desc->done;
     
     if(IsNull(desc))
         RETERR( kC4Err_BadHashNumber);
+ 
     
     if(desc->init)
-        err = (desc->init)(&hashCTX->state);
+        err = (desc->init)(&hashCTX->state.tc_state);
     CKERR;
     
+#endif
+
     *ctx = hashCTX;
     
 done:
@@ -363,21 +582,25 @@ done:
 C4Err HASH_Update(HASH_ContextRef ctx, const void *data, size_t dataLength)
 {
     int             err = kC4Err_NoErr;
-    const struct    ltc_hash_descriptor* desc = NULL;
+//    const struct    ltc_hash_descriptor* desc = NULL;
     
     validateHASHContext(ctx);
     ValidateParam(data);
     
-    desc = sDescriptorForHash(ctx->algor);
-    
-    if(IsNull(desc))
-        RETERR( kC4Err_BadHashNumber);
-    
-    if(desc->process)
-        err = (desc->process)(&ctx->state,data,  dataLength );
-    CKERR;
-    
-done:
+    if(ctx->process)
+        err = (ctx->process)(&ctx->state,  data, dataLength );
+//    
+//
+//    desc = sDescriptorForHash(ctx->algor);
+//    
+//    if(IsNull(desc))
+//        RETERR( kC4Err_BadHashNumber);
+//    
+//    if(desc->process)
+//        err = (desc->process)(&ctx->state.tc_state,data,  dataLength );
+//    CKERR;
+//    
+//done:
     
     return err;
     
@@ -388,21 +611,25 @@ done:
 C4Err HASH_Final(HASH_ContextRef  ctx, void *hashOut)
 {
     int             err = kC4Err_NoErr;
-    const struct    ltc_hash_descriptor* desc = NULL;
+//    const struct    ltc_hash_descriptor* desc = NULL;
     
     validateHASHContext(ctx);
     
-    desc = sDescriptorForHash(ctx->algor);
-    
-    if(IsNull(desc))
-        RETERR( kC4Err_BadHashNumber);
-    
-    if(desc->done)
-        err = (desc->done)(&ctx->state, hashOut );
-    CKERR;
-    
-done:
-    
+    if(ctx->done)
+        err = (ctx->done)(&ctx->state, hashOut );
+//    
+//    
+//    desc = sDescriptorForHash(ctx->algor);
+//    
+//    if(IsNull(desc))
+//        RETERR( kC4Err_BadHashNumber);
+//    
+//    if(desc->done)
+//        err = (desc->done)(&ctx->state.tc_state, hashOut );
+//    CKERR;
+//    
+//done:
+//    
     return err;
 }
 
@@ -419,17 +646,9 @@ C4Err HASH_GetSize(HASH_ContextRef  ctx, size_t *hashSize)
 {
     int             err = kC4Err_NoErr;
     
-    const struct    ltc_hash_descriptor* desc = NULL;
+     validateHASHContext(ctx);
     
-    validateHASHContext(ctx);
-    
-    desc = sDescriptorForHash(ctx->algor);
-    
-    if(IsNull(desc))
-        RETERR( kC4Err_BadHashNumber);
-    
-    *hashSize = desc->hashsize;
-done:
+    *hashSize = ctx->hashsize;
     
     return err;
 }
@@ -444,7 +663,7 @@ C4Err HASH_DO(HASH_Algorithm algorithm, const unsigned char *in, unsigned long i
     uint8_t             *p = (outLen < sizeof(hashBuf))?hashBuf:out;
     
     
-#ifdef _USES_COMMON_CRYPTO_
+#if  _USES_COMMON_CRYPTO_
 
 /* use apple algorithms if possible*/
     switch(algorithm)
@@ -514,13 +733,21 @@ struct MAC_Context
 #define kMAC_ContextMagic		0x63344D61
     uint32_t                magic;
     MAC_Algorithm           macAlgor;
+    
+#if  _USES_COMMON_CRYPTO_
+    CCHmacAlgorithm         ccAlgor;
+#endif
+    
     size_t                  hashsize;
     
     union
     {
         hmac_state              hmac;
         skeinmac_state          skeinmac;
-    }state;
+#if  _USES_COMMON_CRYPTO_
+        CCHmacContext           ccMac;
+#endif
+   }state;
     
     int (*process)(void *ctx, const unsigned char *in, unsigned long inlen);
     
@@ -545,8 +772,39 @@ static bool sMAC_ContextIsValid( const MAC_ContextRef  ref)
 #define validateMACContext( s )		\
 ValidateParam( sMAC_ContextIsValid( s ) )
 
+#if  _USES_COMMON_CRYPTO_
 
 
+int sCCMacUpdate(CCHmacContext *ctx, const unsigned char *in, unsigned long inlen)
+{
+    CCHmacUpdate(ctx, in, inlen);
+    
+    return CRYPT_OK;
+}
+
+
+int sCCMacFinal(CCHmacContext *ctx, unsigned char *out, unsigned long *outlen)
+{
+    
+    u08b_t    macBuf[64];
+    u08b_t    *p = (*outlen < sizeof(macBuf))?macBuf:out;
+    
+    CCHmacFinal(ctx, p);
+    
+    if(p!= out)
+        memcpy( out,macBuf, *outlen);
+    
+    
+#ifdef LTC_CLEAN_STACK
+    zeromem(ctx, sizeof(CCHmacContext));
+    zeromem(macBuf, sizeof(macBuf));
+#endif
+    
+    return CRYPT_OK;
+}
+
+
+#endif
 
 C4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_t macKeyLen, MAC_ContextRef * ctx)
 {
@@ -567,15 +825,74 @@ C4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_
     
     macCTX->magic = kMAC_ContextMagic;
     macCTX->macAlgor = mac;
-    
+    macCTX->hashsize = 0;
+
+ 
     switch(mac)
     {
         case  kMAC_Algorithm_HMAC:
+            
+#if  _USES_COMMON_CRYPTO_
+     
+        switch(hash)
+        {
+            case kHASH_Algorithm_MD5:
+                macCTX->ccAlgor = kCCHmacAlgMD5;
+                macCTX->hashsize = 16;
+                break;
+                
+            case kHASH_Algorithm_SHA1:
+                macCTX->ccAlgor = kCCHmacAlgSHA1;
+                macCTX->hashsize = 20;
+                break;
+                
+            case kHASH_Algorithm_SHA224:
+                macCTX->ccAlgor = kCCHmacAlgSHA224;
+                macCTX->hashsize = 28;
+                break;
+                
+            case kHASH_Algorithm_SHA384:
+                macCTX->ccAlgor = kCCHmacAlgSHA384;
+                macCTX->hashsize = 48;
+                break;
+                
+            case kHASH_Algorithm_SHA256:
+                macCTX->ccAlgor = kCCHmacAlgSHA256;
+                macCTX->hashsize = 32;
+                break;
+                
+            case kHASH_Algorithm_SHA512:
+                macCTX->ccAlgor = kCCHmacAlgSHA512;
+                macCTX->hashsize = 64;
+                break;
+                
+            default:
+                macCTX->ccAlgor =  kCCHmacAlgInvalid;
+                break;
+        }
+
+        if(macCTX->ccAlgor != kCCHmacAlgInvalid)
+        {
+            CCHmacInit(&macCTX->state.ccMac, macCTX->ccAlgor, macKey, macKeyLen);
+            macCTX->process = (void*) sCCMacUpdate;
+            macCTX->done = (void*) sCCMacFinal;
+        }
+        else
+        {
+            err = hmac_init(&macCTX->state.hmac,  find_hash_id(hashDesc->ID) , macKey, macKeyLen) ; CKERR;
+            macCTX->process = (void*) hmac_process;
+            macCTX->done = (void*) hmac_done;
+            macCTX->hashsize = hashDesc->hashsize;
+        }
+                
+#else
+            
             err = hmac_init(&macCTX->state.hmac,  find_hash_id(hashDesc->ID) , macKey, macKeyLen) ; CKERR;
             macCTX->process = (void*) hmac_process;
             macCTX->done = (void*) hmac_done;
             macCTX->hashsize = hashDesc->hashsize;
             
+#endif
             break;
             
         case  kMAC_Algorithm_SKEIN:
@@ -1808,7 +2125,7 @@ C4Err PASS_TO_KEY_SETUP(   unsigned long  password_len,
     uint8_t     *key        = NULL;
     uint32_t    rounds = MIN_ROUNDS;
    
-#ifdef _USES_COMMON_CRYPTO_
+#if _USES_COMMON_CRYPTO_
     
     rounds = CCCalibratePBKDF(kCCPBKDF2,password_len, salt_len, kCCPRFHmacAlgSHA256, key_len, 100 );
 
@@ -1874,7 +2191,7 @@ C4Err PASS_TO_KEY (   const char  *password,
 {
     C4Err    err     = kC4Err_NoErr;
     
-#ifdef _USES_COMMON_CRYPTO_
+#if _USES_COMMON_CRYPTO_
      
    if( CCKeyDerivationPBKDF( kCCPBKDF2, (const char*)password,  password_len,
                          salt, salt_len,
@@ -1957,7 +2274,7 @@ C4Err RNG_GetBytes(
                       )
 {
     int             err = kC4Err_NoErr;
-#ifdef _USES_COMMON_CRYPTO_
+#if _USES_COMMON_CRYPTO_
    
    if(  CCRandomGenerateBytes(out, outLen) != kCCSuccess)
        err =  kC4Err_ResourceUnavailable;
