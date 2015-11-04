@@ -380,6 +380,7 @@
 		2EAA6A6E1BE9663300A0375B /* testTBC.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A6D1BE9663300A0375B /* testTBC.c */; };
 		2EAA6A721BE97A0300A0375B /* c4bufferutilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A711BE97A0300A0375B /* c4bufferutilities.c */; };
 		2EAA6A751BE97C9500A0375B /* c4bufferutilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA6A731BE97AA300A0375B /* c4bufferutilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2EAA6A761BE9963400A0375B /* testTBC.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A6D1BE9663300A0375B /* testTBC.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -2171,6 +2172,7 @@
 				2EAA6A671BE81E8700A0375B /* testECC.c in Sources */,
 				2EAA6A641BE81E7300A0375B /* testHash.c in Sources */,
 				2EAA6A681BE81E8700A0375B /* testP2K.c in Sources */,
+				2EAA6A761BE9963400A0375B /* testTBC.c in Sources */,
 				2EAA6A691BE81E8700A0375B /* optestutilities.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

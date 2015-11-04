@@ -126,6 +126,18 @@ done:
 }
 
 
+- (void)testTBC {
+    // This is an example of a functional test case.
+    C4Err err = kC4Err_NoErr;
+    
+    err = TestTBCiphers();CKERR;
+    
+done:
+    
+    [self CheckError:err];
+}
+
+
 - (void)testECC {
     // This is an example of a functional test case.
     C4Err err = kC4Err_NoErr;
