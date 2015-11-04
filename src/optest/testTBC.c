@@ -15,16 +15,20 @@
 
 typedef struct  {
     TBC_Algorithm   algor;
-    char            *name;
     int            keysize;
     
     uint64_t*        key;
     uint64_t*        PT;			/* Plaintext			*/
     uint64_t*        tweek;		/* tweek	*/
     uint64_t*        TBC;         /* TBC	Known Answer	*/
-    
 } katvector;
 
+
+
+/* these test vectors come from https://github.com/wernerd/Skein3Fish/blob/master/c/test/threefishTest.c 
+  and have have to massage the test vectors a bit for them to compare.  I am not sure why werner didnt
+ just use regular test vectors.  
+ */
 
 
 static C4Err RunCipherKAT(  katvector *kat)
@@ -32,37 +36,31 @@ static C4Err RunCipherKAT(  katvector *kat)
 {
     C4Err err = kC4Err_NoErr;
     TBC_ContextRef TBC = kInvalidTBC_ContextRef;
-    uint8_t IN[1024];
-    uint8_t KEY[1024];
-    uint8_t TWEEK[16];
-    uint8_t EXPECTED[1024];
     
+    uint8_t IN[1024];
     uint8_t CT[1024];
     uint8_t PT[1024];
-    
-      char* name = NULL;
+    char* name = NULL;
  
     name = tbc_algor_table(kat->algor);
     
     OPTESTLogInfo("\t%-14s %016llX %016llX ", name, kat->tweek[0],kat->tweek[1] );
     
-    memcpy(KEY,kat->key,kat->keysize >> 3);
+    // save a copy of plaintext
     memcpy(IN,kat->PT,kat->keysize >> 3);
-    memcpy(TWEEK,kat->tweek,16);
-    memcpy(EXPECTED,kat->TBC,kat->keysize >> 3);
     
-    err = TBC_Init(kat->algor, KEY, &TBC); CKERR;
+    err = TBC_Init(kat->algor, kat->key, &TBC); CKERR;
     
-    err = TBC_SetTweek(TBC, TWEEK); CKERR;
+    err = TBC_SetTweek(TBC, kat->tweek); CKERR;
     
     err = TBC_Encrypt(TBC, IN, CT); CKERR;
     
     /* check against know-answer */
-    err = compareResults( EXPECTED, CT, kat->keysize >>3, kResultFormat_Long, "TBC Encrypt"); CKERR;
+    err = compareResults( kat->TBC, CT, kat->keysize >>3, kResultFormat_Long, "TBC Encrypt"); CKERR;
     
     err = TBC_Decrypt(TBC, CT, PT); CKERR;
     
-      /* check against orginal plain-text  */
+    /* check against orginal plain-text  */
     err = compareResults( IN, PT, kat->keysize >>3  , kResultFormat_Long, "TBC Decrypt"); CKERR;
 
 done:
@@ -103,8 +101,8 @@ C4Err TestTBCiphers()
         0xE8E9EAEBECEDEEEFL, 0xE0E1E2E3E4E5E6E7L
     };
     
-    uint64_t three_256_01_result[] = { 0xDF8FEA0EFF91D0E0L, 0xD50AD82EE69281C9L,
-        0x76F48D58085D869DL, 0xDF975E95B5567065L
+    uint64_t three_256_01_result[] = {
+        0xDF8FEA0EFF91D0E0L, 0xD50AD82EE69281C9L, 0x76F48D58085D869DL, 0xDF975E95B5567065L
     };
     
     uint64_t three_256_01_tweak[] = { 0x0706050403020100L, 0x0F0E0D0C0B0A0908L };
@@ -182,20 +180,20 @@ C4Err TestTBCiphers()
         0xB0C33CD7DB4D65A6L, 0xBC49A85A1077D75DL, 0x6855FCAFEA7293E4L, 0x1C5385AB1B7754D2L,
         0x30E4AAFFE780F794L, 0xE1BBEE708CAFD8D5L, 0x9CA837B7423B0F76L, 0xBD1403670D4963B3L,
         0x451F2E3CE61EA48AL, 0xB360832F9277D4FBL, 0x0AAFC7A65E12D688L, 0xC8906E79016D05D7L,
-        0xB316570A15F41333L, 0x74E98A2869F5D50EL, 0x57CE6F9247432BCEL, 0xDE7CDD77215144DEL
+        0xB316570A15F41333L, 0x74E98A2869F5D50EL, 0x57CE6F9247432BCEL, 0xDE7CDD77215144DEL,
+
     };
 
-    
        katvector kat_vector_array[] =
     {
-        {	kTBC_Algorithm_3FISH256, "Test1",   256,  three_256_00_key,  three_256_00_input,  three_256_00_tweak, three_256_00_result  },
-        {	kTBC_Algorithm_3FISH256, "Test2",   256,  three_256_01_key,  three_256_01_input,  three_256_01_tweak, three_256_01_result  },
+        {	kTBC_Algorithm_3FISH256,   256,  three_256_00_key,  three_256_00_input,  three_256_00_tweak, three_256_00_result  },
+        {	kTBC_Algorithm_3FISH256,   256,  three_256_01_key,  three_256_01_input,  three_256_01_tweak, three_256_01_result  },
 
-        {	kTBC_Algorithm_3FISH512, "Test1",   512,  three_512_00_key,  three_512_00_input,  three_512_00_tweak, three_512_00_result  },
-        {	kTBC_Algorithm_3FISH512, "Test2",   512,  three_512_01_key,  three_512_01_input,  three_512_01_tweak, three_512_01_result  },
+        {	kTBC_Algorithm_3FISH512,   512,  three_512_00_key,  three_512_00_input,  three_512_00_tweak, three_512_00_result  },
+        {	kTBC_Algorithm_3FISH512,   512,  three_512_01_key,  three_512_01_input,  three_512_01_tweak, three_512_01_result  },
     
-        {	kTBC_Algorithm_3FISH1024, "Test1",   1024,  three_1024_00_key,  three_1024_00_input,  three_1024_00_tweak, three_1024_00_result  },
-        {	kTBC_Algorithm_3FISH1024, "Test2",   1024,  three_1024_01_key,  three_1024_01_input,  three_1024_01_tweak, three_1024_01_result  },
+        {	kTBC_Algorithm_3FISH1024,   1024,  three_1024_00_key,  three_1024_00_input,  three_1024_00_tweak, three_1024_00_result  },
+        {	kTBC_Algorithm_3FISH1024,   1024,  three_1024_01_key,  three_1024_01_input,  three_1024_01_tweak, three_1024_01_result  },
         
      };
     

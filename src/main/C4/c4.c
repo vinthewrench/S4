@@ -952,7 +952,6 @@ C4Err TBC_SetTweek(TBC_ContextRef ctx,
    
 }
 
-
 C4Err TBC_Encrypt(TBC_ContextRef ctx,
                   const void *	in,
                   void *         out )
