@@ -11,7 +11,6 @@
 
 #include "c4pubtypes.h"
 
-
 #define C4_BUILD_NUMBER               1
 #define C4_SHORT_VERSION_STRING		"1.0.0"
 
@@ -187,9 +186,6 @@ C4Err ECB_Decrypt(Cipher_Algorithm algorithm,
                   size_t         bytesIn,
                   void *         out );
 
-
-
-
 typedef struct CBC_Context *      CBC_ContextRef;
 
 #define	kInvalidCBC_ContextRef		((CBC_ContextRef) NULL)
@@ -229,6 +225,47 @@ C4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
                      const uint8_t *iv,
                      const uint8_t *in, size_t in_len,
                      uint8_t **outData, size_t *outSize);
+
+
+#ifdef __clang__
+#pragma mark -  tweakable block cipher functions
+#endif
+
+
+typedef struct TBC_Context *      TBC_ContextRef;
+
+#define	kInvalidTBC_ContextRef		((TBC_ContextRef) NULL)
+
+#define TBC_ContextRefIsValid( ref )		( (ref) != kInvalidTBC_ContextRef )
+
+
+enum TBC_Algorithm
+{
+    kTBC_Algorithm_Invalid          = 0,
+    kTBC_Algorithm_3FISH256          = 1,
+    kTBC_Algorithm_3FISH512          = 2,
+    kTBC_Algorithm_3FISH1024          = 3,
+ };
+
+typedef enum TBC_Algorithm TBC_Algorithm;
+
+C4Err TBC_Init(TBC_Algorithm algorithm,
+               const void *key,
+               TBC_ContextRef * ctx);
+
+C4Err TBC_SetTweek(TBC_ContextRef ctx,
+                  const void *	tweek);
+
+C4Err TBC_Encrypt(TBC_ContextRef ctx,
+                  const void *	in,
+                  void *         out );
+
+C4Err TBC_Decrypt(TBC_ContextRef ctx,
+                  const void *	in,
+                  void *         out );
+
+void TBC_Free(TBC_ContextRef  ctx);
+
 
 #ifdef __clang__
 #pragma mark - ECC function wrappers

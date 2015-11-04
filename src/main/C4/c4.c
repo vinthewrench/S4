@@ -8,17 +8,25 @@
 
 
 #include <tomcrypt.h>
+#include <skein_port.h>
+#include <threefishApi.h>
+
+
 #include "C4.h"
 
 #ifdef __APPLE__
 #import "git_version_hash.h"
 
-#include <CommonCrypto/CommonCrypto.h>
-#include <CommonCrypto/CommonRandom.h>
-
- #else
+#define _USES_COMMON_CRYPTO_ 1
+#else
 #define GIT_COMMIT_HASH __DATE__
 #endif
+
+#if _USES_COMMON_CRYPTO_
+#include <CommonCrypto/CommonCrypto.h>
+#include <CommonCrypto/CommonRandom.h>
+#endif
+
 
 #define CKSTAT {if (status != CRYPT_OK)  goto done; }
 
@@ -436,7 +444,7 @@ C4Err HASH_DO(HASH_Algorithm algorithm, const unsigned char *in, unsigned long i
     uint8_t             *p = (outLen < sizeof(hashBuf))?hashBuf:out;
     
     
-#ifdef __APPLE__
+#ifdef _USES_COMMON_CRYPTO_
 
 /* use apple algorithms if possible*/
     switch(algorithm)
@@ -825,6 +833,154 @@ done:
     return err;
 }
 
+
+#ifdef __clang__
+#pragma mark - tweakable block cipher functions
+#endif
+
+typedef struct TBC_Context    TBC_Context;
+
+struct TBC_Context
+{
+#define kTBC_ContextMagic		0x43347462
+    uint32_t            magic;
+    TBC_Algorithm       algor;
+    
+    int                 keybits;
+     u64b_t             key[16];        // need a copy of key to reset the state
+    
+    ThreefishKey_t       state;
+};
+
+
+static bool sTBC_ContextIsValid( const TBC_ContextRef  ref)
+{
+    bool       valid	= false;
+    
+    valid	= IsntNull( ref ) && ref->magic	 == kTBC_ContextMagic;
+    
+    return( valid );
+}
+
+
+
+#define validateTBCContext( s )		\
+ValidateParam( sTBC_ContextIsValid( s ) )
+
+
+C4Err TBC_Init(TBC_Algorithm algorithm,
+               const void *key,
+               TBC_ContextRef * ctxOut)
+{
+    int             err     = kC4Err_NoErr;
+    TBC_Context*    tbcCTX  = NULL;
+    int             keybits  = 0;
+    u64b_t          tweek[3] = {0L,0L };
+
+    ValidateParam(ctxOut);
+    
+    switch(algorithm)
+    {
+        case kTBC_Algorithm_3FISH256:
+            keybits = Threefish256;
+             break;
+            
+        case kTBC_Algorithm_3FISH512:
+            keybits = Threefish512;
+             break;
+  
+        case kTBC_Algorithm_3FISH1024:
+            keybits = Threefish1024 ;
+            break;
+            
+          default:
+            RETERR(kC4Err_BadCipherNumber);
+    }
+    
+    
+    tbcCTX = XMALLOC(sizeof (TBC_Context)); CKNULL(tbcCTX);
+    
+    tbcCTX->magic = kTBC_ContextMagic;
+    tbcCTX->algor = algorithm;
+    tbcCTX->keybits = keybits;
+    
+    Skein_Get64_LSB_First(tbcCTX->key, key, tbcCTX->keybits >>5);   /* bytes to words */
+    
+    threefishSetKey(&tbcCTX->state, tbcCTX->keybits, tbcCTX->key, tweek);
+    
+    *ctxOut = tbcCTX;
+    
+done:
+    
+    if(IsC4Err(err))
+    {
+        if(tbcCTX)
+        {
+            memset(tbcCTX, sizeof (TBC_Context), 0);
+            XFREE(tbcCTX);
+        }
+     }
+    
+    return err;
+  
+}
+
+void TBC_Free(TBC_ContextRef  ctx)
+{
+    
+    if(sTBC_ContextIsValid(ctx))
+    {
+        ZERO(ctx, sizeof(TBC_Context));
+        XFREE(ctx);
+    }
+}
+
+
+C4Err TBC_SetTweek(TBC_ContextRef ctx,
+                   const void *	tweekIn)
+{
+    C4Err       err = kC4Err_NoErr;
+    u64b_t      tweek[2] = {0L,0L};
+    
+    validateTBCContext(ctx);
+    
+    Skein_Get64_LSB_First(tweek, tweekIn, 2);   /* bytes to words */
+    
+    threefishSetKey(&ctx->state, ctx->keybits, ctx->key, tweek);
+ 
+    return (err);
+   
+}
+
+
+C4Err TBC_Encrypt(TBC_ContextRef ctx,
+                  const void *	in,
+                  void *         out )
+{
+    C4Err       err = kC4Err_NoErr;
+   
+    validateTBCContext(ctx);
+    
+    threefishEncryptBlockBytes(&ctx->state,(uint8_t*) in, out);
+    
+    return (err);
+
+}
+
+C4Err TBC_Decrypt(TBC_ContextRef ctx,
+                  const void *	in,
+                  void *         out )
+{
+    C4Err       err = kC4Err_NoErr;
+    
+    validateTBCContext(ctx);
+    
+    threefishDecryptBlockBytes(&ctx->state,(uint8_t*) in, out);
+    
+    return (err);
+}
+
+
 #ifdef __clang__
 #pragma mark - CBC Symmetric crypto
 #endif
@@ -841,8 +997,7 @@ struct CBC_Context
 
 
 
-static bool
-sCBC_ContextIsValid( const CBC_ContextRef  ref)
+static bool sCBC_ContextIsValid( const CBC_ContextRef  ref)
 {
     bool       valid	= false;
     
@@ -928,7 +1083,7 @@ C4Err CBC_Encrypt(CBC_ContextRef ctx,
                      size_t         bytesIn,
                      void *         out )
 {
-    int             err = kC4Err_NoErr;
+    C4Err           err = kC4Err_NoErr;
     int             status  =  CRYPT_OK;
     
     validateCBCContext(ctx);
@@ -947,7 +1102,7 @@ C4Err CBC_Decrypt(CBC_ContextRef ctx,
                      size_t         bytesIn,
                      void *         out )
 {
-    int             err = kC4Err_NoErr;
+    C4Err           err = kC4Err_NoErr;
     int             status  =  CRYPT_OK;
     
     validateCBCContext(ctx);
@@ -1160,7 +1315,7 @@ ValidateParam( sECC_ContextIsValid( s ) )
 
 C4Err ECC_Init(ECC_ContextRef * ctx)
 {
-    int             err = kC4Err_NoErr;
+    C4Err           err = kC4Err_NoErr;
     ECC_Context*    eccCTX = kInvalidECC_ContextRef;
     
     ValidateParam(ctx);
@@ -1182,7 +1337,7 @@ done:
 
 C4Err ECC_Generate(ECC_ContextRef  ctx, size_t keysize )
 {
-    int             err = kC4Err_NoErr;
+    C4Err   err = kC4Err_NoErr;
     
     validateECCContext(ctx);
     
@@ -1233,7 +1388,7 @@ void ECC_Free(ECC_ContextRef  ctx)
 
 C4Err ECC_Export_ANSI_X963(ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *datSize)
 {
-    int             err = kC4Err_NoErr;
+    C4Err           err = kC4Err_NoErr;
     unsigned long   length = bufSize;
     
     validateECCContext(ctx);
@@ -1253,7 +1408,7 @@ done:
 
 C4Err ECC_Import_ANSI_X963(ECC_ContextRef  ctx,   void *in, size_t inlen )
 {
-    int             err = kC4Err_NoErr;
+    C4Err       err = kC4Err_NoErr;
     
     validateECCContext(ctx);
     
@@ -1287,7 +1442,7 @@ done:
 
 C4Err ECC_Export(ECC_ContextRef  ctx, int exportPrivate, void *outData, size_t bufSize, size_t *datSize)
 {
-    int             err = kC4Err_NoErr;
+    C4Err           err = kC4Err_NoErr;
     unsigned long   length = bufSize;
     int             keyType = PK_PUBLIC;
     
@@ -1310,7 +1465,7 @@ done:
 
 C4Err ECC_Import(ECC_ContextRef  ctx,   void *in, size_t inlen )
 {
-    int             err = kC4Err_NoErr;
+    C4Err       err = kC4Err_NoErr;
     
     validateECCContext(ctx);
     
@@ -1349,7 +1504,7 @@ C4Err ECC_Import_Info( void *in, size_t inlen,
                          bool *isANSIx963,
                          size_t *keySizeOut  )
 {
-    int             err = kC4Err_NoErr;
+    C4Err           err = kC4Err_NoErr;
     int             status  =  CRYPT_OK;
     
     uint8_t*        inByte = in;
@@ -1423,7 +1578,7 @@ done:
 
 C4Err ECC_SharedSecret(ECC_ContextRef  privCtx, ECC_ContextRef  pubCtx, void *outData, size_t bufSize, size_t *datSize)
 {
-    int             err = kC4Err_NoErr;
+    C4Err           err = kC4Err_NoErr;
     unsigned long   length = bufSize;
     
     validateECCContext(privCtx);
@@ -1449,7 +1604,7 @@ C4Err ECC_SharedSecret(ECC_ContextRef  privCtx, ECC_ContextRef  pubCtx, void *ou
 
 C4Err ECC_KeySize( ECC_ContextRef  ctx, size_t * bits)
 {
-    int  err = kC4Err_NoErr;
+    C4Err  err = kC4Err_NoErr;
     
     validateECCContext(ctx);
     ValidateParam(ctx->isInited);
@@ -1463,7 +1618,7 @@ C4Err ECC_KeySize( ECC_ContextRef  ctx, size_t * bits)
 
 C4Err ECC_CurveName( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen)
 {
-    int  err = kC4Err_NoErr;
+    C4Err  err = kC4Err_NoErr;
     
     validateECCContext(ctx);
     ValidateParam(ctx->isInited);
@@ -1654,7 +1809,7 @@ C4Err PASS_TO_KEY_SETUP(   unsigned long  password_len,
     uint8_t     *key        = NULL;
     uint32_t    rounds = MIN_ROUNDS;
    
-#ifdef __APPLE__
+#ifdef _USES_COMMON_CRYPTO_
     
     rounds = CCCalibratePBKDF(kCCPBKDF2,password_len, salt_len, kCCPRFHmacAlgSHA256, key_len, 100 );
 
@@ -1720,7 +1875,7 @@ C4Err PASS_TO_KEY (   const char  *password,
 {
     C4Err    err     = kC4Err_NoErr;
     
-#ifdef __APPLE__
+#ifdef _USES_COMMON_CRYPTO_
      
    if( CCKeyDerivationPBKDF( kCCPBKDF2, (const char*)password,  password_len,
                          salt, salt_len,
@@ -1803,7 +1958,7 @@ C4Err RNG_GetBytes(
                       )
 {
     int             err = kC4Err_NoErr;
-#ifdef __APPLE__
+#ifdef _USES_COMMON_CRYPTO_
    
    if(  CCRandomGenerateBytes(out, outLen) != kCCSuccess)
        err =  kC4Err_ResourceUnavailable;

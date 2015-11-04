@@ -24,6 +24,7 @@ typedef enum
     kTest_Ciphers,
     kTest_ECC,
     kTest_P2K,
+    kTest_TBC,
      kTest_All,
 } SDKTest;
 
@@ -34,9 +35,10 @@ static SDKTest sDefaultTests[]  =
     kTest_Hash,
     kTest_Hmac,
     kTest_Ciphers,
+    kTest_TBC,
     kTest_ECC,
     kTest_P2K,
-    kTest_Invalid		// null terminated
+     kTest_Invalid		// null terminated
 };
 
 /* for command line processing */
@@ -80,8 +82,9 @@ static TestTable sOpTestTable[] =
     { 0, kArg_TestID,	  NULL,  kTest_Hash,		"hash",				0,  "Secure Hash Algorithms" },
     { 0, kArg_TestID,	  NULL,  kTest_Hmac,		"HMAC",				0,  "Keyed-Hashing for Message Authentication" },
     { 0, kArg_TestID,	  NULL,  kTest_Ciphers,		"ciphers",			0,  "Low Level Encryption" },
-    
-    { 0, kArg_TestID,	  NULL,  kTest_ECC,         "ECC",				0,  "Ellipic Curve Public Key" },
+    { 0, kArg_TestID,	  NULL,  kTest_TBC,         "TBC",              0,  "Tweekable Block Ciphers" },
+ 
+    { 0, kArg_TestID,	  NULL,  kTest_ECC,         "ECC",				0,  "Elliptic Curve Public Key" },
      { 0, kArg_TestID,	  NULL,  kTest_P2K,         "P2K",				0,  "Key Derivation (PBKDF2)" },
     
     { 0, kArg_TestID,	  NULL,  kTest_Invalid,		 "none",				0,  NULL },
@@ -340,6 +343,11 @@ int optest_main(int argc, char **argv)
                     /* Run HMAC test */
                 case kTest_ECC:
                     err = TestECC(); CKERR;
+                    break;
+                    
+                    /* Run TBC test */
+                case kTest_TBC:
+                    err = TestTBCiphers(); CKERR;
                     break;
                     
                     /* Run Password to Key test*/

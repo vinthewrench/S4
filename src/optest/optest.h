@@ -72,10 +72,13 @@ extern unsigned int gLogLevel;
 
 int OPTESTPrintF(const char *, ...);
 
- char *hash_algor_table(HASH_Algorithm algor);
+char *hash_algor_table(HASH_Algorithm algor);
 char *cipher_algor_table(Cipher_Algorithm algor);
 char* mac_algor_table(MAC_Algorithm algor);
+char *tbc_algor_table(TBC_Algorithm algor);
 uint32_t hash_algor_bits(HASH_Algorithm algor);
+
+
 
 void dumpHex8(int logFlag,  uint8_t* buffer);
 void dumpHex32(int logFlag,  uint8_t* buffer);
@@ -98,5 +101,6 @@ C4Err TestHMAC();
 C4Err TestCiphers();
 C4Err TestECC();
 C4Err TestP2K();
+C4Err TestTBCiphers();
 
 #endif /* optest_h */

@@ -377,6 +377,9 @@
 		2EAA6A671BE81E8700A0375B /* testECC.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A5E1BE8198500A0375B /* testECC.c */; };
 		2EAA6A681BE81E8700A0375B /* testP2K.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A611BE81D2B00A0375B /* testP2K.c */; };
 		2EAA6A691BE81E8700A0375B /* optestutilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66511BE7E27B00A0375B /* optestutilities.c */; };
+		2EAA6A6E1BE9663300A0375B /* testTBC.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A6D1BE9663300A0375B /* testTBC.c */; };
+		2EAA6A721BE97A0300A0375B /* c4bufferutilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A711BE97A0300A0375B /* c4bufferutilities.c */; };
+		2EAA6A751BE97C9500A0375B /* c4bufferutilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA6A731BE97AA300A0375B /* c4bufferutilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -781,6 +784,9 @@
 		2EAA6A5E1BE8198500A0375B /* testECC.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testECC.c; path = src/optest/testECC.c; sourceTree = SOURCE_ROOT; };
 		2EAA6A611BE81D2B00A0375B /* testP2K.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testP2K.c; path = src/optest/testP2K.c; sourceTree = SOURCE_ROOT; };
 		2EAA6A6A1BE928F600A0375B /* C4.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = C4.plist; path = src/main/C4/apple/C4.plist; sourceTree = SOURCE_ROOT; };
+		2EAA6A6D1BE9663300A0375B /* testTBC.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testTBC.c; path = src/optest/testTBC.c; sourceTree = SOURCE_ROOT; };
+		2EAA6A711BE97A0300A0375B /* c4bufferutilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = c4bufferutilities.c; path = src/main/C4/c4bufferutilities.c; sourceTree = SOURCE_ROOT; };
+		2EAA6A731BE97AA300A0375B /* c4bufferutilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = c4bufferutilities.h; path = src/main/C4/c4bufferutilities.h; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -848,6 +854,7 @@
 			isa = PBXGroup;
 			children = (
 				2EAA662B1BE7D57800A0375B /* c4.c */,
+				2EAA6A711BE97A0300A0375B /* c4bufferutilities.c */,
 				2EAA6A6A1BE928F600A0375B /* C4.plist */,
 				2EAA66291BE7D50800A0375B /* C4.exp */,
 			);
@@ -861,6 +868,7 @@
 				2EAA662C1BE7D57800A0375B /* c4.h */,
 				2EAA66311BE7D62B00A0375B /* c4pubtypes.h */,
 				2EAA66301BE7D5E900A0375B /* c4crypto.h */,
+				2EAA6A731BE97AA300A0375B /* c4bufferutilities.h */,
 			);
 			name = headers;
 			path = C4;
@@ -883,6 +891,7 @@
 				2EAA6A571BE7EF7200A0375B /* testHash.c */,
 				2EAA6A5A1BE7F8F000A0375B /* testHMAC.c */,
 				2EAA6A5C1BE7FB6E00A0375B /* testCiphers.c */,
+				2EAA6A6D1BE9663300A0375B /* testTBC.c */,
 				2EAA6A5E1BE8198500A0375B /* testECC.c */,
 				2EAA6A611BE81D2B00A0375B /* testP2K.c */,
 				2EAA664C1BE7DC6100A0375B /* optest.h */,
@@ -1654,6 +1663,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2EAA6A561BE7EC1900A0375B /* threefishApi.h in Headers */,
+				2EAA6A751BE97C9500A0375B /* c4bufferutilities.h in Headers */,
 				2EAA694D1BE7EBB000A0375B /* tomcrypt_math.h in Headers */,
 				2EAA69461BE7EBB000A0375B /* tomcrypt_argchk.h in Headers */,
 				2EAA69381BE7EBB000A0375B /* skein_port.h in Headers */,
@@ -2083,6 +2093,7 @@
 				2EAA698E1BE7EBB000A0375B /* crypt_find_prng.c in Sources */,
 				2EAA66E71BE7E7F400A0375B /* bn_mp_div_2.c in Sources */,
 				2EAA69971BE7EBB000A0375B /* crypt_register_prng.c in Sources */,
+				2EAA6A721BE97A0300A0375B /* c4bufferutilities.c in Sources */,
 				2EAA67381BE7E7F400A0375B /* bn_mp_to_unsigned_bin.c in Sources */,
 				2EAA673C1BE7E7F400A0375B /* bn_mp_toradix.c in Sources */,
 				2EAA69DC1BE7EBB000A0375B /* der_encode_ia5_string.c in Sources */,
@@ -2171,6 +2182,7 @@
 				2EAA6A5B1BE7F8F000A0375B /* testHMAC.c in Sources */,
 				2EAA6A591BE7EF7200A0375B /* testHash.c in Sources */,
 				2EAA6A5D1BE7FB6E00A0375B /* testCiphers.c in Sources */,
+				2EAA6A6E1BE9663300A0375B /* testTBC.c in Sources */,
 				2EAA6A621BE81D2B00A0375B /* testP2K.c in Sources */,
 				2EAA664D1BE7DC6100A0375B /* optest.c in Sources */,
 				2EAA66531BE7E27B00A0375B /* optestutilities.c in Sources */,

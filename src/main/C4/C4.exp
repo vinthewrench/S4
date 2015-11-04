@@ -32,6 +32,12 @@ _CBC_Free
 _CBC_EncryptPAD
 _CBC_DecryptPAD
 
+_TBC_Init
+_TBC_SetTweek
+_TBC_Encrypt
+_TBC_Decrypt
+_TBC_Free
+
 _ECC_Init
 _ECC_Free
 _ECC_Generate
@@ -57,3 +63,15 @@ _RNG_GetPassPhrase
 
 _PGPWordEncode
 _PGPWordEncode64
+
+_C4_LoadArray
+_C4_StoreArray
+_C4_Load64
+_C4_Load32
+_C4_Load16
+_C4_Load8
+_C4_StorePad
+_C4_Store64
+_C4_Store32
+_C4_Store16
+_C4_Store8
