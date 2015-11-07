@@ -6,9 +6,7 @@
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#include <stdio.h>
-#include "C4.h"
-
+#include "c4Internal.h"
 
 /* Functions to load and store in network (big) endian format */
 

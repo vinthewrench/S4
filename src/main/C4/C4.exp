@@ -75,3 +75,10 @@ _C4_Store64
 _C4_Store32
 _C4_Store16
 _C4_Store8
+
+_SHARES_Init
+_SHARES_Free
+_SHARES_GetShare
+_SHARES_ShareCombine
+
+

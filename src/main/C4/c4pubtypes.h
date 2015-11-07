@@ -166,7 +166,10 @@ enum C4Err
     
     kC4Err_EndOfIteration,			// 26
     kC4Err_OtherError,				// 27
-    kC4Err_PubPrivKeyNotFound		// 28
+    kC4Err_PubPrivKeyNotFound,		// 28
+    
+    kC4Err_NotEnoughShares,         // 29
+
     
 };
 

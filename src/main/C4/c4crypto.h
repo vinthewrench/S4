@@ -321,6 +321,38 @@ C4Err ECC_Verify(ECC_ContextRef  pubCtx, void *sig, size_t sigLen,  void *hash, 
 
 C4Err ECC_Sign(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen);
 
+
+
+#ifdef __clang__
+#pragma mark - Shamir Secret Sharing
+#endif
+
+typedef struct SHARES_Context *      SHARES_ContextRef;
+
+#define	kInvalidSHARES_ContextRef		((SHARES_ContextRef) NULL)
+
+#define SHARES_ContextRefIsValid( ref )		( (ref) != kInvalidSHARES_ContextRef )
+
+
+C4Err SHARES_Init( const void       *key,
+                  size_t           keyLen,
+                  uint32_t         totalShares,
+                  uint32_t         threshold,
+                  SHARES_ContextRef *ctx);
+
+void  SHARES_Free(SHARES_ContextRef  ctx);
+
+
+C4Err  SHARES_GetShare(SHARES_ContextRef  ctx,
+                       uint32_t shareNumber,
+                       void **outData,
+                       size_t *outDataLen);
+
+C4Err  SHARES_ShareCombine( uint32_t     numberShares,
+                            void*       shares[],
+                            void         *outData,
+                            size_t       bufSize,
+                             size_t       *outDataLen);
 #ifdef __clang__
 #pragma mark - Hash word Encoding
 #endif
