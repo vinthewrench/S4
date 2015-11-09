@@ -14,7 +14,7 @@
 #endif
 
 
-#define STATIC_SHAMIR_ARRAYS 1
+#define CREATE_SHAMIR_TABLES 0
 
 /*
  https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing
@@ -29,22 +29,13 @@
 /* X coordinate of secret value */
 #define X0		0
 
-/* Pointer to nth share body in output */
-#define BODY(array,bodysize,n) ((uint8_t *)(array) + \
-(n)*((bodysize)+kSHAMIR_HEADERSIZE) + kSHAMIR_HEADERSIZE)
-
-/* Pointer to nth share header in output */
-#define HEADER(array,bodysize,n) ((struct SHAMIR_ShareHeader *) \
-((uint8_t *)(array) + (n)*((bodysize)+kSHAMIR_HEADERSIZE)))
-
-
 #define FIELD_SIZE 256
 #define FIELD_POLY 0x169
 
 #define f_add(x,y) ((x)^(y))
 #define f_sub(x,y) f_add(x,y)
 
-#if STATIC_SHAMIR_ARRAYS
+#if CREATE_SHAMIR_TABLES
 
 /* Code to dynamically construct these arrays is below as an alternative */
 
@@ -151,7 +142,7 @@ static const uint8_t f_log[FIELD_SIZE] =
     0x1C, 0x95, 0xB2, 0x83, 0xAB, 0x5C, 0x56, 0x70
 };
 
-#else	/* STATIC_SHAMIR_ARRAYS */
+#else	/* CREATE_SHAMIR_TABLES */
 
 static uint8_t f_exp[2*FIELD_SIZE];
 static uint8_t f_log[FIELD_SIZE];
@@ -184,7 +175,7 @@ static void sCreateTables(void)
     }
 }
 
-#endif	/* STATIC_SHAMIR_ARRAYS */
+#endif	/* CREATE_SHAMIR_TABLES */
 
 
 #pragma pack(push)  /* push current alignment to stack */
@@ -258,7 +249,7 @@ static C4Err sComputeLagrange(void* shareData, size_t shareLen, uint32_t nShares
     uint8_t			xi, xj;
     uint32_t		numer, denom;
     
- #if !STATIC_SHAMIR_ARRAYS
+ #if CREATE_SHAMIR_TABLES
     sCreateTables();
 #endif
     

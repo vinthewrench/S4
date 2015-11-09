@@ -5,5 +5,5 @@ xcuserdata
 *.xcuserstate
 *.xccheckout
 *.xcscmblueprint
-src/main/scripts/git_version_hash.h
+git_version_hash.h
 Icon?
