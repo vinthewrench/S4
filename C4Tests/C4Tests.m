@@ -25,6 +25,15 @@
 #include  "optest.h"
 #include  "c4.h"
 
+#if TARGET_OS_IPHONE
+
+void OutputString(char *s)
+{
+    
+}
+#endif
+
+
 
 @interface C4Tests : XCTestCase
 
@@ -57,12 +66,6 @@ unsigned int gLogLevel	= OPTESTLOG_LEVEL_ERROR;
     }
     
 }
-
-//void OutputString(char *s)
-//{
-//    
-//}
-
 
 - (void)setUp {
     [super setUp];
@@ -160,6 +163,18 @@ done:
     
     [self CheckError:err];
 }
+
+
+- (void)testSecretSharing {
+     C4Err err = kC4Err_NoErr;
+    
+    err = TestSecretSharing();CKERR;
+    
+done:
+    
+    [self CheckError:err];
+}
+
 
 
 

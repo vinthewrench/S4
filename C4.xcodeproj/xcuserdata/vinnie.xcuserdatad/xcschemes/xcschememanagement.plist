@@ -4,6 +4,16 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>C4-ios Tests.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>C4-ios static.xcscheme</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
 		<key>C4-osx.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
@@ -17,6 +27,16 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>2E0E1E671BF10FB300E1E845</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>2E0E1FC71BF111D400E1E845</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>2EAA660D1BE7D36E00A0375B</key>
 		<dict>
 			<key>primary</key>
