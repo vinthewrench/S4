@@ -177,5 +177,16 @@ done:
 
 
 
+- (void)testKeys {
+    C4Err err = kC4Err_NoErr;
+    
+    err =TestKeys();CKERR;
+    
+done:
+    
+    [self CheckError:err];
+}
+
+
 
 @end

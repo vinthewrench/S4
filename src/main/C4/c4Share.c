@@ -35,7 +35,7 @@
 #define f_add(x,y) ((x)^(y))
 #define f_sub(x,y) f_add(x,y)
 
-#if CREATE_SHAMIR_TABLES
+#if !CREATE_SHAMIR_TABLES
 
 /* Code to dynamically construct these arrays is below as an alternative */
 

@@ -74,22 +74,27 @@ typedef struct HASH_Context *      HASH_ContextRef;
 #define kHASH_ContextAllocSize 512
 
 
-enum HASH_Algorithm
+enum HASH_Algorithm_
 {
-    kHASH_Algorithm_Invalid         = 0,
-    kHASH_Algorithm_SHA1            = 1,
-    kHASH_Algorithm_SHA224          = 2,
-    kHASH_Algorithm_SHA256          = 3,
-    kHASH_Algorithm_SHA384          = 4,
-    kHASH_Algorithm_SHA512          = 5,
-    kHASH_Algorithm_SKEIN256        = 6,
-    kHASH_Algorithm_SKEIN512        = 7,
-    kHASH_Algorithm_SKEIN1024       = 8,
-    kHASH_Algorithm_SHA512_256      = 9,
-    kHASH_Algorithm_MD5             = 10,
+    kHASH_Algorithm_MD5             = 1,
+    kHASH_Algorithm_SHA1            = 2,
+    kHASH_Algorithm_SHA224          = 3,
+    kHASH_Algorithm_SHA256          = 4,
+    kHASH_Algorithm_SHA384          = 5,
+    kHASH_Algorithm_SHA512          = 6,
+    kHASH_Algorithm_SKEIN256        = 7,
+    kHASH_Algorithm_SKEIN512        = 8,
+    kHASH_Algorithm_SKEIN1024       = 9,
+    kHASH_Algorithm_SHA512_256      = 10,
+ 
+    
+    kHASH_Algorithm_Invalid           =  kEnumMaxValue,
+    
+    ENUM_FORCE( HASH_Algorithm_ )
 };
 
-typedef enum HASH_Algorithm HASH_Algorithm;
+
+ENUM_TYPEDEF( HASH_Algorithm_, HASH_Algorithm   );
 
 C4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx);
 
@@ -110,14 +115,18 @@ C4Err HASH_DO(HASH_Algorithm algorithm, const unsigned char *in, unsigned long i
 #pragma mark - Message  Authentication Code wrappers
 #endif
 
-enum MAC_Algorithm
+
+enum MAC_Algorithm_
 {
-    kMAC_Algorithm_Invalid         = 0,
     kMAC_Algorithm_HMAC            = 1,
     kMAC_Algorithm_SKEIN          = 2,
+    
+    kMAC_Algorithm_Invalid           =  kEnumMaxValue,
+    
+    ENUM_FORCE( MAC_Algorithm_ )
 };
 
-typedef enum MAC_Algorithm MAC_Algorithm;
+ENUM_TYPEDEF( MAC_Algorithm_, MAC_Algorithm   );
 
 typedef struct MAC_Context *      MAC_ContextRef;
 
@@ -160,18 +169,19 @@ C4Err  MAC_KDF(MAC_Algorithm     mac,
 #pragma mark - Cipher function wrappers
 #endif
 
-
-enum Cipher_Algorithm
+enum Cipher_Algorithm_
 {
-    kCipher_Algorithm_Invalid        = 0,
     kCipher_Algorithm_AES128         = 1,
     kCipher_Algorithm_AES192         = 2,
     kCipher_Algorithm_AES256         = 3,
     kCipher_Algorithm_2FISH256       = 4,
     
+    kCipher_Algorithm_Invalid           =  kEnumMaxValue,
+    
+    ENUM_FORCE( Cipher_Algorithm_ )
 };
 
-typedef enum Cipher_Algorithm Cipher_Algorithm;
+ENUM_TYPEDEF( Cipher_Algorithm_, Cipher_Algorithm   );
 
 
 C4Err ECB_Encrypt(Cipher_Algorithm algorithm,
@@ -238,16 +248,18 @@ typedef struct TBC_Context *      TBC_ContextRef;
 
 #define TBC_ContextRefIsValid( ref )		( (ref) != kInvalidTBC_ContextRef )
 
-
-enum TBC_Algorithm
+enum TBC_Algorithm_
 {
-    kTBC_Algorithm_Invalid          = 0,
-    kTBC_Algorithm_3FISH256          = 1,
-    kTBC_Algorithm_3FISH512          = 2,
+    kTBC_Algorithm_3FISH256                = 1,
+    kTBC_Algorithm_3FISH512             = 2,
     kTBC_Algorithm_3FISH1024          = 3,
- };
 
-typedef enum TBC_Algorithm TBC_Algorithm;
+    kTBC_Algorithm_Invalid           =  kEnumMaxValue,
+
+    ENUM_FORCE( TBC_Algorithm_ )
+};
+
+ENUM_TYPEDEF( TBC_Algorithm_, TBC_Algorithm   );
 
 C4Err TBC_Init(TBC_Algorithm algorithm,
                const void *key,

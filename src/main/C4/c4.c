@@ -259,12 +259,12 @@ C4Err RNG_GetPassPhrase(
 }
 
 
-C4Err RNG_GetBytes(
-                      void *         out,
+C4Err RNG_GetBytes(     void *         out,
                       size_t         outLen
                       )
 {
     int             err = kC4Err_NoErr;
+
 #if _USES_COMMON_CRYPTO_
    
    if(  CCRandomGenerateBytes(out, outLen) != kCCSuccess)

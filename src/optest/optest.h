@@ -103,5 +103,6 @@ C4Err TestECC();
 C4Err TestP2K();
 C4Err TestTBCiphers();
 C4Err TestSecretSharing();
+C4Err TestKeys();
 
 #endif /* optest_h */

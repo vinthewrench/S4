@@ -26,6 +26,7 @@ typedef enum
     kTest_P2K,
     kTest_TBC,
     kTest_Share,
+    kTest_Keys,
      kTest_All,
 } SDKTest;
 
@@ -40,6 +41,7 @@ static SDKTest sDefaultTests[]  =
     kTest_ECC,
     kTest_P2K,
     kTest_Share,
+    kTest_Keys,
      kTest_Invalid		// null terminated
 };
 
@@ -87,9 +89,10 @@ static TestTable sOpTestTable[] =
     { 0, kArg_TestID,	  NULL,  kTest_TBC,         "TBC",              0,  "Tweekable Block Ciphers" },
  
     { 0, kArg_TestID,	  NULL,  kTest_ECC,         "ECC",				0,  "Elliptic Curve Public Key" },
-     { 0, kArg_TestID,	  NULL,  kTest_P2K,         "P2K",				0,  "Key Derivation (PBKDF2)" },
+    { 0, kArg_TestID,	  NULL,  kTest_P2K,         "P2K",				0,  "Key Derivation (PBKDF2)" },
     { 0, kArg_TestID,	  NULL,  kTest_Share,      "share",             0,  "Secret Sharing / Key Split" },
-    
+    { 0, kArg_TestID,	  NULL,  kTest_Keys,       "keys",              0,  "Key Import / Export" },
+ 
     { 0, kArg_TestID,	  NULL,  kTest_Invalid,		 "none",				0,  NULL },
     
     /* arguments/modifiers */
@@ -361,6 +364,11 @@ int optest_main(int argc, char **argv)
                     /* Run Secret Sharing test */
                  case kTest_Share:
                     err = TestSecretSharing();
+                    break;
+                    
+                    /* Run Key import export tests */
+                case kTest_Keys:
+                    err = TestKeys();
                     break;
                     
                 default:;

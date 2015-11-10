@@ -365,6 +365,13 @@
 		2E0E1FDB1BF1133100E1E845 /* testP2K.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A611BE81D2B00A0375B /* testP2K.c */; };
 		2E0E1FDC1BF1133100E1E845 /* optest.h in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA664C1BE7DC6100A0375B /* optest.h */; };
 		2E0E1FDD1BF1133100E1E845 /* optestutilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66511BE7E27B00A0375B /* optestutilities.c */; };
+		2E0E1FE01BF12C2700E1E845 /* c4Key.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FDF1BF12C2700E1E845 /* c4Key.c */; };
+		2E0E1FE11BF12C2700E1E845 /* c4Key.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FDF1BF12C2700E1E845 /* c4Key.c */; };
+		2E0E1FE31BF1373700E1E845 /* testKeys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FE21BF1373700E1E845 /* testKeys.c */; };
+		2E0E1FE41BF1373700E1E845 /* testKeys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FE21BF1373700E1E845 /* testKeys.c */; };
+		2E0E1FE51BF1373700E1E845 /* testKeys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FE21BF1373700E1E845 /* testKeys.c */; };
+		2E0E1FE71BF262F500E1E845 /* c4Keys.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E0E1FE61BF262F500E1E845 /* c4Keys.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2E0E1FE81BF2634E00E1E845 /* c4Keys.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E1FE61BF262F500E1E845 /* c4Keys.h */; };
 		2EAA66191BE7D36E00A0375B /* C4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* C4.framework */; };
 		2EAA661E1BE7D36E00A0375B /* C4Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA661D1BE7D36E00A0375B /* C4Tests.m */; };
 		2EAA662D1BE7D57800A0375B /* c4.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA662B1BE7D57800A0375B /* c4.c */; };
@@ -775,6 +782,7 @@
 			dstSubfolderSpec = 16;
 			files = (
 				2E0E1FC01BF1106C00E1E845 /* c4.h in CopyFiles */,
+				2E0E1FE81BF2634E00E1E845 /* c4Keys.h in CopyFiles */,
 				2E0E1FC11BF1106C00E1E845 /* c4pubtypes.h in CopyFiles */,
 				2E0E1FC21BF1106C00E1E845 /* c4crypto.h in CopyFiles */,
 				2E0E1FC31BF1106C00E1E845 /* c4bufferutilities.h in CopyFiles */,
@@ -804,6 +812,9 @@
 		2E0E1E621BEC1AC100E1E845 /* c4HashWord.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = c4HashWord.c; path = src/main/C4/c4HashWord.c; sourceTree = SOURCE_ROOT; };
 		2E0E1E681BF10FB300E1E845 /* libC4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libC4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E0E1FC81BF111D400E1E845 /* C4-ios Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "C4-ios Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E0E1FDF1BF12C2700E1E845 /* c4Key.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = c4Key.c; path = src/main/C4/c4Key.c; sourceTree = SOURCE_ROOT; };
+		2E0E1FE21BF1373700E1E845 /* testKeys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testKeys.c; path = src/optest/testKeys.c; sourceTree = SOURCE_ROOT; };
+		2E0E1FE61BF262F500E1E845 /* c4Keys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = c4Keys.h; path = src/main/C4/c4Keys.h; sourceTree = SOURCE_ROOT; };
 		2EAA660E1BE7D36E00A0375B /* C4.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = C4.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2EAA66181BE7D36E00A0375B /* C4-osx Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "C4-osx Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2EAA661D1BE7D36E00A0375B /* C4Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = C4Tests.m; sourceTree = "<group>"; };
@@ -1264,18 +1275,19 @@
 			isa = PBXGroup;
 			children = (
 				2EAA662B1BE7D57800A0375B /* c4.c */,
-				2E0E1E521BEC168D00E1E845 /* c4Internal.h */,
-				2EAA6A711BE97A0300A0375B /* c4bufferutilities.c */,
-				2E0E1E541BEC16E300E1E845 /* c4Hash.c */,
-				2E0E1E561BEC17F300E1E845 /* c4MAC.c */,
-				2E0E1E5C1BEC194700E1E845 /* c4ECC.c */,
-				2E0E1E581BEC189B00E1E845 /* c4Cipher.c */,
-				2E0E1E601BEC1A4A00E1E845 /* c4Share.c */,
-				2E0E1E5E1BEC199800E1E845 /* c4PBKDF2.c */,
-				2E0E1E621BEC1AC100E1E845 /* c4HashWord.c */,
-				2E0E1E5A1BEC190400E1E845 /* c4TBC.c */,
-				2EAA6A6A1BE928F600A0375B /* C4.plist */,
 				2EAA66291BE7D50800A0375B /* C4.exp */,
+				2EAA6A6A1BE928F600A0375B /* C4.plist */,
+				2EAA6A711BE97A0300A0375B /* c4bufferutilities.c */,
+				2E0E1E581BEC189B00E1E845 /* c4Cipher.c */,
+				2E0E1E5C1BEC194700E1E845 /* c4ECC.c */,
+				2E0E1E541BEC16E300E1E845 /* c4Hash.c */,
+				2E0E1E621BEC1AC100E1E845 /* c4HashWord.c */,
+				2E0E1E521BEC168D00E1E845 /* c4Internal.h */,
+				2E0E1FDF1BF12C2700E1E845 /* c4Key.c */,
+				2E0E1E561BEC17F300E1E845 /* c4MAC.c */,
+				2E0E1E5E1BEC199800E1E845 /* c4PBKDF2.c */,
+				2E0E1E601BEC1A4A00E1E845 /* c4Share.c */,
+				2E0E1E5A1BEC190400E1E845 /* c4TBC.c */,
 			);
 			name = src;
 			path = C4;
@@ -1288,6 +1300,7 @@
 				2EAA66311BE7D62B00A0375B /* c4pubtypes.h */,
 				2EAA66301BE7D5E900A0375B /* c4crypto.h */,
 				2EAA6A731BE97AA300A0375B /* c4bufferutilities.h */,
+				2E0E1FE61BF262F500E1E845 /* c4Keys.h */,
 			);
 			name = headers;
 			path = C4;
@@ -1314,6 +1327,7 @@
 				2EAA6A771BEBEAE100A0375B /* testSecretSharing.c */,
 				2EAA6A5E1BE8198500A0375B /* testECC.c */,
 				2EAA6A611BE81D2B00A0375B /* testP2K.c */,
+				2E0E1FE21BF1373700E1E845 /* testKeys.c */,
 				2EAA664C1BE7DC6100A0375B /* optest.h */,
 				2EAA66511BE7E27B00A0375B /* optestutilities.c */,
 			);
@@ -2083,6 +2097,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2EAA6A561BE7EC1900A0375B /* threefishApi.h in Headers */,
+				2E0E1FE71BF262F500E1E845 /* c4Keys.h in Headers */,
 				2EAA6A751BE97C9500A0375B /* c4bufferutilities.h in Headers */,
 				2EAA694D1BE7EBB000A0375B /* tomcrypt_math.h in Headers */,
 				2EAA69461BE7EBB000A0375B /* tomcrypt_argchk.h in Headers */,
@@ -2385,6 +2400,7 @@
 				2E0E1EC11BF1102F00E1E845 /* ltc_ecc_map.c in Sources */,
 				2E0E1EC21BF1102F00E1E845 /* der_decode_bit_string.c in Sources */,
 				2E0E1EC31BF1102F00E1E845 /* bn_mp_init_copy.c in Sources */,
+				2E0E1FE11BF12C2700E1E845 /* c4Key.c in Sources */,
 				2E0E1EC41BF1102F00E1E845 /* pkcs_1_mgf1.c in Sources */,
 				2E0E1EC51BF1102F00E1E845 /* bn_mp_is_square.c in Sources */,
 				2E0E1EC61BF1102F00E1E845 /* twofish_tab.c in Sources */,
@@ -2645,6 +2661,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2E0E1FD31BF1120D00E1E845 /* C4Tests.m in Sources */,
+				2E0E1FE51BF1373700E1E845 /* testKeys.c in Sources */,
 				2E0E1FD51BF1133100E1E845 /* testHash.c in Sources */,
 				2E0E1FD61BF1133100E1E845 /* testHMAC.c in Sources */,
 				2E0E1FD71BF1133100E1E845 /* testCiphers.c in Sources */,
@@ -2743,6 +2760,7 @@
 				2EAA6A1A1BE7EBB000A0375B /* ltc_ecc_map.c in Sources */,
 				2EAA69D21BE7EBB000A0375B /* der_decode_bit_string.c in Sources */,
 				2EAA66F91BE7E7F400A0375B /* bn_mp_init_copy.c in Sources */,
+				2E0E1FE01BF12C2700E1E845 /* c4Key.c in Sources */,
 				2EAA6A311BE7EBB000A0375B /* pkcs_1_mgf1.c in Sources */,
 				2EAA67011BE7E7F400A0375B /* bn_mp_is_square.c in Sources */,
 				2EAA68FE1BE7EBB000A0375B /* twofish_tab.c in Sources */,
@@ -3005,6 +3023,7 @@
 				2EAA661E1BE7D36E00A0375B /* C4Tests.m in Sources */,
 				2EAA6A651BE81E8700A0375B /* testHMAC.c in Sources */,
 				2EAA6A661BE81E8700A0375B /* testCiphers.c in Sources */,
+				2E0E1FE31BF1373700E1E845 /* testKeys.c in Sources */,
 				2EAA6A781BEBEAE100A0375B /* testSecretSharing.c in Sources */,
 				2EAA6A671BE81E8700A0375B /* testECC.c in Sources */,
 				2EAA6A641BE81E7300A0375B /* testHash.c in Sources */,
@@ -3021,6 +3040,7 @@
 				2EAA6A5B1BE7F8F000A0375B /* testHMAC.c in Sources */,
 				2EAA6A591BE7EF7200A0375B /* testHash.c in Sources */,
 				2EAA6A5D1BE7FB6E00A0375B /* testCiphers.c in Sources */,
+				2E0E1FE41BF1373700E1E845 /* testKeys.c in Sources */,
 				2EAA6A791BEBEAE100A0375B /* testSecretSharing.c in Sources */,
 				2EAA6A6E1BE9663300A0375B /* testTBC.c in Sources */,
 				2EAA6A621BE81D2B00A0375B /* testP2K.c in Sources */,

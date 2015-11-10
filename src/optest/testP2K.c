@@ -5,12 +5,7 @@
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
-
-#include <stdio.h>
-
-
-
-
+ 
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -60,11 +55,13 @@ static C4Err runP2K_Pairwise()
     clock_t		start	= 0;
     double		elapsed	= 0;
     uint8_t     key[MSG_KEY_BYTES];
-
-
     
     p2k_kat_vector kat;
     char*    passphrase;
+    
+    
+    kat.saltLen = 8;
+    err = RNG_GetBytes(kat.salt, kat.saltLen); CKERR;
     
     
     err = RNG_GetPassPhrase(128, &passphrase); CKERR;
@@ -73,7 +70,7 @@ static C4Err runP2K_Pairwise()
 
     // calculate how many rounds we need on this machine for passphrase hashing
     err = PASS_TO_KEY_SETUP(strlen(kat.passphrase),
-                            MSG_KEY_BYTES, kat.salt, sizeof(kat.salt), &kat.rounds); CKERR;
+                            MSG_KEY_BYTES, kat.salt, kat.saltLen, &kat.rounds); CKERR;
     OPTESTLogInfo("\t%d rounds on this device for 0.1s\n", kat.rounds);
     
     start = clock();
