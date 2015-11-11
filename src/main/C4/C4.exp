@@ -84,4 +84,9 @@ _SHARES_ShareCombine
 _C4Key_NewSymmetric
 _C4Key_NewTBC
 _C4Key_Free
-_C4Key_EncryptToPassPhrase
+_C4Key_SerializeToPassPhrase
+_C4Key_Deserialize
+_C4Key_VerifyPassPhrase
+_C4Key_DecryptFromPassPhrase
+
+

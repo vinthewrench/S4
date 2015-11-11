@@ -1,0 +1,3 @@
+[submodule "libs/yajl"]
+	path = libs/yajl
+	url = https://github.com/lloyd/yajl.git

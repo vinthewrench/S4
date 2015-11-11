@@ -347,7 +347,7 @@ char *cipher_algor_table(Cipher_Algorithm algor)
     switch (algor )
     {
         case kCipher_Algorithm_AES128: 		return (("AES-128"));
-        case kCipher_Algorithm_AES192: 		return (("AES-193"));
+        case kCipher_Algorithm_AES192: 		return (("AES-192"));
         case kCipher_Algorithm_AES256: 		return (("AES-256"));
         case kCipher_Algorithm_2FISH256: 		return (("Twofish-256"));
         default:				return (("Invalid"));
