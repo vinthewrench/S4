@@ -54,6 +54,7 @@ _ECC_Encrypt
 _ECC_Decrypt
 _ECC_Verify
 _ECC_Sign
+_ECC_PubKeyHash
 
 _PASS_TO_KEY
 _PASS_TO_KEY_SETUP

@@ -33,6 +33,9 @@ static C4Err sTestECC(int keySize)
     
     uint8_t         privKey[256];
     size_t          privKeyLen = 0;
+ 
+    uint8_t         keyHash[32];
+    size_t          keyHashLen = 0;
     
     bool isPrivate = false;
     size_t  importKeySize = 0;
@@ -62,6 +65,10 @@ static C4Err sTestECC(int keySize)
     err = ECC_Import_Info( pubKey, pubKeyLen, &isPrivate, &isANSIx963, &importKeySize );CKERR;
     OPTESTLogVerbose("\t\t\t%d bit %s%s key\n", (int)importKeySize , isANSIx963 ?"ANSI x9.63 ":"", isPrivate ?"private":"public");
     
+    err =  ECC_PubKeyHash(ecc, keyHash, sizeof(keyHash), &keyHashLen);CKERR;
+    OPTESTLogVerbose("\t\tKey Hash (%ld bytes)\n", keyHashLen);
+    dumpHex(IF_LOG_DEBUG, keyHash,  (int)keyHashLen, 0);
+
     err =  ECC_Export(ecc, true, privKey, sizeof(privKey), &privKeyLen);CKERR;
     OPTESTLogVerbose("\t\tExport Private Key (%ld bytes)\n", privKeyLen);
     dumpHex(IF_LOG_DEBUG, privKey,  (int)privKeyLen, 0);
@@ -90,6 +97,10 @@ static C4Err sTestECC(int keySize)
     err =  ECC_KeySize(ecc, &importKeySize);
     OPTESTLogVerbose("\t\tImported %d bit private key\n", (int)importKeySize  );
     
+    err =  ECC_PubKeyHash(ecc, keyHash, sizeof(keyHash), &keyHashLen);CKERR;
+    OPTESTLogVerbose("\t\tKey Hash (%ld bytes)\n", keyHashLen);
+    dumpHex(IF_LOG_DEBUG, keyHash,  (int)keyHashLen, 0);
+
     err = ECC_Decrypt(ecc, CT, CTlen,  DT, sizeof(DT), &DTlen); CKERR;
     
     /* check against know-answer */

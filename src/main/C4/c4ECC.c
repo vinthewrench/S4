@@ -377,6 +377,43 @@ done:
 }
 
 
+C4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen)
+{
+    C4Err  err = kC4Err_NoErr;
+    HASH_ContextRef hash = kInvalidHASH_ContextRef;
+    size_t          hashBytes = 0;
+    uint8_t         pubKey[256];
+    size_t          pubKeyLen = 0;
+    
+    validateECCContext(ctx);
+    ValidateParam(ctx->isInited);
+    ValidateParam(outData);
+    
+    err  = HASH_Init(kHASH_Algorithm_SHA256, &hash); CKERR;
+
+    err = HASH_GetSize(hash, &hashBytes);
+    
+    if(bufSize < hashBytes)
+        RETERR (kC4Err_BufferTooSmall);
+    
+    err =  ECC_Export_ANSI_X963( ctx, pubKey, sizeof(pubKey), &pubKeyLen);CKERR;
+    
+    err  = HASH_Update(hash, pubKey, pubKeyLen) ;CKERR;
+    
+    err = HASH_Final(hash,outData);
+    
+    if(outDataLen)
+        *outDataLen = hashBytes;
+    
+done:
+    
+    if(HASH_ContextRefIsValid(hash))
+        HASH_Free(hash);
+
+    return err;
+}
+
+
 
 
 C4Err ECC_Encrypt(ECC_ContextRef  pubCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen)

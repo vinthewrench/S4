@@ -318,6 +318,8 @@ C4Err ECC_Import_ANSI_X963(ECC_ContextRef  ctx,   void *in, size_t inlen );
 
 C4Err ECC_Export_ANSI_X963(ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *datSize);
 
+C4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen);
+
 C4Err ECC_SharedSecret (ECC_ContextRef privCtx,
                            ECC_ContextRef  pubCtx,
                            void *outZ,
