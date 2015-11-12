@@ -115,7 +115,6 @@ C4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_
     macCTX->macAlgor = mac;
     macCTX->hashsize = 0;
     
-    
     switch(mac)
     {
         case  kMAC_Algorithm_HMAC:
