@@ -14,6 +14,7 @@
 
 
 typedef struct  {
+    char            *msg;
     TBC_Algorithm   algor;
     int            keysize;
     
@@ -44,7 +45,7 @@ static C4Err RunCipherKAT(  katvector *kat)
  
     name = tbc_algor_table(kat->algor);
     
-    OPTESTLogInfo("\t%-14s %016llX %016llX ", name, kat->tweek[0],kat->tweek[1] );
+    OPTESTLogInfo("\t%-14s %s   ", name, kat->msg);
     
     // save a copy of plaintext
     memcpy(IN,kat->PT,kat->keysize >> 3);
@@ -186,14 +187,14 @@ C4Err TestTBCiphers()
 
        katvector kat_vector_array[] =
     {
-        {	kTBC_Algorithm_3FISH256,   256,  three_256_00_key,  three_256_00_input,  three_256_00_tweak, three_256_00_result  },
-        {	kTBC_Algorithm_3FISH256,   256,  three_256_01_key,  three_256_01_input,  three_256_01_tweak, three_256_01_result  },
+        {"No Offet",	kTBC_Algorithm_3FISH256,   256,  three_256_00_key,  three_256_00_input,  three_256_00_tweak, three_256_00_result  },
+        {"Large Offset",	kTBC_Algorithm_3FISH256,   256,  three_256_01_key,  three_256_01_input,  three_256_01_tweak, three_256_01_result  },
 
-        {	kTBC_Algorithm_3FISH512,   512,  three_512_00_key,  three_512_00_input,  three_512_00_tweak, three_512_00_result  },
-        {	kTBC_Algorithm_3FISH512,   512,  three_512_01_key,  three_512_01_input,  three_512_01_tweak, three_512_01_result  },
+        {"No Offset",	kTBC_Algorithm_3FISH512,   512,  three_512_00_key,  three_512_00_input,  three_512_00_tweak, three_512_00_result  },
+        {"Large Offset",	kTBC_Algorithm_3FISH512,   512,  three_512_01_key,  three_512_01_input,  three_512_01_tweak, three_512_01_result  },
     
-        {	kTBC_Algorithm_3FISH1024,   1024,  three_1024_00_key,  three_1024_00_input,  three_1024_00_tweak, three_1024_00_result  },
-        {	kTBC_Algorithm_3FISH1024,   1024,  three_1024_01_key,  three_1024_01_input,  three_1024_01_tweak, three_1024_01_result  },
+        {"No Offset",	kTBC_Algorithm_3FISH1024,   1024,  three_1024_00_key,  three_1024_00_input,  three_1024_00_tweak, three_1024_00_result  },
+        {"Large Offset",	kTBC_Algorithm_3FISH1024,   1024,  three_1024_01_key,  three_1024_01_input,  three_1024_01_tweak, three_1024_01_result  },
         
      };
     

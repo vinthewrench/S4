@@ -534,7 +534,7 @@ C4Err  SHARES_ShareCombine( uint32_t     numberShares,
     }
     
     // recreate data structure with existng shares.
-    allocSize = sizeof ((sizeof(ShareHeader) + keyLen) * numberShares) ;
+    allocSize =  (sizeof(ShareHeader) + keyLen) * numberShares ;
     
     shareTable = XMALLOC( allocSize); CKNULL(shareTable);
     ZERO(shareTable, allocSize);

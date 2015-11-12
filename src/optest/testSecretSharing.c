@@ -135,7 +135,7 @@ C4Err  TestSecretSharing()
     OPTESTLogVerbose("OK\n");
     
     /*  check result against known original message */
-    OPTESTPrintF("\t Check result against known original message...");
+    OPTESTPrintF("\t Check result against known original message...\n");
     err = compare2Results(PT, sizeof(PT), PT1, keyLen, kResultFormat_Byte, "SHAMIR Reconstruct");  //CKERR;
 
     
