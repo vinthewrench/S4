@@ -90,5 +90,7 @@ _C4Key_SerializeToPubKey
 _C4Key_Deserialize
 _C4Key_VerifyPassPhrase
 _C4Key_DecryptFromPassPhrase
+_C4Key_DecryptFromPubKey
+
 
 

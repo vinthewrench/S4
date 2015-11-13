@@ -255,7 +255,7 @@ static C4Err sPASSPHRASE_HASH( const uint8_t  *key,
                                 unsigned long  key_len,
                                 uint8_t       *salt,
                                 unsigned long  salt_len,
-                                unsigned int   rounds,
+                                uint32_t        roundsIn,
                                 uint8_t        *mac_buf,
                                 unsigned long  mac_len)
 {
@@ -263,12 +263,67 @@ static C4Err sPASSPHRASE_HASH( const uint8_t  *key,
   
     MAC_ContextRef  macRef     = kInvalidMAC_ContextRef;
     
+    uint32_t        rounds = roundsIn;
+    uint8_t         L[4];
+    char*           label = "passphrase-hash";
+    
+    L[0] = (salt_len >> 24) & 0xff;
+    L[1] = (salt_len >> 16) & 0xff;
+    L[2] = (salt_len >> 8) & 0xff;
+    L[3] = salt_len & 0xff;
+
     err = MAC_Init(kMAC_Algorithm_SKEIN,
                    kHASH_Algorithm_SKEIN256,
                    key, key_len, &macRef); CKERR
     
+    MAC_Update(macRef,  "\x00\x00\x00\x01",  4);
+    MAC_Update(macRef,  label,  strlen(label));
+    
     err = MAC_Update( macRef, salt, salt_len); CKERR;
-    err = MAC_Update( macRef, key, key_len); CKERR;
+    MAC_Update(macRef,  L,  4);
+    
+    err = MAC_Update( macRef, &rounds, sizeof(rounds)); CKERR;
+    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
+  
+    size_t mac_len_SZ = (size_t)mac_len;
+    err = MAC_Final( macRef, mac_buf, &mac_len_SZ); CKERR;
+    
+done:
+    
+    MAC_Free(macRef);
+    
+    return err;
+}
+
+static C4Err sKEY_HASH( const uint8_t  *key,
+                        unsigned long  key_len,
+                         C4KeyType     keyTypeIn,
+                         int           keyAlgorithmIn,
+                        uint8_t        *mac_buf,
+                        unsigned long  mac_len)
+{
+    C4Err           err = kC4Err_NoErr;
+    
+    MAC_ContextRef  macRef     = kInvalidMAC_ContextRef;
+    
+    uint32_t        keyType = keyTypeIn;
+    uint32_t        algorithm = keyAlgorithmIn;
+ 
+    char*           label = "key-hash";
+    
+    err = MAC_Init(kMAC_Algorithm_SKEIN,
+                   kHASH_Algorithm_SKEIN256,
+                   key, key_len, &macRef); CKERR
+    
+    MAC_Update(macRef,  "\x00\x00\x00\x01",  4);
+    MAC_Update(macRef,  label,  strlen(label));
+    
+    err = MAC_Update( macRef, &keyType, sizeof(keyType)); CKERR;
+    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
+  
+    err = MAC_Update( macRef, &algorithm, sizeof(algorithm)); CKERR;
+    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
+
     size_t mac_len_SZ = (size_t)mac_len;
     err = MAC_Final( macRef, mac_buf, &mac_len_SZ); CKERR;
     
@@ -478,9 +533,12 @@ C4Err C4Key_SerializeToPubKey(C4KeyContextRef   ctx,
   
     char                curveName[32]  = {0};
   
-    uint8_t             keyHash[kC4KeyPBKDF2_KeyIDBytes];
-    size_t              keyHashLen = 0;
-
+    uint8_t             keyID[kC4KeyPBKDF2_KeyIDBytes];
+    size_t              keyIDLen = 0;
+  
+    uint8_t             keyHash[kC4KeyPublic_Encrypted_HashBytes];
+    int                 keyAlgorithm = 0;
+    
      uint8_t            encrypted[256] = {0};       // typical 199 bytes
     size_t              encryptedLen = 0;
     
@@ -506,12 +564,14 @@ C4Err C4Key_SerializeToPubKey(C4KeyContextRef   ctx,
         case kC4KeyType_Symmetric:
             keyBytes = ctx->sym.keylen ;
             keyToEncrypt = ctx->sym.symKey;
+            keyAlgorithm = ctx->sym.symAlgor;
             keySuiteString = cipher_algor_table(ctx->sym.symAlgor);
              break;
             
         case kC4KeyType_Tweekable:
             keyBytes = ctx->tbc.keybits >> 3 ;
             keyToEncrypt = ctx->tbc.key;
+            keyAlgorithm = ctx->tbc.tbcAlgor;
             keySuiteString = tbc_algor_table(ctx->tbc.tbcAlgor);
             
             break;
@@ -522,9 +582,12 @@ C4Err C4Key_SerializeToPubKey(C4KeyContextRef   ctx,
     
     /* limit ECC encryption to <= 512 bits of data */
     ValidateParam(keyBytes <= (512 >>3));
-   
+    
+    err = sKEY_HASH(keyToEncrypt, keyBytes, ctx->type,
+                    keyAlgorithm, keyHash, kC4KeyPublic_Encrypted_HashBytes ); CKERR;
+    
     err = ECC_CurveName(eccPub, curveName, sizeof(curveName), NULL); CKERR;
-    err = ECC_PubKeyHash(eccPub, keyHash, kC4KeyPBKDF2_KeyIDBytes, &keyHashLen);CKERR;
+    err = ECC_PubKeyHash(eccPub, keyID, kC4KeyPBKDF2_KeyIDBytes, &keyIDLen);CKERR;
     
     err = ECC_Encrypt(eccPub, keyToEncrypt, keyBytes,  encrypted, sizeof(encrypted), &encryptedLen);CKERR;
     
@@ -551,7 +614,12 @@ C4Err C4Key_SerializeToPubKey(C4KeyContextRef   ctx,
   
     stat = yajl_gen_string(g, (uint8_t *)kC4KeyProp_KeyID, strlen(kC4KeyProp_KeyID)) ; CKYJAL;
     tempLen = sizeof(tempBuf);
-    base64_encode(keyHash, keyHashLen, tempBuf, &tempLen);
+    base64_encode(keyID, keyIDLen, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kC4KeyProp_Hash, strlen(kC4KeyProp_Hash)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(keyHash, kC4KeyPublic_Encrypted_HashBytes, tempBuf, &tempLen);
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
     
     stat = yajl_gen_string(g, (uint8_t *)kC4KeyProp_EncryptedKey, strlen(kC4KeyProp_EncryptedKey)) ; CKYJAL;
@@ -881,13 +949,20 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         uint8_t     buf[128];
         size_t dataLen = sizeof(buf);
         
-        if(( base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
-           && (dataLen == kC4KeyPBKDF2_HashBytes))
+        if( base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
         {
-            jctx->key.type = kC4KeyType_PBKDF2;
             
-            COPY(buf, jctx->key.pbkdf2.keyHash, dataLen);
-            valid = 1;
+            if(jctx->key.type == kC4KeyType_PBKDF2 && (dataLen == kC4KeyPBKDF2_HashBytes))
+            {
+                COPY(buf, jctx->key.pbkdf2.keyHash, dataLen);
+                valid = 1;
+             }
+            else  if(jctx->key.type == kC4KeyType_PublicEncrypted && (dataLen == kC4KeyPublic_Encrypted_HashBytes))
+            {
+                COPY(buf, jctx->key.publicKeyEncoded.keyHash, dataLen);
+                valid = 1;
+             }
+               
         }
     }
     else if(jctx->jType[jctx->level] == C4Key_JSON_Type_KEYID)
@@ -1252,7 +1327,6 @@ C4Err C4Key_DecryptFromPassPhrase( C4KeyContextRef  passCtx,
                       passCtx->pbkdf2.salt, sizeof(passCtx->pbkdf2.salt), passCtx->pbkdf2.rounds,
                       unlocking_key, sizeof(unlocking_key)); CKERR;
     
-    
     err = sPASSPHRASE_HASH(unlocking_key, sizeof(unlocking_key),
                            passCtx->pbkdf2.salt, sizeof(passCtx->pbkdf2.salt), passCtx->pbkdf2.rounds,
                            keyHash, kC4KeyPBKDF2_HashBytes); CKERR;
@@ -1305,6 +1379,104 @@ done:
     ZERO(decrypted_key, sizeof(decrypted_key));
     ZERO(unlocking_key, sizeof(unlocking_key));
     
+    return err;
+
+}
+
+C4Err C4Key_DecryptFromPubKey( C4KeyContextRef      encodedCtx,
+                                    ECC_ContextRef    eccPriv,
+                                    C4KeyContextRef       *symCtx)
+{
+    C4Err           err = kC4Err_NoErr;
+    C4KeyContext*   keyCTX = NULL;
+  
+    int                 encyptAlgor = kCipher_Algorithm_Invalid;
+    int                keyBytes = 0;
+   
+    uint8_t             decrypted_key[128] = {0};
+    size_t              decryptedLen = 0;
+    
+    uint8_t             keyHash[kC4KeyPublic_Encrypted_HashBytes] = {0};
+    
+    validateC4KeyContext(encodedCtx);
+    validateECCContext(eccPriv);
+    ValidateParam(symCtx);
+    
+    ValidateParam(encodedCtx->type == kC4KeyType_PublicEncrypted);
+   
+    ValidateParam (ECC_isPrivate(eccPriv));
+    
+    if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kC4KeyType_Symmetric)
+    {
+        keyBytes = sGetKeyLength(kC4KeyType_Symmetric, encodedCtx->publicKeyEncoded.symAlgor);
+        encyptAlgor = encodedCtx->publicKeyEncoded.symAlgor;
+        
+    }
+    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kC4KeyType_Tweekable)
+    {
+        keyBytes = sGetKeyLength(kC4KeyType_Tweekable, encodedCtx->publicKeyEncoded.tbcAlgor);
+        encyptAlgor = encodedCtx->publicKeyEncoded.tbcAlgor;
+    }
+    
+    keyCTX = XMALLOC(sizeof (C4KeyContext)); CKNULL(keyCTX);
+    ZERO(keyCTX, sizeof(C4KeyContext));
+    
+    keyCTX->magic = kC4KeyContextMagic;
+    
+    if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kC4KeyType_Symmetric)
+    {
+        keyCTX->type  = kC4KeyType_Symmetric;
+        keyCTX->sym.symAlgor = encodedCtx->publicKeyEncoded.symAlgor;
+        keyCTX->sym.keylen = keyBytes;
+        
+        err = ECC_Decrypt(eccPriv,
+                          encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
+                          decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
+        
+        ASSERTERR(decryptedLen != keyBytes, kC4Err_CorruptData );
+        
+        COPY(decrypted_key, keyCTX->sym.symKey, decryptedLen);
+        
+    }
+    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kC4KeyType_Tweekable)
+    {
+        keyCTX->type  = kC4KeyType_Tweekable;
+        keyCTX->tbc.tbcAlgor = encodedCtx->publicKeyEncoded.tbcAlgor;
+        keyCTX->tbc.keybits = keyBytes << 3;
+
+        err = ECC_Decrypt(eccPriv,
+                          encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
+                          decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
+        
+        ASSERTERR(decryptedLen != keyBytes , kC4Err_CorruptData );
+        
+        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
+    }
+    
+    err = sKEY_HASH(decrypted_key, keyBytes, keyCTX->type,  encyptAlgor,
+                    keyHash, kC4KeyPublic_Encrypted_HashBytes ); CKERR;
+    
+    ASSERTERR( !CMP(keyHash, encodedCtx->publicKeyEncoded.keyHash, kC4KeyPublic_Encrypted_HashBytes),
+              kC4Err_BadIntegrity)
+
+   
+
+    *symCtx = keyCTX;
+ 
+
+    
+done:
+    
+    if(IsC4Err(err))
+    {
+        if(IsntNull(keyCTX))
+        {
+            XFREE(keyCTX);
+        }
+    }
+    
+    ZERO(decrypted_key, sizeof(decrypted_key));
+ 
     return err;
 
 }

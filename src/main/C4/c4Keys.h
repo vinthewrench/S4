@@ -18,9 +18,11 @@
 
 
 #define kC4KeyPBKDF2_SaltBytes      8
-#define kC4KeyPBKDF2_HashBytes      16
-#define kC4KeyPBKDF2_KeyIDBytes      16
+#define kC4KeyPBKDF2_HashBytes      8
+
+#define kC4KeyPBKDF2_KeyIDBytes               16
 #define kC4KeyPublic_Encrypted_BufferMAX      256
+#define kC4KeyPublic_Encrypted_HashBytes      8
 
 typedef struct C4KeyContext *      C4KeyContextRef;
 
@@ -83,6 +85,8 @@ typedef struct C4KeyPublic_Encrypted_
         TBC_Algorithm       tbcAlgor;
         Cipher_Algorithm    symAlgor;
     };
+    
+    uint8_t             keyHash[kC4KeyPublic_Encrypted_HashBytes];
     
     size_t              keysize;
      uint8_t            keyID[kC4KeyPBKDF2_KeyIDBytes];
@@ -150,4 +154,7 @@ C4Err C4Key_DecryptFromPassPhrase(   C4KeyContextRef  passCtx,
                                  size_t           passphraseLen,
                                  C4KeyContextRef       *symCtx);
 
+C4Err C4Key_DecryptFromPubKey( C4KeyContextRef      encodedCtx,
+                                ECC_ContextRef      eccPriv,
+                                C4KeyContextRef     *symCtx);
 #endif /* c4Keys_h */
