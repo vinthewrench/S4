@@ -19,6 +19,8 @@
 
 #define kC4KeyPBKDF2_SaltBytes      8
 #define kC4KeyPBKDF2_HashBytes      16
+#define kC4KeyPBKDF2_KeyIDBytes      16
+#define kC4KeyPublic_Encrypted_BufferMAX      256
 
 typedef struct C4KeyContext *      C4KeyContextRef;
 
@@ -30,6 +32,7 @@ enum C4KeyType_
     kC4KeyType_Symmetric           = 1,
     kC4KeyType_Tweekable           = 2,
     kC4KeyType_PBKDF2              = 3,
+    kC4KeyType_PublicEncrypted      = 4,
     
     kC4KeyType_Invalid           =  kEnumMaxValue,
     
@@ -73,6 +76,22 @@ typedef struct C4KeyPBKDF2_
     
 }C4KeyPBKDF2;
 
+typedef struct C4KeyPublic_Encrypted_
+{
+    C4KeyType               keyAlgorithmType;
+    union {
+        TBC_Algorithm       tbcAlgor;
+        Cipher_Algorithm    symAlgor;
+    };
+    
+    size_t              keysize;
+     uint8_t            keyID[kC4KeyPBKDF2_KeyIDBytes];
+    
+    uint8_t             encrypted[kC4KeyPublic_Encrypted_BufferMAX];
+    size_t              encryptedLen;
+    
+}C4KeyPublic_Encrypted;
+
 typedef struct C4KeyContext    C4KeyContext;
 
 struct C4KeyContext
@@ -83,9 +102,10 @@ struct C4KeyContext
     C4KeyType           type;
     
     union {
-        C4KeySymmetric  sym;
-        C4KeyTBC        tbc;
-        C4KeyPBKDF2     pbkdf2;
+        C4KeySymmetric      sym;
+        C4KeyTBC            tbc;
+        C4KeyPBKDF2         pbkdf2;
+    C4KeyPublic_Encrypted   publicKeyEncoded;
     };
     
 };
@@ -101,6 +121,15 @@ C4Err C4Key_NewTBC(     TBC_Algorithm       algorithm,
 
 void C4Key_Free(C4KeyContextRef ctx);
 
+
+/* 
+ C4Key_SerializeToPubKey is limited to TBC keys <= 512 bits since ECC is limited to SHA-512
+ */
+
+C4Err C4Key_SerializeToPubKey(C4KeyContextRef       ctx,
+                                  ECC_ContextRef    ecc,
+                                  uint8_t          **outData,
+                                  size_t           *outSize);
 
 C4Err C4Key_SerializeToPassPhrase(C4KeyContextRef  ctx,
                                   const char       *passphrase,

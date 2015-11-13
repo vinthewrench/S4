@@ -66,6 +66,8 @@ static char *const kC4KeyProp_Encoding          = "encoding";
 
 static char *const kC4KeyProp_Encoding_PBKDF2_AES256   = "pbkdf2-AES256";
 static char *const kC4KeyProp_Encoding_PBKDF2_2FISH256   = "pbkdf2-Twofish-256";
+static char *const kC4KeyProp_Encoding_PUBKEY_ECC384   =  "ECC-384";
+static char *const kC4KeyProp_Encoding_PUBKEY_ECC414   =  "Curve3617";
 
 static char *const kC4KeyProp_Salt              = "salt";
 static char *const kC4KeyProp_Rounds            = "rounds";
@@ -73,7 +75,7 @@ static char *const kC4KeyProp_Rounds            = "rounds";
 static char *const kC4KeyProp_Hash              = "hash";
 static char *const kC4KeyProp_EncryptedKey      = "encrypted";
 
-
+static char *const kC4KeyProp_KeyID              = "keyID";
 
 
 static char *cipher_algor_table(Cipher_Algorithm algor)
@@ -458,6 +460,124 @@ C4Err C4Key_SerializeToPassPhrase(C4KeyContextRef  ctx,
    
 }
 
+C4Err C4Key_SerializeToPubKey(C4KeyContextRef   ctx,
+                              ECC_ContextRef    eccPub,
+                              uint8_t          **outData,
+                              size_t           *outSize)
+{
+    C4Err           err = kC4Err_NoErr;
+    yajl_gen_status     stat = yajl_gen_status_ok;
+    
+    uint8_t             *yajlBuf = NULL;
+    size_t              yajlLen = 0;
+    yajl_gen            g = NULL;
+    
+    uint8_t             tempBuf[1024];
+    size_t              tempLen;
+    uint8_t             *outBuf = NULL;
+  
+    char                curveName[32]  = {0};
+  
+    uint8_t             keyHash[kC4KeyPBKDF2_KeyIDBytes];
+    size_t              keyHashLen = 0;
+
+     uint8_t            encrypted[256] = {0};       // typical 199 bytes
+    size_t              encryptedLen = 0;
+    
+    int                 keyBytes = 0;
+    void*               keyToEncrypt = NULL;
+    
+     char*           keySuiteString = "Invalid";
+    
+    yajl_alloc_funcs allocFuncs = {
+        yajlMalloc,
+        yajlRealloc,
+        yajlFree,
+        (void *) NULL
+    };
+    
+    
+    validateC4KeyContext(ctx);
+    validateECCContext(eccPub);
+    ValidateParam(outData);
+    
+    switch (ctx->type)
+    {
+        case kC4KeyType_Symmetric:
+            keyBytes = ctx->sym.keylen ;
+            keyToEncrypt = ctx->sym.symKey;
+            keySuiteString = cipher_algor_table(ctx->sym.symAlgor);
+             break;
+            
+        case kC4KeyType_Tweekable:
+            keyBytes = ctx->tbc.keybits >> 3 ;
+            keyToEncrypt = ctx->tbc.key;
+            keySuiteString = tbc_algor_table(ctx->tbc.tbcAlgor);
+            
+            break;
+            
+        default:
+            break;
+    }
+    
+    /* limit ECC encryption to <= 512 bits of data */
+    ValidateParam(keyBytes <= (512 >>3));
+   
+    err = ECC_CurveName(eccPub, curveName, sizeof(curveName), NULL); CKERR;
+    err = ECC_PubKeyHash(eccPub, keyHash, kC4KeyPBKDF2_KeyIDBytes, &keyHashLen);CKERR;
+    
+    err = ECC_Encrypt(eccPub, keyToEncrypt, keyBytes,  encrypted, sizeof(encrypted), &encryptedLen);CKERR;
+    
+    g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
+    
+#if DEBUG
+    yajl_gen_config(g, yajl_gen_beautify, 1);
+#else
+    yajl_gen_config(g, yajl_gen_beautify, 0);
+    
+#endif
+    yajl_gen_config(g, yajl_gen_validate_utf8, 1);
+    stat = yajl_gen_map_open(g);
+    
+    stat = yajl_gen_string(g, (uint8_t *)kC4KeyProp_SCKeyVersion, strlen(kC4KeyProp_SCKeyVersion)) ; CKYJAL;
+    sprintf((char *)tempBuf, "%d", kC4KeyProtocolVersion);
+    stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kC4KeyProp_Encoding, strlen(kC4KeyProp_Encoding)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)curveName, strlen(curveName)) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kC4KeyProp_KeySuite, strlen(kC4KeyProp_KeySuite)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)keySuiteString, strlen(keySuiteString)) ; CKYJAL;
+  
+    stat = yajl_gen_string(g, (uint8_t *)kC4KeyProp_KeyID, strlen(kC4KeyProp_KeyID)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(keyHash, keyHashLen, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kC4KeyProp_EncryptedKey, strlen(kC4KeyProp_EncryptedKey)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(encrypted, encryptedLen, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+     
+    stat = yajl_gen_map_close(g); CKYJAL;
+    stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
+    
+    
+    outBuf = XMALLOC(yajlLen+1); CKNULL(outBuf);
+    memcpy(outBuf, yajlBuf, yajlLen);
+    outBuf[yajlLen] = 0;
+    
+    *outData = outBuf;
+    *outSize = yajlLen;
+    
+done:
+    if(IsntNull(g))
+        yajl_gen_free(g);
+    
+    return err;
+
+}
+
 #ifdef __clang__
 #pragma mark - import key.
 #endif
@@ -482,7 +602,8 @@ enum C4Key_JSON_Type_
     C4Key_JSON_Type_ENCODING,
     C4Key_JSON_Type_KEYHASH,
     C4Key_JSON_Type_ENCRYPTED_SYMKEY,
-
+    C4Key_JSON_Type_KEYID,
+    
     C4Key_JSON_Type_SYMKEY,
     
     ENUM_FORCE( C4Key_JSON_Type_ )
@@ -769,6 +890,21 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
             valid = 1;
         }
     }
+    else if(jctx->jType[jctx->level] == C4Key_JSON_Type_KEYID)
+    {
+        uint8_t     buf[128];
+        size_t dataLen = sizeof(buf);
+        
+        if(( base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
+           && (dataLen  == kC4KeyPBKDF2_KeyIDBytes))
+        {
+            jctx->key.type = kC4KeyType_PublicEncrypted;
+            
+            COPY(buf, jctx->key.publicKeyEncoded.keyID, dataLen);
+            
+            valid = 1;
+        }
+    }
     else if(jctx->jType[jctx->level] == C4Key_JSON_Type_ENCRYPTED_SYMKEY)
     {
         uint8_t     buf[256];
@@ -778,24 +914,39 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         {
             size_t keyLength = 0;
             
-            if(jctx->key.pbkdf2.keyAlgorithmType == kC4KeyType_Symmetric)
+            if(jctx->key.type == kC4KeyType_PBKDF2)
             {
-                keyLength = sGetKeyLength(kC4KeyType_Symmetric, jctx->key.pbkdf2.symAlgor);
+                if(jctx->key.pbkdf2.keyAlgorithmType == kC4KeyType_Symmetric)
+                {
+                    keyLength = sGetKeyLength(kC4KeyType_Symmetric, jctx->key.pbkdf2.symAlgor);
+                    
+                    keyLength = keyLength == 24?32:keyLength;
+                    
+                }
+                else  if(jctx->key.pbkdf2.keyAlgorithmType == kC4KeyType_Tweekable)
+                {
+                    keyLength = sGetKeyLength(kC4KeyType_Tweekable, jctx->key.pbkdf2.tbcAlgor);
+                    
+                }
                 
-                keyLength = keyLength == 24?32:keyLength;
-                
+                if(keyLength > 0 && keyLength == dataLen)
+                {
+                    COPY(buf, jctx->key.pbkdf2.encrypted, dataLen);
+                    jctx->key.pbkdf2.encryptedLen = dataLen;
+                    valid = 1;
+                    
+                }
               }
-            else  if(jctx->key.pbkdf2.keyAlgorithmType == kC4KeyType_Tweekable)
+            else  if(jctx->key.type == kC4KeyType_PublicEncrypted)
             {
-                keyLength = sGetKeyLength(kC4KeyType_Tweekable, jctx->key.pbkdf2.tbcAlgor);
                 
-            }
-            if(keyLength > 0 && keyLength == dataLen)
-            {
-                COPY(buf, jctx->key.pbkdf2.encrypted, dataLen);
-                jctx->key.pbkdf2.encryptedLen = dataLen;
-                valid = 1;
-
+                if(dataLen <= kC4KeyPublic_Encrypted_BufferMAX)
+                {
+                    COPY(buf, jctx->key.publicKeyEncoded.encrypted, dataLen);
+                    jctx->key.publicKeyEncoded.encryptedLen = dataLen;
+                    valid = 1;
+                 }
+  
             }
         }
     }
@@ -813,6 +964,18 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                 jctx->key.type = kC4KeyType_PBKDF2;
                 jctx->key.pbkdf2.encyptAlgor = kCipher_Algorithm_AES256;
                 valid = 1;
+        }
+        else if(CMP2(stringVal, stringLen, kC4KeyProp_Encoding_PUBKEY_ECC384, strlen(kC4KeyProp_Encoding_PUBKEY_ECC384)))
+        {
+            jctx->key.type = kC4KeyType_PublicEncrypted;
+            jctx->key.publicKeyEncoded.keysize = 384;
+            valid = 1;
+        }
+        else if(CMP2(stringVal, stringLen, kC4KeyProp_Encoding_PUBKEY_ECC414, strlen(kC4KeyProp_Encoding_PUBKEY_ECC414)))
+        {
+            jctx->key.type = kC4KeyType_PublicEncrypted;
+            jctx->key.publicKeyEncoded.keysize = 414;
+            valid = 1;
         }
      }
     else if(jctx->jType[jctx->level] == C4Key_JSON_Type_KEYSUITE)
@@ -838,6 +1001,21 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                     valid = 1;
                 }
 
+            }
+            else if( jctx->key.type == kC4KeyType_PublicEncrypted)
+            {
+                jctx->key.publicKeyEncoded.keyAlgorithmType = keyType;
+                if(keyType == kC4KeyType_Symmetric)
+                {
+                    jctx->key.publicKeyEncoded.symAlgor = algorithm;
+                    valid = 1;
+                    
+                }
+                else  if(keyType == kC4KeyType_Tweekable)
+                {
+                    jctx->key.publicKeyEncoded.tbcAlgor = algorithm;
+                    valid = 1;
+                }
             }
             else
             {
@@ -902,6 +1080,11 @@ static int sParse_map_key(void * ctx, const unsigned char * stringVal, size_t st
     else  if(CMP2(stringVal, stringLen,kC4KeyProp_EncryptedKey, strlen(kC4KeyProp_EncryptedKey)))
     {
         jctx->jType[jctx->level] = C4Key_JSON_Type_ENCRYPTED_SYMKEY;
+        valid = 1;
+    }
+    else  if(CMP2(stringVal, stringLen,kC4KeyProp_KeyID, strlen(kC4KeyProp_KeyID)))
+    {
+        jctx->jType[jctx->level] = C4Key_JSON_Type_KEYID;
         valid = 1;
     }
     
@@ -1125,5 +1308,6 @@ done:
     return err;
 
 }
+
 
 

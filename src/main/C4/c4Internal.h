@@ -44,4 +44,9 @@ const struct ltc_hash_descriptor* sDescriptorForHash(HASH_Algorithm algorithm);
 
 C4Err sCrypt2C4Err(int t_err);
 
+bool sECC_ContextIsValid( const ECC_ContextRef  ref);
+
+#define validateECCContext( s )		\
+ValidateParam( sECC_ContextIsValid( s ) )
+
 #endif /* c4Internal_h */

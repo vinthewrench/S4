@@ -37,8 +37,7 @@ struct ECC_Context
  validity test
  ____________________________________________________________________________*/
 
-static bool
-sECC_ContextIsValid( const ECC_ContextRef  ref)
+bool sECC_ContextIsValid( const ECC_ContextRef  ref)
 {
     bool       valid	= false;
     
@@ -47,8 +46,6 @@ sECC_ContextIsValid( const ECC_ContextRef  ref)
     return( valid );
 }
 
-#define validateECCContext( s )		\
-ValidateParam( sECC_ContextIsValid( s ) )
 
 
 C4Err ECC_Init(ECC_ContextRef * ctx)
@@ -381,27 +378,29 @@ C4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t
 {
     C4Err  err = kC4Err_NoErr;
     HASH_ContextRef hash = kInvalidHASH_ContextRef;
-    size_t          hashBytes = 0;
-    uint8_t         pubKey[256];
+     uint8_t         pubKey[256];
     size_t          pubKeyLen = 0;
     
+    u08b_t          hashBuf[16];
+    size_t          hashBytes = 0;
+   
     validateECCContext(ctx);
     ValidateParam(ctx->isInited);
     ValidateParam(outData);
     
     err  = HASH_Init(kHASH_Algorithm_SHA256, &hash); CKERR;
-
-    err = HASH_GetSize(hash, &hashBytes);
-    
-    if(bufSize < hashBytes)
-        RETERR (kC4Err_BufferTooSmall);
-    
     err =  ECC_Export_ANSI_X963( ctx, pubKey, sizeof(pubKey), &pubKeyLen);CKERR;
     
     err  = HASH_Update(hash, pubKey, pubKeyLen) ;CKERR;
     
-    err = HASH_Final(hash,outData);
+    err = HASH_Final(hash,hashBuf);
     
+    err = HASH_GetSize(hash, &hashBytes);
+    
+    hashBytes = bufSize < hashBytes ? bufSize :hashBytes;
+    
+    memcpy( outData,hashBuf, hashBytes);
+   
     if(outDataLen)
         *outDataLen = hashBytes;
     
@@ -442,7 +441,7 @@ C4Err ECC_Encrypt(ECC_ContextRef  pubCtx, void *inData, size_t inDataLen,  void 
                                  find_hash(inDataLen > 32?"sha512":"sha256"),
                                  &pubCtx->key);
         
-    }CKSTAT;
+    }; 
     
     if(status != CRYPT_OK)
     {

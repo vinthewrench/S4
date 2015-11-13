@@ -144,7 +144,9 @@ C4Err sTestECC_DH(int keySize)
     size_t          pubKeyLen2 = 0;
     uint8_t         privKey2[256];
     size_t          privKeyLen2 = 0;
-    
+ 
+    uint8_t         curveName[256];
+    size_t          curveNameLen = 0;
     
     ECC_ContextRef eccPriv = kInvalidECC_ContextRef;
     ECC_ContextRef eccPub  = kInvalidECC_ContextRef;
@@ -165,7 +167,9 @@ C4Err sTestECC_DH(int keySize)
     err =  ECC_Export_ANSI_X963( eccPriv, pubKey1, sizeof(pubKey1), &pubKeyLen1);CKERR;
     err =  ECC_Export(eccPriv, true, privKey1, sizeof(privKey1), &privKeyLen1);CKERR;
     
-    OPTESTLogDebug("\t\tKey 1 Pub/Priv  (%ld,%ld) bytes\n", pubKeyLen1, privKeyLen1);
+    err = ECC_CurveName(eccPriv, curveName, sizeof(curveName), & curveNameLen); CKERR;
+   
+    OPTESTLogDebug("\t\tKey 1 Pub/Priv %s (%ld,%ld) bytes\n", curveName, pubKeyLen1, privKeyLen1);
     OPTESTLogDebug("\t\tPublic\n");
     dumpHex(IF_LOG_DEBUG, pubKey1,  (int)pubKeyLen1, 0);
     OPTESTLogDebug("\t\tPrivate\n");
