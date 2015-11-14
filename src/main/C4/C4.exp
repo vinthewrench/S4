@@ -92,5 +92,8 @@ _C4Key_VerifyPassPhrase
 _C4Key_DecryptFromPassPhrase
 _C4Key_DecryptFromPubKey
 
+_C4Key_SetProperty
+_C4Key_GetProperty
+_SCKeyGetAllocatedProperty
 
 

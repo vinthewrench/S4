@@ -29,6 +29,34 @@ typedef struct C4KeyContext *      C4KeyContextRef;
 #define	kInvalidC4KeyContextRef		((C4KeyContextRef) NULL)
 
 #define C4KeyContextRefIsValid( ref )		( (ref) != kInvalidC4KeyContextRef )
+
+
+enum C4KeyPropertyType_
+{
+    C4KeyPropertyType_Invalid       = 0,
+    C4KeyPropertyType_UTF8String    = 1,
+    C4KeyPropertyType_Binary        = 2,
+    C4KeyPropertyType_Time          = 3,
+    C4KeyPropertyType_Numeric       = 4,
+    
+    ENUM_FORCE( C4KeyPropertyType_ )
+};
+
+ENUM_TYPEDEF( C4KeyPropertyType_, C4KeyPropertyType   );
+
+
+typedef struct C4KeyProperty  C4KeyProperty;
+
+struct C4KeyProperty
+{
+    uint8_t             *prop;
+    C4KeyPropertyType   type;
+    uint8_t             *value;
+    size_t              valueLen;
+    
+    C4KeyProperty      *next;
+};
+
 enum C4KeyType_
 {
     kC4KeyType_Symmetric           = 1,
@@ -104,7 +132,8 @@ struct C4KeyContext
 #define kC4KeyContextMagic		0x43346B79
     uint32_t            magic;
     C4KeyType           type;
-    
+    C4KeyProperty       *propList;  // we use this to tag additional properties
+   
     union {
         C4KeySymmetric      sym;
         C4KeyTBC            tbc;
@@ -125,8 +154,19 @@ C4Err C4Key_NewTBC(     TBC_Algorithm       algorithm,
 
 void C4Key_Free(C4KeyContextRef ctx);
 
+C4Err C4Key_SetProperty( C4KeyContextRef ctx,
+                        const char *propName, C4KeyPropertyType propType,
+                        void *data,  size_t  datSize);
 
-/* 
+C4Err C4Key_GetProperty( C4KeyContextRef ctx,
+                        const char *propName,
+                        C4KeyPropertyType *outPropType, void *outData, size_t bufSize, size_t *datSize);
+
+C4Err SCKeyGetAllocatedProperty( C4KeyContextRef ctx,
+                                const char *propName,
+                                C4KeyPropertyType *outPropType, void **outData, size_t *datSize);
+
+/*
  C4Key_SerializeToPubKey is limited to TBC keys <= 512 bits since ECC is limited to SHA-512
  */
 

@@ -40,9 +40,8 @@ static void * yajlRealloc(void * ctx, void * ptr, size_t sz)
 }
 
 
-#ifdef __clang__
-#pragma mark - Key import Export.
-#endif
+static const char *kRfc339Format = "%Y-%m-%dT%H:%M:%SZ";
+
 
 #define kC4KeyProtocolVersion  0x01
 
@@ -55,28 +54,61 @@ static void * yajlRealloc(void * ctx, void * ptr, size_t sz)
 #define K_KEYSUITE_3FISH512   "ThreeFish-512"
 #define K_KEYSUITE_3FISH1024  "ThreeFish-1024"
 
-
 #define K_KEYSUITE_ECC384     "ecc384"
 #define K_KEYSUITE_ECC414     "Curve3617"
 
-static char *const kC4KeyProp_SCKeyVersion      = "version";
+#define K_PROP_VERSION          "version"
+#define K_PROP_KEYSUITE         "keySuite"
+#define K_PROP_ENCODING         "encoding"
+#define K_PROP_SALT             "salt"
+#define K_PROP_ROUNDS           "rounds"
+#define K_PROP_HASH             "hash"
+#define K_PROP_ENCRYPTED        "encrypted"
+#define K_PROP_KEYID             "keyID"
 
-static char *const kC4KeyProp_KeySuite          = "keySuite";
-static char *const kC4KeyProp_Encoding          = "encoding";
+static char *const kC4KeyProp_SCKeyVersion      = K_PROP_VERSION;
+static char *const kC4KeyProp_KeySuite          = K_PROP_KEYSUITE;
+static char *const kC4KeyProp_Encoding          = K_PROP_ENCODING;
 
 static char *const kC4KeyProp_Encoding_PBKDF2_AES256   = "pbkdf2-AES256";
 static char *const kC4KeyProp_Encoding_PBKDF2_2FISH256   = "pbkdf2-Twofish-256";
 static char *const kC4KeyProp_Encoding_PUBKEY_ECC384   =  "ECC-384";
 static char *const kC4KeyProp_Encoding_PUBKEY_ECC414   =  "Curve3617";
 
-static char *const kC4KeyProp_Salt              = "salt";
-static char *const kC4KeyProp_Rounds            = "rounds";
+static char *const kC4KeyProp_Salt              = K_PROP_SALT;
+static char *const kC4KeyProp_Rounds            = K_PROP_ROUNDS;
+static char *const kC4KeyProp_Hash              = K_PROP_HASH;
+static char *const kC4KeyProp_EncryptedKey      = K_PROP_ENCRYPTED;
+static char *const kC4KeyProp_KeyID              = K_PROP_KEYID;
 
-static char *const kC4KeyProp_Hash              = "hash";
-static char *const kC4KeyProp_EncryptedKey      = "encrypted";
 
-static char *const kC4KeyProp_KeyID              = "keyID";
+typedef struct C4KeyPropertyInfo  C4KeyPropertyInfo;
 
+struct C4KeyPropertyInfo
+{
+    char      *const name;
+    C4KeyPropertyType type;
+    bool              readOnly;
+} ;
+
+
+static C4KeyPropertyInfo sPropertyTable[] = {
+    
+    { K_PROP_VERSION,           C4KeyPropertyType_Numeric,  true},
+    { K_PROP_KEYSUITE,          C4KeyPropertyType_UTF8String,  true},
+    { K_PROP_ENCODING,          C4KeyPropertyType_UTF8String,  true},
+    { K_PROP_SALT,              C4KeyPropertyType_Binary,  true},
+    { K_PROP_ROUNDS,            C4KeyPropertyType_Numeric,  true},
+    { K_PROP_HASH,              C4KeyPropertyType_Binary,  true},
+    { K_PROP_ENCRYPTED,         C4KeyPropertyType_Binary,  true},
+    { K_PROP_KEYID,             C4KeyPropertyType_Binary,  true},
+    { NULL,                     C4KeyPropertyType_Invalid,  true},
+};
+
+
+#ifdef __clang__
+#pragma mark - Key utilities.
+#endif
 
 static char *cipher_algor_table(Cipher_Algorithm algor)
 {
@@ -111,10 +143,228 @@ static bool sC4KeyContextIsValid( const C4KeyContextRef  ref)
     return( valid );
 }
 
-
-
 #define validateC4KeyContext( s )		\
 ValidateParam( sC4KeyContextIsValid( s ) )
+
+
+#ifdef __clang__
+#pragma mark - Key property management.
+#endif
+
+static C4KeyProperty* sFindProperty(C4KeyContext *ctx, const char *propName )
+{
+    C4KeyProperty* prop = ctx->propList;
+    
+    while(prop)
+    {
+        if(CMP2(prop->prop, strlen((char *)(prop->prop)), propName, strlen(propName)))
+        {
+            break;
+        }else
+            prop = prop->next;
+    }
+    
+    return prop;
+}
+
+static void sInsertProperty(C4KeyContext *ctx, const char *propName,
+                            C4KeyPropertyType propType, void *data,  size_t  datSize)
+{
+    C4KeyProperty* prop = sFindProperty(ctx,propName);
+    if(!prop)
+    {
+        prop = XMALLOC(sizeof(C4KeyProperty));
+        ZERO(prop,sizeof(C4KeyProperty));
+        prop->prop = (uint8_t *)strndup(propName, strlen(propName));
+        prop->next = ctx->propList;
+        ctx->propList = prop;
+    }
+    
+    if(prop->value) XFREE(prop->value);
+    prop->value = XMALLOC(datSize);
+    prop->type = propType;
+    COPY(data, prop->value, datSize );
+    prop->valueLen = datSize;
+    
+};
+
+
+static void sCloneProperties(C4KeyContext *src, C4KeyContext *dest )
+{
+    C4KeyProperty* sprop = NULL;
+    C4KeyProperty** lastProp = &dest->propList;
+    
+    for(sprop = src->propList; sprop; sprop = sprop->next)
+    {
+        C4KeyProperty* newProp =  XMALLOC(sizeof(C4KeyProperty));
+        ZERO(newProp,sizeof(C4KeyProperty));
+        newProp->prop = (uint8_t *)strndup((char *)(sprop->prop), strlen((char *)(sprop->prop)));
+        newProp->type = sprop->type;
+        newProp->value = XMALLOC(sprop->valueLen);
+        COPY(sprop->value, newProp->value, sprop->valueLen );
+        newProp->valueLen = sprop->valueLen;
+        *lastProp = newProp;
+        lastProp = &newProp->next;
+    }
+    *lastProp = NULL;
+    
+}
+
+
+
+C4Err C4Key_SetProperty( C4KeyContextRef ctx,
+                          const char *propName, C4KeyPropertyType propType,
+                          void *data,  size_t  datSize)
+{
+    
+    C4Err               err = kC4Err_NoErr;
+    C4KeyPropertyInfo  *propInfo = NULL;
+    bool found = false;
+    
+    validateC4KeyContext(ctx);
+    
+    for(propInfo = sPropertyTable; propInfo->name; propInfo++)
+    {
+        if(CMP2(propName, strlen(propName), propInfo->name, strlen(propInfo->name)))
+        {
+            if(propInfo->readOnly)
+                RETERR(kC4Err_BadParams);
+            
+            if(propType != propInfo->type)
+                RETERR(kC4Err_BadParams);
+            
+            found = true;
+            break;
+        }
+    }
+    
+    if(!found)
+        sInsertProperty(ctx, propName, propType, data, datSize);CKERR;
+    
+done:
+    return err;
+    
+}
+
+
+
+static C4Err s4Key_GetPropertyInternal( C4KeyContextRef ctx,
+                                             const char *propName, C4KeyPropertyType *outPropType,
+                                             void *outData, size_t bufSize, size_t *datSize, bool doAlloc,
+                                             uint8_t** allocBuffer)
+{
+    C4Err               err = kC4Err_NoErr;
+    C4KeyPropertyInfo   *propInfo   = NULL;
+    C4KeyProperty*      otherProp   = NULL;
+    C4KeyPropertyType   propType    = C4KeyPropertyType_Invalid;
+    bool                found       = false;
+    
+    size_t          actualLength = 0;
+    uint8_t*        buffer = NULL;
+    
+    if(datSize)
+        *datSize = 0;
+    
+    // write code here to process internal properties
+    for(propInfo = sPropertyTable;propInfo->name; propInfo++)
+    {
+        if(CMP2(propName, strlen(propName), propInfo->name, strlen(propInfo->name)))
+        {
+            propType = propInfo->type;
+            
+            found = true;
+        }
+    }
+    
+    if(!found)
+    {
+        otherProp = sFindProperty(ctx,propName);
+        if(otherProp)
+        {
+            actualLength = (unsigned long)(otherProp->valueLen);
+            propType = otherProp->type;
+            found = true;
+        }
+    }
+    
+    if(!found)
+        RETERR(kC4Err_BadParams);
+    
+    
+    if(!actualLength)
+        goto done;
+    
+    if(doAlloc)
+    {
+        buffer = XMALLOC(actualLength + sizeof('\0')); CKNULL(buffer);
+        *allocBuffer = buffer;
+    }
+    else
+    {
+        actualLength = (actualLength < (unsigned long)bufSize) ? actualLength : (unsigned long)bufSize;
+        buffer = outData;
+    }
+    
+    if(0)
+    {
+        
+    }
+    else if(otherProp)
+    {
+        COPY(otherProp->value,  buffer, actualLength);
+        propType = otherProp->type;
+    }
+
+    
+    if(outPropType)
+        *outPropType = propType;
+    
+    if(datSize)
+        *datSize = actualLength;
+    
+    
+done:
+    return err;
+
+    
+}
+
+C4Err C4Key_GetProperty( C4KeyContextRef ctx,
+                          const char *propName,
+                          C4KeyPropertyType *outPropType, void *outData, size_t bufSize, size_t *datSize)
+{
+    C4Err               err = kC4Err_NoErr;
+    
+    validateC4KeyContext(ctx);
+    ValidateParam(outData);
+    
+    if ( IsntNull( outData ) )
+    {
+        ZERO( outData, bufSize );
+    }
+    
+    err =  s4Key_GetPropertyInternal(ctx, propName, outPropType, outData, bufSize, datSize, false, NULL);
+    
+    return err;
+}
+
+
+
+C4Err SCKeyGetAllocatedProperty( C4KeyContextRef ctx,
+                                   const char *propName,
+                                   C4KeyPropertyType *outPropType, void **outData, size_t *datSize)
+{
+    C4Err               err = kC4Err_NoErr;
+  
+    validateC4KeyContext(ctx);
+    ValidateParam(outData);
+    
+    err =  s4Key_GetPropertyInternal(ctx, propName, outPropType, NULL, 0, datSize, true, (uint8_t**) outData);
+    
+    return err;
+}
+
+
 
 #ifdef __clang__
 #pragma mark - create Key.
@@ -122,7 +372,6 @@ ValidateParam( sC4KeyContextIsValid( s ) )
 
 C4Err C4Key_NewSymmetric(Cipher_Algorithm       algorithm,
                              const void             *key,
-                             
                              C4KeyContextRef    *ctxOut)
 {
     C4Err               err = kC4Err_NoErr;
@@ -158,7 +407,8 @@ C4Err C4Key_NewSymmetric(Cipher_Algorithm       algorithm,
     keyCTX = XMALLOC(sizeof (C4KeyContext)); CKNULL(keyCTX);
     keyCTX->magic = kC4KeyContextMagic;
     keyCTX->type  = kC4KeyType_Symmetric;
-    
+    keyCTX->propList = NULL;
+ 
     keyCTX->sym.symAlgor = algorithm;
     keyCTX->sym.keylen = keylen;
     
@@ -215,10 +465,11 @@ C4Err C4Key_NewTBC(     TBC_Algorithm       algorithm,
     keyCTX = XMALLOC(sizeof (C4KeyContext)); CKNULL(keyCTX);
     keyCTX->magic = kC4KeyContextMagic;
     keyCTX->type  = kC4KeyType_Tweekable;
-    
+    keyCTX->propList = NULL;
+   
     keyCTX->tbc.tbcAlgor = algorithm;
     keyCTX->tbc.keybits = keybits;
-  
+   
     Skein_Get64_LSB_First(keyCTX->tbc.key, key, keybits >>5);   /* bits to words */
     
     *ctxOut = keyCTX;
@@ -241,6 +492,18 @@ void C4Key_Free(C4KeyContextRef ctx)
 {
     if(sC4KeyContextIsValid(ctx))
     {
+        
+        C4KeyProperty *prop = ctx->propList;
+        
+        while(prop)
+        {
+            C4KeyProperty *nextProp = prop->next;
+            XFREE(prop->prop);
+            XFREE(prop->value);
+            XFREE(prop);
+            prop = nextProp;
+        }
+
         ZERO(ctx, sizeof(C4KeyContext));
         XFREE(ctx);
     }
@@ -334,6 +597,61 @@ done:
     return err;
 }
 
+
+
+static yajl_gen_status sGenPropStrings(C4KeyContextRef ctx, yajl_gen g)
+
+{
+    C4Err           err = kC4Err_NoErr;
+    yajl_gen_status     stat = yajl_gen_status_ok;
+    
+    C4KeyProperty *prop = ctx->propList;
+    while(prop)
+    {
+        stat = yajl_gen_string(g, prop->prop, strlen((char *)(prop->prop))) ; CKYJAL;
+        switch(prop->type)
+        {
+            case C4KeyPropertyType_UTF8String:
+                stat = yajl_gen_string(g, prop->value, prop->valueLen) ; CKYJAL;
+                
+                break;
+                
+            case C4KeyPropertyType_Binary:
+            {
+                size_t propLen =  prop->valueLen*4;
+                uint8_t     *propBuf =  XMALLOC(propLen);
+ 
+                base64_encode(prop->value, prop->valueLen, propBuf, &propLen);
+                stat = yajl_gen_string(g, propBuf, (size_t)propLen) ; CKYJAL;
+                XFREE(propBuf);
+            }
+                break;
+                
+            case C4KeyPropertyType_Time:
+            {
+                uint8_t     tempBuf[32];
+                size_t      tempLen;
+                time_t      gTime;
+                struct      tm *nowtm;
+                
+                COPY(prop->value, &gTime, sizeof(gTime));
+                nowtm = gmtime(&gTime);
+                tempLen = strftime((char *)tempBuf, sizeof(tempBuf), kRfc339Format, nowtm);
+                stat = yajl_gen_string(g, tempBuf, tempLen) ; CKYJAL;
+            }
+                break;
+                
+            default:
+                yajl_gen_string(g, (uint8_t *)"NULL", 4) ;
+                break;
+        }
+        
+        prop = prop->next;
+    }
+    
+done:
+    return err;
+}
 
 /*
 
@@ -494,7 +812,8 @@ C4Err C4Key_SerializeToPassPhrase(C4KeyContextRef  ctx,
     tempLen = sizeof(tempBuf);
     base64_encode(encrypted_key, keyBytes, tempBuf, &tempLen);
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
-  
+ 
+    err = sGenPropStrings(ctx, g); CKERR;
     
     stat = yajl_gen_map_close(g); CKYJAL;
     stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
@@ -626,10 +945,11 @@ C4Err C4Key_SerializeToPubKey(C4KeyContextRef   ctx,
     tempLen = sizeof(tempBuf);
     base64_encode(encrypted, encryptedLen, tempBuf, &tempLen);
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
-     
+    
+    err = sGenPropStrings(ctx, g); CKERR;
+    
     stat = yajl_gen_map_close(g); CKYJAL;
     stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
-    
     
     outBuf = XMALLOC(yajlLen+1); CKNULL(outBuf);
     memcpy(outBuf, yajlBuf, yajlLen);
@@ -671,8 +991,9 @@ enum C4Key_JSON_Type_
     C4Key_JSON_Type_KEYHASH,
     C4Key_JSON_Type_ENCRYPTED_SYMKEY,
     C4Key_JSON_Type_KEYID,
-    
     C4Key_JSON_Type_SYMKEY,
+    
+    C4Key_JSON_Type_PROPERTY,
     
     ENUM_FORCE( C4Key_JSON_Type_ )
 };
@@ -692,6 +1013,93 @@ struct C4KeyJSONcontext
  };
 
 typedef struct C4KeyJSONcontext C4KeyJSONcontext;
+
+static time_t parseRfc3339(const unsigned char *s, size_t stringLen)
+{
+    struct tm tm;
+    time_t t;
+    const unsigned char *p = s;
+    
+    if(stringLen < strlen("YYYY-MM-DDTHH:MM:SSZ"))
+        return 0;
+    
+    memset(&tm, 0, sizeof tm);
+    
+    /* YYYY- */
+    if (!isdigit(s[0]) || !isdigit(s[1]) ||  !isdigit(s[2]) || !isdigit(s[3]) || s[4] != '-')
+        return 0;
+    tm.tm_year = (((s[0] - '0') * 10 + s[1] - '0') * 10 +  s[2] - '0') * 10 + s[3] - '0' - 1900;
+    s += 5;
+    
+    /* mm- */
+    if (!isdigit(s[0]) || !isdigit(s[1]) || s[2] != '-')
+        return 0;
+    tm.tm_mon = (s[0] - '0') * 10 + s[1] - '0';
+    if (tm.tm_mon < 1 || tm.tm_mon > 12)
+        return 0;
+    --tm.tm_mon;	/* 0-11 not 1-12 */
+    s += 3;
+    
+    /* ddT */
+    if (!isdigit(s[0]) || !isdigit(s[1]) || toupper(s[2]) != 'T')
+        return 0;
+    tm.tm_mday = (s[0] - '0') * 10 + s[1] - '0';
+    s += 3;
+    
+    /* HH: */
+    if (!isdigit(s[0]) || !isdigit(s[1]) || s[2] != ':')
+        return 0;
+    tm.tm_hour = (s[0] - '0') * 10 + s[1] - '0';
+    s += 3;
+    
+    /* MM: */
+    if (!isdigit(s[0]) || !isdigit(s[1]) || s[2] != ':')
+        return 0;
+    tm.tm_min = (s[0] - '0') * 10 + s[1] - '0';
+    s += 3;
+    
+    /* SS */
+    if (!isdigit(s[0]) || !isdigit(s[1]))
+        return 0;
+    tm.tm_sec = (s[0] - '0') * 10 + s[1] - '0';
+    s += 2;
+    
+    if (*s == '.') {
+        do
+            ++s;
+        while (isdigit(*s));
+    }
+    
+   	if (toupper(s[0]) == 'Z' &&  ((s-p == stringLen -1) ||  s[1] == '\0'))
+        tm.tm_gmtoff = 0;
+    else if (s[0] == '+' || s[0] == '-')
+    {
+        char tzsign = *s++;
+        
+        /* HH: */
+        if (!isdigit(s[0]) || !isdigit(s[1]) || s[2] != ':')
+            return 0;
+        tm.tm_gmtoff = ((s[0] - '0') * 10 + s[1] - '0') * 3600;
+        s += 3;
+        
+        /* MM */
+        if (!isdigit(s[0]) || !isdigit(s[1]) || s[2] != '\0')
+            return 0;
+        tm.tm_gmtoff += ((s[0] - '0') * 10 + s[1] - '0') * 60;
+        
+        if (tzsign == '-')
+            tm.tm_gmtoff = -tm.tm_gmtoff;
+    } else
+        return 0;
+    
+    t = timegm(&tm);
+    if (t < 0)
+        return 0;
+    return t;  
+    
+    //  	return t - tm.tm_gmtoff;
+    
+}
 
 static C4Err sParseKeySuiteString(const unsigned char * stringVal,  size_t stringLen,
                                   C4KeyType *keyTypeOut, int32_t *algorithmOut)
@@ -926,8 +1334,61 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
     int valid = 1;
 //    printf("sParse_string\n");
     
-    if(0)
+    if(jctx->jType[jctx->level] == C4Key_JSON_Type_PROPERTY)
     {
+        C4KeyPropertyInfo  *propInfo = NULL;
+        
+        for(propInfo = sPropertyTable;  propInfo->name  && !valid; propInfo++)
+        {
+            if(CMP2(jctx->jTag, strlen((char *)(jctx->jTag)), propInfo->name, strlen(propInfo->name)))
+            {
+                switch (propInfo->type)
+                {
+                    case C4KeyPropertyType_UTF8String:
+                        sInsertProperty(&jctx->key, propInfo->name, C4KeyPropertyType_UTF8String, (void*)stringVal, stringLen);
+                        valid = 1;
+                        break;
+                        
+                    case C4KeyPropertyType_Time:
+                    {
+                        time_t t = parseRfc3339(stringVal, stringLen);
+                        sInsertProperty(&jctx->key, propInfo->name, C4KeyPropertyType_UTF8String,  &t, sizeof(time_t));
+                        valid = 1;
+                        break;
+                    }
+                        
+                    case C4KeyPropertyType_Binary:
+                    {
+                        size_t dataLen = stringLen;
+                        uint8_t     *buf = XMALLOC(dataLen);
+                        
+                        if(base64_decode(stringVal, stringLen, buf, &dataLen) == CRYPT_OK)
+                        {
+                            sInsertProperty(&jctx->key, propInfo->name, C4KeyPropertyType_Binary, (void*)buf, dataLen);
+                            valid = 1;
+                        }
+                        XFREE(buf);
+                        break;
+                    }
+                        
+                    default:
+                        break;
+                }
+            }
+        }
+        
+        // else just copy it
+        if(!valid)
+        {
+            sInsertProperty(&jctx->key, (char *)(jctx->jTag), C4KeyPropertyType_UTF8String, (void*)stringVal, stringLen);
+            valid = 1;
+        }
+        
+        if(jctx->jTag)
+        {
+            free(jctx->jTag);
+            jctx->jTag = NULL;
+        }
         
     }
     else if(jctx->jType[jctx->level] == C4Key_JSON_Type_SALT)
@@ -1162,7 +1623,15 @@ static int sParse_map_key(void * ctx, const unsigned char * stringVal, size_t st
         jctx->jType[jctx->level] = C4Key_JSON_Type_KEYID;
         valid = 1;
     }
-    
+    else
+    {
+        jctx->jType[jctx->level] = C4Key_JSON_Type_PROPERTY;
+        if(jctx->jTag) free(jctx->jTag);
+        jctx->jTag = (uint8_t *)strndup((char *)stringVal, stringLen);
+        valid = 1;
+        
+    }
+
    return valid;
 
 }

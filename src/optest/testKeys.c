@@ -9,10 +9,14 @@
 #include <stdio.h>
 #include "c4.h"
 #include "optest.h"
+#include <time.h>
 
 
+static char *const kC4KeyProp_Test1   = "testProperty";
+static char *const kC4KeyProp_Time   = "testTime";
 
 typedef struct  {
+    char*               comment;
     Cipher_Algorithm    algor;
     int                 keysize;
     uint8_t             *key;
@@ -67,7 +71,30 @@ static C4Err sCompareKeys( C4KeyContext  *keyCtx, C4KeyContext  *keyCtx1)
             break;
     }
 
-    
+    // compare additional properties
+    C4KeyProperty* prop = keyCtx->propList;
+    while(prop)
+    {
+        C4KeyPropertyType type2 = C4KeyPropertyType_Invalid;
+        void     *data2 = NULL;
+        size_t      data2Len = 0;
+ 
+        C4KeyPropertyType type1 = C4KeyPropertyType_Invalid;
+        void     *data1 = NULL;
+        size_t      data1Len = 0;
+        
+        err = SCKeyGetAllocatedProperty(keyCtx, (const char*) prop->prop, &type1, &data1, &data1Len); CKERR;
+        err = SCKeyGetAllocatedProperty(keyCtx, (const char*) prop->prop, &type2, &data2, &data2Len); CKERR;
+        
+        ASSERTERR(type1 != type2,  kC4Err_SelfTestFailed);
+        
+        err = compare2Results( data1, data1Len, data2, data2Len, kResultFormat_Byte, ( char*) prop->prop); CKERR;
+        
+        if(data1) free(data1);
+        if(data2) free(data2);
+        
+        prop = prop->next;
+    }
 
 done:
     return err;
@@ -85,6 +112,7 @@ static C4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
     
+    time_t          testDate  = time(NULL) ;
     
     name = cipher_algor_table(kat->algor);
     
@@ -93,6 +121,9 @@ static C4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     
     err = C4Key_NewSymmetric(kat->algor, kat->key, &keyCtx  ); CKERR;
     
+    err = C4Key_SetProperty(keyCtx,kC4KeyProp_Test1,C4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
+    err = C4Key_SetProperty(keyCtx, kC4KeyProp_Time, C4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
+  
     err = C4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen(kat->passPhrase), &data, &dataLen); CKERR;
     
       OPTESTLogDebug("\n------\n%s------\n",data);
@@ -164,10 +195,10 @@ static C4Err  sTestSymmetricKeys()
     
     cipherKATvector kat_vector_array[] =
     {
-        {	kCipher_Algorithm_AES128, 128,	K1, passPhrase1},
-        {	kCipher_Algorithm_AES192, 192,	K2, passPhrase1},
-        {	kCipher_Algorithm_AES256, 256,   K3, passPhrase1},
-        {	kCipher_Algorithm_2FISH256, 256,   K3, passPhrase1},
+        {"Key 1",	kCipher_Algorithm_AES128, 128,	K1, passPhrase1},
+        {"Key 2",    kCipher_Algorithm_AES192, 192,	K2, passPhrase1},
+        {"Key 3",   kCipher_Algorithm_AES256, 256,   K3, passPhrase1},
+        {"Key 4",   kCipher_Algorithm_2FISH256, 256,   K3, passPhrase1},
     };
     
     OPTESTLogInfo("\nTesting C4 PBKDF2 Symmetric Key Encoding\n");
@@ -455,10 +486,10 @@ static C4Err  sTestECC_SymmetricKeys()
     
     cipherKATvector kat_vector_array[] =
     {
-        {	kCipher_Algorithm_AES128, 128,	K1, NULL},
-        {	kCipher_Algorithm_AES192, 192,	K2, NULL},
-        {	kCipher_Algorithm_AES256, 256,   K3, NULL},
-        {	kCipher_Algorithm_2FISH256, 256,   K3, NULL},
+        {"Key 1",	kCipher_Algorithm_AES128, 128,	K1, NULL},
+        {"Key 2",    kCipher_Algorithm_AES192, 192,	K2, NULL},
+        {"Key 3",   kCipher_Algorithm_AES256, 256,   K3, NULL},
+        {"Key 4",   kCipher_Algorithm_2FISH256, 256,   K3, NULL},
     };
     
     OPTESTLogInfo("\nTesting C4 ECC Symmetric Key Encoding \n");
