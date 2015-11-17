@@ -365,8 +365,8 @@
 		2E0E1FDB1BF1133100E1E845 /* testP2K.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A611BE81D2B00A0375B /* testP2K.c */; };
 		2E0E1FDC1BF1133100E1E845 /* optest.h in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA664C1BE7DC6100A0375B /* optest.h */; };
 		2E0E1FDD1BF1133100E1E845 /* optestutilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66511BE7E27B00A0375B /* optestutilities.c */; };
-		2E0E1FE01BF12C2700E1E845 /* c4Key.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FDF1BF12C2700E1E845 /* c4Key.c */; };
-		2E0E1FE11BF12C2700E1E845 /* c4Key.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FDF1BF12C2700E1E845 /* c4Key.c */; };
+		2E0E1FE01BF12C2700E1E845 /* c4Keys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FDF1BF12C2700E1E845 /* c4Keys.c */; };
+		2E0E1FE11BF12C2700E1E845 /* c4Keys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FDF1BF12C2700E1E845 /* c4Keys.c */; };
 		2E0E1FE31BF1373700E1E845 /* testKeys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FE21BF1373700E1E845 /* testKeys.c */; };
 		2E0E1FE41BF1373700E1E845 /* testKeys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FE21BF1373700E1E845 /* testKeys.c */; };
 		2E0E1FE51BF1373700E1E845 /* testKeys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FE21BF1373700E1E845 /* testKeys.c */; };
@@ -869,7 +869,7 @@
 		2E0E1E621BEC1AC100E1E845 /* c4HashWord.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = c4HashWord.c; path = src/main/C4/c4HashWord.c; sourceTree = SOURCE_ROOT; };
 		2E0E1E681BF10FB300E1E845 /* libC4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libC4.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E0E1FC81BF111D400E1E845 /* C4-ios Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "C4-ios Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2E0E1FDF1BF12C2700E1E845 /* c4Key.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = c4Key.c; path = src/main/C4/c4Key.c; sourceTree = SOURCE_ROOT; };
+		2E0E1FDF1BF12C2700E1E845 /* c4Keys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = c4Keys.c; path = src/main/C4/c4Keys.c; sourceTree = SOURCE_ROOT; };
 		2E0E1FE21BF1373700E1E845 /* testKeys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testKeys.c; path = src/optest/testKeys.c; sourceTree = SOURCE_ROOT; };
 		2E0E1FE61BF262F500E1E845 /* c4Keys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = c4Keys.h; path = src/main/C4/c4Keys.h; sourceTree = SOURCE_ROOT; };
 		2E0E1FEB1BF264BC00E1E845 /* yajl_alloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = yajl_alloc.c; path = libs/yajl/src/yajl_alloc.c; sourceTree = SOURCE_ROOT; };
@@ -1393,7 +1393,7 @@
 				2E0E1E541BEC16E300E1E845 /* c4Hash.c */,
 				2E0E1E621BEC1AC100E1E845 /* c4HashWord.c */,
 				2E0E1E521BEC168D00E1E845 /* c4Internal.h */,
-				2E0E1FDF1BF12C2700E1E845 /* c4Key.c */,
+				2E0E1FDF1BF12C2700E1E845 /* c4Keys.c */,
 				2E0E1E561BEC17F300E1E845 /* c4MAC.c */,
 				2E0E1E5E1BEC199800E1E845 /* c4PBKDF2.c */,
 				2E0E1E601BEC1A4A00E1E845 /* c4Share.c */,
@@ -2536,7 +2536,7 @@
 				2E0E1EC11BF1102F00E1E845 /* ltc_ecc_map.c in Sources */,
 				2E0E1EC21BF1102F00E1E845 /* der_decode_bit_string.c in Sources */,
 				2E0E1EC31BF1102F00E1E845 /* bn_mp_init_copy.c in Sources */,
-				2E0E1FE11BF12C2700E1E845 /* c4Key.c in Sources */,
+				2E0E1FE11BF12C2700E1E845 /* c4Keys.c in Sources */,
 				2E0E1EC41BF1102F00E1E845 /* pkcs_1_mgf1.c in Sources */,
 				2E0E1EC51BF1102F00E1E845 /* bn_mp_is_square.c in Sources */,
 				2E0E1EC61BF1102F00E1E845 /* twofish_tab.c in Sources */,
@@ -2904,7 +2904,7 @@
 				2EAA6A1A1BE7EBB000A0375B /* ltc_ecc_map.c in Sources */,
 				2EAA69D21BE7EBB000A0375B /* der_decode_bit_string.c in Sources */,
 				2EAA66F91BE7E7F400A0375B /* bn_mp_init_copy.c in Sources */,
-				2E0E1FE01BF12C2700E1E845 /* c4Key.c in Sources */,
+				2E0E1FE01BF12C2700E1E845 /* c4Keys.c in Sources */,
 				2EAA6A311BE7EBB000A0375B /* pkcs_1_mgf1.c in Sources */,
 				2EAA67011BE7E7F400A0375B /* bn_mp_is_square.c in Sources */,
 				2EAA68FE1BE7EBB000A0375B /* twofish_tab.c in Sources */,

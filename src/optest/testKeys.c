@@ -33,22 +33,43 @@ static C4Err sCompareKeys( C4KeyContext  *keyCtx, C4KeyContext  *keyCtx1)
     ValidateParam(keyCtx);
     ValidateParam(keyCtx1);
     
-    ASSERTERR(keyCtx->type != keyCtx1->type,  kC4Err_SelfTestFailed);
+    C4KeyType   type1,type2;
+    int8_t     algor1, algor2;
+
+    int8_t      key1[128], key2[128];
+    size_t      keyLen1, keyLen2;
     
-    switch (keyCtx->type) {
+    err = C4Key_GetProperty(keyCtx, kC4KeyProp_KeyType, NULL, &type1, sizeof(type1), NULL ); CKERR;
+    err = C4Key_GetProperty(keyCtx1, kC4KeyProp_KeyType, NULL, &type2, sizeof(type1), NULL ); CKERR;
+    ASSERTERR(type1 != type2,  kC4Err_SelfTestFailed);
+
+ 
+    switch (type1) {
         case kC4KeyType_Symmetric:
-            ASSERTERR(keyCtx->sym.symAlgor != keyCtx1->sym.symAlgor,  kC4Err_SelfTestFailed);
-            ASSERTERR(keyCtx->sym.keylen != keyCtx1->sym.keylen,  kC4Err_SelfTestFailed);
-            err = compareResults( keyCtx->sym.symKey, keyCtx1->sym.symKey, keyCtx->sym.keylen,
+            
+            err = C4Key_GetProperty(keyCtx, kC4KeyProp_KeyAlgorithm, NULL, &algor1, sizeof(algor1), NULL ); CKERR;
+            err = C4Key_GetProperty(keyCtx1, kC4KeyProp_KeyAlgorithm, NULL, &algor2, sizeof(algor2), NULL ); CKERR;
+            ASSERTERR(algor1 != algor2,  kC4Err_SelfTestFailed);
+            
+            err = C4Key_GetProperty(keyCtx, kC4KeyProp_KeyData, NULL, &key1 , sizeof(key1), &keyLen1 ); CKERR;
+            err = C4Key_GetProperty(keyCtx1, kC4KeyProp_KeyData, NULL, &key2 , sizeof(key2), &keyLen2 ); CKERR;
+            ASSERTERR(keyLen1 != keyLen2,  kC4Err_SelfTestFailed);
+            err = compareResults( key1, key2, keyLen1,
                                  kResultFormat_Byte, "Symmetric key"); CKERR;
             
-            break;
+             break;
             
         case kC4KeyType_Tweekable:
-            ASSERTERR(keyCtx->tbc.tbcAlgor != keyCtx1->tbc.tbcAlgor,  kC4Err_SelfTestFailed);
-            ASSERTERR(keyCtx->tbc.keybits != keyCtx1->tbc.keybits,  kC4Err_SelfTestFailed);
-            err = compareResults( keyCtx->tbc.key, keyCtx1->tbc.key, keyCtx->tbc.keybits >>3,
-                                 kResultFormat_Long, "TBC key"); CKERR;
+            
+            err = C4Key_GetProperty(keyCtx, kC4KeyProp_KeyAlgorithm, NULL, &algor1, sizeof(algor1), NULL ); CKERR;
+            err = C4Key_GetProperty(keyCtx1, kC4KeyProp_KeyAlgorithm, NULL, &algor2, sizeof(algor2), NULL ); CKERR;
+            ASSERTERR(algor1 != algor2,  kC4Err_SelfTestFailed);
+
+            err = C4Key_GetProperty(keyCtx, kC4KeyProp_KeyData, NULL, &key1 , sizeof(key1), &keyLen1 ); CKERR;
+            err = C4Key_GetProperty(keyCtx1, kC4KeyProp_KeyData, NULL, &key2 , sizeof(key2), &keyLen2 ); CKERR;
+            ASSERTERR(keyLen1 != keyLen2,  kC4Err_SelfTestFailed);
+            err = compareResults( key1, key2, keyLen1,
+                                 kResultFormat_Byte, "TBC key"); CKERR;
             
             break;
             
@@ -353,6 +374,12 @@ static C4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     C4KeyContextRef keyCtx1=  kInvalidC4KeyContextRef;
     C4KeyContextRef encodedCtx =  kInvalidC4KeyContextRef;
     
+    uint8_t             keyID[kC4KeyPBKDF2_KeyIDBytes]  = {0};
+    size_t              keyIDLen = 0;
+    
+    uint8_t             keyID1[kC4KeyPBKDF2_KeyIDBytes] = {0};
+    size_t              keyIDLen1 = 0;
+
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
     char* name = NULL;
@@ -402,9 +429,10 @@ static C4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     
     name = cipher_algor_table(kat->algor);
     
-     err = ECC_Init(&eccPub);
+    err = ECC_Init(&eccPub);
     err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
-  
+    err = ECC_PubKeyHash(eccPub, keyID, kC4KeyPBKDF2_KeyIDBytes, &keyIDLen);CKERR;
+
     err = ECC_Init(&eccPriv);
     err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
 
@@ -419,6 +447,11 @@ static C4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     
     OPTESTLogInfo("%8s", "Import");
     err = C4Key_Deserialize(data, dataLen,&encodedCtx ); CKERR;
+    
+    err = C4Key_GetProperty(encodedCtx, kC4KeyProp_KeyID, NULL, keyID1, sizeof(keyID1), &keyIDLen1);
+    ASSERTERR(keyIDLen != keyIDLen1,  kC4Err_SelfTestFailed);
+    err = compareResults( keyID, keyID1, keyIDLen,
+                         kResultFormat_Byte, "Pub KeyID"); CKERR;
     
     OPTESTLogInfo("%8s", "Verify");
     err = C4Key_DecryptFromPubKey(encodedCtx, eccPriv, &keyCtx1); CKERR;
@@ -516,6 +549,12 @@ static C4Err sRunTBC_ECCImportExportKAT(  tbcKATvector *kat)
     C4KeyContextRef keyCtx1=  kInvalidC4KeyContextRef;
     C4KeyContextRef encodedCtx =  kInvalidC4KeyContextRef;
     
+    uint8_t             keyID[kC4KeyPBKDF2_KeyIDBytes]  = {0};
+    size_t              keyIDLen = 0;
+    
+    uint8_t             keyID1[kC4KeyPBKDF2_KeyIDBytes] = {0};
+    size_t              keyIDLen1 = 0;
+
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
     char* name = NULL;
@@ -566,7 +605,8 @@ static C4Err sRunTBC_ECCImportExportKAT(  tbcKATvector *kat)
     
     err = ECC_Init(&eccPub);
     err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
-    
+    err = ECC_PubKeyHash(eccPub, keyID, kC4KeyPBKDF2_KeyIDBytes, &keyIDLen);CKERR;
+
     err = ECC_Init(&eccPriv);
     err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
     
@@ -581,6 +621,11 @@ static C4Err sRunTBC_ECCImportExportKAT(  tbcKATvector *kat)
     
     OPTESTLogInfo("%8s", "Import");
     err = C4Key_Deserialize(data, dataLen,&encodedCtx ); CKERR;
+    
+    err = C4Key_GetProperty(encodedCtx, kC4KeyProp_KeyID, NULL, keyID1, sizeof(keyID1), &keyIDLen1);
+    ASSERTERR(keyIDLen != keyIDLen1,  kC4Err_SelfTestFailed);
+    err = compareResults( keyID, keyID1, keyIDLen,
+                         kResultFormat_Byte, "Pub KeyID"); CKERR;
     
     OPTESTLogInfo("%8s", "Verify");
     err = C4Key_DecryptFromPubKey(encodedCtx, eccPriv, &keyCtx1); CKERR;
@@ -673,7 +718,6 @@ done:
 C4Err  TestKeys()
 {
     C4Err     err = kC4Err_NoErr;
-  
     
  //   asprintf(&new_str,"[" );
 
@@ -683,8 +727,6 @@ C4Err  TestKeys()
     err = sTestECC_TBCKeys(); CKERR;
  
 //    asprintf(&new_str,"%s ]", new_str );
-
-   
 //    C4KeyContextRef keyCtx2 =  kInvalidC4KeyContextRef;
 //    
 //    err = C4Key_Deserialize(new_str, strlen(new_str),&keyCtx2 ); CKERR;
