@@ -20,7 +20,7 @@
 #define kC4KeyPBKDF2_SaltBytes      8
 #define kC4KeyPBKDF2_HashBytes      8
 
-#define kC4KeyPBKDF2_KeyIDBytes               16
+#define kC4Key_KeyIDBytes                   16
 #define kC4KeyPublic_Encrypted_BufferMAX      256
 #define kC4KeyPublic_Encrypted_HashBytes      8
 
@@ -48,6 +48,7 @@ extern char *const kC4KeyProp_KeyType;
 extern char *const kC4KeyProp_KeyAlgorithm;
 extern char *const kC4KeyProp_KeyData;
 extern char *const kC4KeyProp_KeyID;
+extern char *const kC4KeyProp_KeyIDString;
 
 typedef struct C4KeyProperty  C4KeyProperty;
 
@@ -121,7 +122,7 @@ typedef struct C4KeyPublic_Encrypted_
     uint8_t             keyHash[kC4KeyPublic_Encrypted_HashBytes];
     
     size_t              keysize;
-     uint8_t            keyID[kC4KeyPBKDF2_KeyIDBytes];
+     uint8_t            keyID[kC4Key_KeyIDBytes];
     
     uint8_t             encrypted[kC4KeyPublic_Encrypted_BufferMAX];
     size_t              encryptedLen;
@@ -185,7 +186,9 @@ C4Err C4Key_SerializeToPassPhrase(C4KeyContextRef  ctx,
                                   uint8_t          **outData,
                                   size_t           *outSize);
 
-C4Err C4Key_Deserialize( uint8_t *inData, size_t inLen, C4KeyContextRef *ctx);
+C4Err C4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
+                                    size_t           *outCount,
+                                    C4KeyContextRef  *ctxArray[]);
 
 
 C4Err C4Key_VerifyPassPhrase(   C4KeyContextRef  ctx,

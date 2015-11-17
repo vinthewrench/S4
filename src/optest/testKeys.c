@@ -15,6 +15,8 @@
 static char *const kC4KeyProp_Test1   = "testProperty";
 static char *const kC4KeyProp_Time   = "testTime";
 
+static char *const kC4KeyProp_TestPassCodeID   = "passcodeID";
+
 typedef struct  {
     char*               comment;
     Cipher_Algorithm    algor;
@@ -24,7 +26,7 @@ typedef struct  {
     
 } cipherKATvector;
 
-//static char *new_str;
+static char *new_str;
 
 static C4Err sCompareKeys( C4KeyContext  *keyCtx, C4KeyContext  *keyCtx1)
 {
@@ -127,7 +129,10 @@ static C4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     C4Err err = kC4Err_NoErr;
     C4KeyContextRef keyCtx =  kInvalidC4KeyContextRef;
     C4KeyContextRef keyCtx1 =  kInvalidC4KeyContextRef;
-    C4KeyContextRef passCtx =  kInvalidC4KeyContextRef;
+    
+    C4KeyContextRef  *passCtx = NULL;
+    size_t      keyCount = 0;
+     
     char* name = NULL;
     
     uint8_t     *data = NULL;
@@ -142,7 +147,7 @@ static C4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     
     err = C4Key_NewSymmetric(kat->algor, kat->key, &keyCtx  ); CKERR;
     
-    err = C4Key_SetProperty(keyCtx,kC4KeyProp_Test1,C4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
+    err = C4Key_SetProperty(keyCtx,kC4KeyProp_TestPassCodeID,C4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
     err = C4Key_SetProperty(keyCtx, kC4KeyProp_Time, C4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
   
     err = C4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen(kat->passPhrase), &data, &dataLen); CKERR;
@@ -150,18 +155,18 @@ static C4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
       OPTESTLogDebug("\n------\n%s------\n",data);
     
     OPTESTLogInfo("%8s", "Import");
-    err = C4Key_Deserialize(data, dataLen,&passCtx ); CKERR;
+    err = C4Key_DeserializeKeys(data, dataLen, &keyCount, &passCtx ); CKERR;
     
  //   sDumpC4Key(OPTESTLOG_LEVEL_DEBUG, passCtx);
     
     OPTESTLogInfo("%8s", "Verify");
-    err = C4Key_VerifyPassPhrase(passCtx, kat->passPhrase, strlen(kat->passPhrase)); CKERR;
+    err = C4Key_VerifyPassPhrase(passCtx[0], kat->passPhrase, strlen(kat->passPhrase)); CKERR;
 
-//    asprintf(&new_str,"%s %s %s", new_str,strlen(new_str) > 1?",":"", data );
-
-   err = C4Key_DecryptFromPassPhrase(passCtx,kat->passPhrase, strlen(kat->passPhrase), &keyCtx1); CKERR;
+    err = C4Key_DecryptFromPassPhrase(passCtx[0],kat->passPhrase, strlen(kat->passPhrase), &keyCtx1); CKERR;
     
     err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+
+    asprintf(&new_str,"%s %s %s", new_str,strlen(new_str) > 1?",":"", data );
     
 done:
     if(data)
@@ -171,11 +176,16 @@ done:
     {
         C4Key_Free(keyCtx);
     }
-    if(C4KeyContextRefIsValid(passCtx))
+    if(passCtx)
     {
-        C4Key_Free(passCtx);
+        if(C4KeyContextRefIsValid(passCtx[0]))
+        {
+             C4Key_Free(passCtx[0]);
+        }
+        XFREE(passCtx);
+        
     }
-    if(C4KeyContextRefIsValid(keyCtx1))
+      if(C4KeyContextRefIsValid(keyCtx1))
     {
         C4Key_Free(keyCtx1);
     }
@@ -237,8 +247,9 @@ done:
 
 
 typedef struct  {
+    char*           comment;
     TBC_Algorithm   algor;
-    int            keysize;
+    int             keysize;
     uint64_t*        key;
     uint64_t*        tweek;		/* tweek	*/
     char                *passPhrase;
@@ -252,8 +263,10 @@ static C4Err sRunTBCImportExportKAT(  tbcKATvector *kat)
     C4Err err = kC4Err_NoErr;
     C4KeyContextRef keyCtx =  kInvalidC4KeyContextRef;
     C4KeyContextRef keyCtx1=  kInvalidC4KeyContextRef;
-    C4KeyContextRef passCtx =  kInvalidC4KeyContextRef;
-   char* name = NULL;
+    C4KeyContextRef  *passCtx = NULL;
+    size_t      keyCount = 0;
+ 
+    char* name = NULL;
     
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
@@ -267,18 +280,19 @@ static C4Err sRunTBCImportExportKAT(  tbcKATvector *kat)
     err = C4Key_NewTBC(kat->algor, kat->key, &keyCtx  ); CKERR;
     
     err = C4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen(kat->passPhrase), &data, &dataLen); CKERR;
-   
+    err = C4Key_SetProperty(keyCtx,kC4KeyProp_TestPassCodeID,C4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
+    
     OPTESTLogDebug("\n------\n%s------\n",data);
 
     OPTESTLogInfo("%8s", "Import");
-    err = C4Key_Deserialize(data, dataLen,&passCtx ); CKERR;
-
+    err = C4Key_DeserializeKeys(data, dataLen, &keyCount, &passCtx ); CKERR;
+    
   //  sDumpC4Key(OPTESTLOG_LEVEL_DEBUG, passCtx);
 
     OPTESTLogInfo("%8s", "Verify");
-    err = C4Key_VerifyPassPhrase(passCtx, kat->passPhrase, strlen(kat->passPhrase)); CKERR;
+    err = C4Key_VerifyPassPhrase(passCtx[0], kat->passPhrase, strlen(kat->passPhrase)); CKERR;
     
-    err = C4Key_DecryptFromPassPhrase(passCtx,kat->passPhrase, strlen(kat->passPhrase), &keyCtx1); CKERR;
+    err = C4Key_DecryptFromPassPhrase(passCtx[0],kat->passPhrase, strlen(kat->passPhrase), &keyCtx1); CKERR;
     
     err = sCompareKeys(keyCtx, keyCtx1); CKERR;
     
@@ -291,9 +305,14 @@ done:
     {
         C4Key_Free(keyCtx);
     }
-    if(C4KeyContextRefIsValid(passCtx))
+    if(passCtx)
     {
-        C4Key_Free(passCtx);
+        if(C4KeyContextRefIsValid(passCtx[0]))
+        {
+            C4Key_Free(passCtx[0]);
+        }
+        XFREE(passCtx);
+        
     }
     if(C4KeyContextRefIsValid(keyCtx1))
     {
@@ -343,9 +362,9 @@ static C4Err  sTestTBCKeys()
     
     tbcKATvector kat_vector_array[] =
     {
-        {	kTBC_Algorithm_3FISH256,   256,     three_256_key, three_256_tweak, passPhrase1 },
-        {	kTBC_Algorithm_3FISH512,   512,     three_512_key, three_512_tweak , passPhrase1 },
-         {	kTBC_Algorithm_3FISH1024,  1024,  three_1024_key, three_1024_tweak, passPhrase1  },
+        {"TBC Key 256",	kTBC_Algorithm_3FISH256,   256,     three_256_key, three_256_tweak, passPhrase1 },
+        {"TBC Key 512",   kTBC_Algorithm_3FISH512,   512,     three_512_key, three_512_tweak , passPhrase1 },
+        {"TBC Key 1K",	kTBC_Algorithm_3FISH1024,  1024,  three_1024_key, three_1024_tweak, passPhrase1  },
     };
     
     OPTESTLogInfo("\nTesting C4 TBC PBKDF2 Key Import / Export\n");
@@ -372,12 +391,13 @@ static C4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     
     C4KeyContextRef keyCtx =  kInvalidC4KeyContextRef;
     C4KeyContextRef keyCtx1=  kInvalidC4KeyContextRef;
-    C4KeyContextRef encodedCtx =  kInvalidC4KeyContextRef;
+    C4KeyContextRef *encodedCtx =  NULL;
+    size_t          keyCount = 0;
     
-    uint8_t             keyID[kC4KeyPBKDF2_KeyIDBytes]  = {0};
+    uint8_t             keyID[kC4Key_KeyIDBytes]  = {0};
     size_t              keyIDLen = 0;
     
-    uint8_t             keyID1[kC4KeyPBKDF2_KeyIDBytes] = {0};
+    uint8_t             keyID1[kC4Key_KeyIDBytes] = {0};
     size_t              keyIDLen1 = 0;
 
     uint8_t     *data = NULL;
@@ -431,7 +451,7 @@ static C4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     
     err = ECC_Init(&eccPub);
     err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
-    err = ECC_PubKeyHash(eccPub, keyID, kC4KeyPBKDF2_KeyIDBytes, &keyIDLen);CKERR;
+    err = ECC_PubKeyHash(eccPub, keyID, kC4Key_KeyIDBytes, &keyIDLen);CKERR;
 
     err = ECC_Init(&eccPriv);
     err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
@@ -446,18 +466,20 @@ static C4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     OPTESTLogDebug("\n------\n%s------\n",data);
     
     OPTESTLogInfo("%8s", "Import");
-    err = C4Key_Deserialize(data, dataLen,&encodedCtx ); CKERR;
+    err = C4Key_DeserializeKeys(data, dataLen, &keyCount, &encodedCtx ); CKERR;
     
-    err = C4Key_GetProperty(encodedCtx, kC4KeyProp_KeyID, NULL, keyID1, sizeof(keyID1), &keyIDLen1);
+    err = C4Key_GetProperty(encodedCtx[0], kC4KeyProp_KeyID, NULL, keyID1, sizeof(keyID1), &keyIDLen1);
     ASSERTERR(keyIDLen != keyIDLen1,  kC4Err_SelfTestFailed);
     err = compareResults( keyID, keyID1, keyIDLen,
                          kResultFormat_Byte, "Pub KeyID"); CKERR;
     
     OPTESTLogInfo("%8s", "Verify");
-    err = C4Key_DecryptFromPubKey(encodedCtx, eccPriv, &keyCtx1); CKERR;
+    err = C4Key_DecryptFromPubKey(encodedCtx[0], eccPriv, &keyCtx1); CKERR;
     
     err = sCompareKeys(keyCtx, keyCtx1); CKERR;
 
+    asprintf(&new_str,"%s %s %s", new_str,strlen(new_str) > 1?",":"", data );
+    
 done:
     
     if(eccPub)
@@ -480,12 +502,18 @@ done:
     {
         C4Key_Free(keyCtx1);
     }
+    
     if(encodedCtx)
     {
-        C4Key_Free(encodedCtx);
+        if(C4KeyContextRefIsValid(encodedCtx[0]))
+        {
+            C4Key_Free(encodedCtx[0]);
+        }
+        XFREE(encodedCtx);
+        
     }
     
-    OPTESTLogInfo("\n");
+     OPTESTLogInfo("\n");
 
     return err;
 }
@@ -547,12 +575,13 @@ static C4Err sRunTBC_ECCImportExportKAT(  tbcKATvector *kat)
     
     C4KeyContextRef keyCtx =  kInvalidC4KeyContextRef;
     C4KeyContextRef keyCtx1=  kInvalidC4KeyContextRef;
-    C4KeyContextRef encodedCtx =  kInvalidC4KeyContextRef;
+    C4KeyContextRef *encodedCtx =  NULL;
+    size_t          keyCount = 0;
     
-    uint8_t             keyID[kC4KeyPBKDF2_KeyIDBytes]  = {0};
+    uint8_t             keyID[kC4Key_KeyIDBytes]  = {0};
     size_t              keyIDLen = 0;
     
-    uint8_t             keyID1[kC4KeyPBKDF2_KeyIDBytes] = {0};
+    uint8_t             keyID1[kC4Key_KeyIDBytes] = {0};
     size_t              keyIDLen1 = 0;
 
     uint8_t     *data = NULL;
@@ -605,7 +634,7 @@ static C4Err sRunTBC_ECCImportExportKAT(  tbcKATvector *kat)
     
     err = ECC_Init(&eccPub);
     err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
-    err = ECC_PubKeyHash(eccPub, keyID, kC4KeyPBKDF2_KeyIDBytes, &keyIDLen);CKERR;
+    err = ECC_PubKeyHash(eccPub, keyID, kC4Key_KeyIDBytes, &keyIDLen);CKERR;
 
     err = ECC_Init(&eccPriv);
     err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
@@ -620,18 +649,20 @@ static C4Err sRunTBC_ECCImportExportKAT(  tbcKATvector *kat)
     OPTESTLogDebug("\n------\n%s------\n",data);
     
     OPTESTLogInfo("%8s", "Import");
-    err = C4Key_Deserialize(data, dataLen,&encodedCtx ); CKERR;
+    err = C4Key_DeserializeKeys(data, dataLen, &keyCount, &encodedCtx ); CKERR;
     
-    err = C4Key_GetProperty(encodedCtx, kC4KeyProp_KeyID, NULL, keyID1, sizeof(keyID1), &keyIDLen1);
+    err = C4Key_GetProperty(encodedCtx[0], kC4KeyProp_KeyID, NULL, keyID1, sizeof(keyID1), &keyIDLen1);
     ASSERTERR(keyIDLen != keyIDLen1,  kC4Err_SelfTestFailed);
     err = compareResults( keyID, keyID1, keyIDLen,
                          kResultFormat_Byte, "Pub KeyID"); CKERR;
     
     OPTESTLogInfo("%8s", "Verify");
-    err = C4Key_DecryptFromPubKey(encodedCtx, eccPriv, &keyCtx1); CKERR;
+    err = C4Key_DecryptFromPubKey(encodedCtx[0], eccPriv, &keyCtx1); CKERR;
     
     err = sCompareKeys(keyCtx, keyCtx1); CKERR;
 
+    asprintf(&new_str,"%s %s %s", new_str,strlen(new_str) > 1?",":"", data );
+    
     
 done:
     if(eccPub)
@@ -656,7 +687,12 @@ done:
     }
     if(encodedCtx)
     {
-        C4Key_Free(encodedCtx);
+        if(C4KeyContextRefIsValid(encodedCtx[0]))
+        {
+            C4Key_Free(encodedCtx[0]);
+        }
+        XFREE(encodedCtx);
+        
     }
     
     OPTESTLogInfo("\n");
@@ -694,8 +730,8 @@ static C4Err  sTestECC_TBCKeys()
     
     tbcKATvector kat_vector_array[] =
     {
-        {	kTBC_Algorithm_3FISH256,   256,     three_256_key, NULL, NULL },
-        {	kTBC_Algorithm_3FISH512,   512,     three_512_key, NULL , NULL },
+        {"TBC Key 256",	kTBC_Algorithm_3FISH256,   256,     three_256_key, NULL, NULL },
+        {"TBC Key 512",	kTBC_Algorithm_3FISH512,   512,     three_512_key, NULL , NULL },
         
 // we dont support ECC encytion of the kTBC_Algorithm_3FISH1024 keys, Too big!
         
@@ -718,25 +754,70 @@ done:
 C4Err  TestKeys()
 {
     C4Err     err = kC4Err_NoErr;
+    C4KeyContextRef *encodedCtx =  NULL;
+    size_t          keyCount = 0;
+    int i;
     
- //   asprintf(&new_str,"[" );
+    asprintf(&new_str,"[" );
 
     err = sTestSymmetricKeys(); CKERR;
     err = sTestECC_SymmetricKeys(); CKERR;
     err = sTestTBCKeys(); CKERR;
     err = sTestECC_TBCKeys(); CKERR;
  
-//    asprintf(&new_str,"%s ]", new_str );
-//    C4KeyContextRef keyCtx2 =  kInvalidC4KeyContextRef;
-//    
-//    err = C4Key_Deserialize(new_str, strlen(new_str),&keyCtx2 ); CKERR;
+    asprintf(&new_str,"%s ]", new_str );
+    
+    err = C4Key_DeserializeKeys((uint8_t*)new_str, strlen(new_str), &keyCount, &encodedCtx ); CKERR;
+    OPTESTLogInfo("\nDecoded %d Items\n", keyCount);
+    for(i = 0; i < keyCount; i++)
+    {
+        if(C4KeyContextRefIsValid(encodedCtx[i]))
+        {
+            C4KeyContextRef keyP = encodedCtx[i];
+            
+            C4KeyType   type1;
+            char**       keyIDStr = NULL;
+            
+            err = C4Key_GetProperty(keyP, kC4KeyProp_KeyType, NULL, &type1, sizeof(type1), NULL ); CKERR;
+            switch (type1) {
+                case kC4KeyType_PBKDF2:
+                    err = SCKeyGetAllocatedProperty(keyP, kC4KeyProp_TestPassCodeID, NULL, (void**)&keyIDStr, NULL);
+                    OPTESTLogInfo("\t%2d %10s %s\n", i,  key_type_table(type1), keyIDStr);
+                    break;
+                    
+                case kC4KeyType_PublicEncrypted:
+                     err = SCKeyGetAllocatedProperty(keyP, kC4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
 
+                    OPTESTLogInfo("\t%2d %10s %s\n", i,  key_type_table(type1), keyIDStr);
+                    
+                break;
+                    
+                default:
+                    break;
+            }
+            
+            if(keyIDStr) XFREE(keyIDStr);
+            
+        }
+    }
+    
+    
 done:
-        
+    
+    if(encodedCtx)
+    {
+       
+        for(i = 0; i < keyCount; i++)
+            if(C4KeyContextRefIsValid(encodedCtx[i]))
+            {
+                C4Key_Free(encodedCtx[i]);
+            }
+        XFREE(encodedCtx);
+    }
  
-//    if(new_str)
-//        free(new_str);
-//    
+    if(new_str)
+        free(new_str);
+    
     return err;
     
 }

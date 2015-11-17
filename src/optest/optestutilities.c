@@ -365,3 +365,17 @@ char *tbc_algor_table(TBC_Algorithm algor)
     }
 }
 
+char *key_type_table(C4KeyType type)
+{
+    switch (type )
+    {
+        case kC4KeyType_Symmetric: 		return (("Symmetric"));
+        case kC4KeyType_Tweekable: 		return (("TBC"));
+        case kC4KeyType_PBKDF2: 		return (("Encr-PBKDF2 "));
+        case kC4KeyType_PublicEncrypted: 		return (("Encr-PubKey"));
+        default:				return (("Invalid"));
+    }
+}
+
+
+

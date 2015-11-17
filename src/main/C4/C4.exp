@@ -87,7 +87,7 @@ _C4Key_NewTBC
 _C4Key_Free
 _C4Key_SerializeToPassPhrase
 _C4Key_SerializeToPubKey
-_C4Key_Deserialize
+_C4Key_DeserializeKeys
 _C4Key_VerifyPassPhrase
 _C4Key_DecryptFromPassPhrase
 _C4Key_DecryptFromPubKey
@@ -100,6 +100,8 @@ _kC4KeyProp_KeyType
 _kC4KeyProp_KeyAlgorithm
 _kC4KeyProp_KeyData
 _kC4KeyProp_KeyID
+_kC4KeyProp_KeyIDString
+
 
 
 
