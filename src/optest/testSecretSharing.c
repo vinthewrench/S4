@@ -68,7 +68,7 @@ C4Err  TestSecretSharing()
     uint8_t     testOffset[kShareThreshold];
     void*       testShares[kShareThreshold];
      
-    SHARES_ContextRef   shareCTX  = NULL;
+    SHARES_ContextRef   shareCTX  = kInvalidSHARES_ContextRef;
     
       uint32_t 	i;
 
@@ -140,6 +140,12 @@ C4Err  TestSecretSharing()
 
     
 done:
+    
+    for(i = 0; i < kNumShares; i++)
+    {
+        if(shares[i]) XFREE(shares[i]);
+    }
+    
     if(SHARES_ContextRefIsValid(shareCTX))
         SHARES_Free(shareCTX);
     

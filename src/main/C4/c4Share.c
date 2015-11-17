@@ -461,6 +461,7 @@ C4Err  SHARES_GetShare(SHARES_ContextRef  ctx,
 {
     C4Err       err = kC4Err_NoErr;
     size_t      bufSize = 0;
+    void*       buffer = NULL;
     
     validateSHARESContext(ctx);
     ValidateParam(outData);
@@ -470,9 +471,11 @@ C4Err  SHARES_GetShare(SHARES_ContextRef  ctx,
 
     ShareHeader* hdr =   SHARE_DATA(ctx, shareNumber);
     
-    *outData = hdr;
+    buffer = XMALLOC(bufSize); CKNULL(buffer);
+    COPY(hdr , buffer, bufSize);
     
-    
+    *outData = buffer;
+     
     if(outDataLen)
         *outDataLen = bufSize;
     
