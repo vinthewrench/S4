@@ -23,7 +23,31 @@
  
  Counting on all participants to combine the secret might be impractical, and therefore sometimes the threshold scheme is used where any k of the parts are sufficient to reconstruct the original secret.
  
+ https://en.wikipedia.org/wiki/Secret_sharing
  
+ The system relies on the idea that you can fit a unique polynomial of degree (t-1) to any set of t points that lie on the polynomial. It takes two points to define a straight line, three points to fully define a quadratic, four points to define a cubic curve, and so on. That is, it takes t points to define a polynomial of degree t-1. The method is to create a polynomial of degree t-1 with the secret as the first coefficient and the remaining coefficients picked at random. Next find n points on the curve and give one to each of the players. When at least t out of the n players reveal their points, there is sufficient information to fit a (t-1)t
+ 
+ 
+ Also See 
+ http://crypto.stackexchange.com/questions/24969/benefit-of-using-random-key-in-shamirs-secret-sharing
+ 
+  The key (usually understood as the secret value of a share, or shares, or the secret shared), 
+  and index (the identifier of a share, usually public), ... ask if there is benefit in using random index 
+ in Shamir secret sharing?
+ 
+    There are no security advantages to evaluating the polynomial at random places instead of sequential. 
+    The information theoretic security proof of Shamir secret sharing does not depend on the evaluation 
+    points being chosen in any specific manner.
+ 
+ http://crypto.stackexchange.com/questions/29945/security-guarantees-of-shamirs-secret-sharing-when-some-co-efficients-are-zero
+ 
+    The coefficients must be uniformly chosen. If you do not choose your coefficients uniformly, then by 
+ Kerckhoff's principle, the attacker knows this, and that makes it easier than normal to reconstruct the 
+ polynomial, and thus to obtain the secret.
+ 
+    For a polynomial f of degree n and randomly chosen coefficients, you need n+1 values of f to uniquely 
+    determine the coefficients. If you know m coefficients, you need only n-m+1 values of f to calculate 
+ the coefficients. For the secret sharing, this implies that fewer shares will suffice to caclulate the secret.
  */
 
 /* X coordinate of secret value */
@@ -187,10 +211,10 @@ typedef struct ShareHeader
     uint32_t        magic;
     uint32_t        shareDataLen;
 
-    uint8_t			xCoordinate;	/* X coordinate of share */
+    uint8_t			xCoordinate;	/* X coordinate of share  AKA the share index */
     uint8_t         threshold;		/* Number of shares needed to combine */
     uint8_t			lagrange;		/* Temp value used during split/join */
-    uint8_t         data[];
+    uint8_t         data[];         /* the actual share secret */
 
 } ShareHeader;
 
@@ -204,6 +228,7 @@ struct SHARES_Context
     size_t                  shareLen;
     uint32_t                totalShares;
     uint32_t                threshold;
+    uint8_t                 shareHash[kC4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
     uint8_t                 shareData[];
 };
 
@@ -229,6 +254,44 @@ static bool sSHARES_ContextIsValid( const SHARES_ContextRef  ref)
 #define validateSHARESContext( s )		\
 ValidateParam( sSHARES_ContextIsValid( s ) )
 
+
+static C4Err sSHARE_HASH( const uint8_t *key,
+                         size_t         keyLenIn,
+                         uint32_t       thresholdIn,
+                         uint8_t        *mac_buf,
+                         unsigned long  mac_len)
+{
+    C4Err           err = kC4Err_NoErr;
+    
+    MAC_ContextRef  macRef     = kInvalidMAC_ContextRef;
+    
+    uint32_t        secretLength    =  (uint32_t) keyLenIn;
+    uint32_t        threshold       = thresholdIn;
+    
+    char*           label = "share-hash";
+    
+    err = MAC_Init(kMAC_Algorithm_SKEIN,
+                   kHASH_Algorithm_SKEIN256,
+                   key, keyLenIn, &macRef); CKERR
+    
+    MAC_Update(macRef,  "\x00\x00\x00\x01",  4);
+    MAC_Update(macRef,  label,  strlen(label));
+    
+    err = MAC_Update( macRef, &secretLength, sizeof(secretLength)); CKERR;
+    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
+    
+    err = MAC_Update( macRef, &threshold, sizeof(threshold)); CKERR;
+    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
+    
+    size_t mac_len_SZ = (size_t)mac_len;
+    err = MAC_Final( macRef, mac_buf, &mac_len_SZ); CKERR;
+    
+done:
+    
+    MAC_Free(macRef);
+    
+    return err;
+}
 
 /*
  * This is the core of secret sharing.  This computes the coefficients
@@ -333,6 +396,7 @@ C4Err SHARES_Init( const void       *key,
    
     ValidateParam(key);
     ValidateParam(ctx);
+    ValidateParam(keyLen <= 64)
     
     *ctx = NULL;
     
@@ -346,6 +410,8 @@ C4Err SHARES_Init( const void       *key,
     shareCTX->totalShares   = totalShares;
     shareCTX->threshold     = threshold;
 
+    err = sSHARE_HASH(key, keyLen, shareCTX->threshold,  shareCTX->shareHash, kC4ShareInfo_HashBytes ); CKERR;
+                     
     /* Set X coordinate randomly for each share */
     for( i=0; i<totalShares; ++i )
     {
@@ -355,7 +421,7 @@ C4Err SHARES_Init( const void       *key,
         {
             ShareHeader* hdr =   SHARE_DATA(shareCTX, i);
             
-          RNG_GetBytes( &hdr->xCoordinate , 1 );
+            RNG_GetBytes( &hdr->xCoordinate , 1 );
             
             if( hdr->xCoordinate != X0 )
             {
@@ -386,9 +452,8 @@ C4Err SHARES_Init( const void       *key,
     for( i=0; i<threshold-1; ++i )
     {
         ShareHeader* hdr =   SHARE_DATA(shareCTX, i);
-         RNG_GetBytes( &hdr->data, keyLen );
+        RNG_GetBytes( &hdr->data, keyLen );
     }
-
 
     {
         ShareHeader* hdr =   SHARE_DATA(shareCTX, threshold-1);
@@ -452,45 +517,49 @@ void  SHARES_Free(SHARES_ContextRef  ctx)
     }
 }
 
-
-
-C4Err  SHARES_GetShare(SHARES_ContextRef  ctx,
-                      uint32_t shareNumber,
-                      void **outData,
-                       size_t *outDataLen)
+C4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
+                           uint32_t            shareNumber,
+                           SHARES_ShareInfo    **shareInfoOut,
+                           size_t              *shareInfoLen)
 {
-    C4Err       err = kC4Err_NoErr;
-    size_t      bufSize = 0;
-    void*       buffer = NULL;
+    C4Err               err = kC4Err_NoErr;
+    size_t              bufSize = 0;
+    SHARES_ShareInfo*   shareInfo = NULL;
     
     validateSHARESContext(ctx);
-    ValidateParam(outData);
+    ValidateParam(shareInfoOut);
     ValidateParam( shareNumber < ctx->totalShares);
     
-    bufSize =  (sizeof(ShareHeader) + ctx->shareLen);
-
+    bufSize = sizeof(SHARES_ShareInfo);
+    
     ShareHeader* hdr =   SHARE_DATA(ctx, shareNumber);
     
-    buffer = XMALLOC(bufSize); CKNULL(buffer);
-    COPY(hdr , buffer, bufSize);
+    shareInfo = XMALLOC(bufSize); CKNULL(shareInfo);
+    ZERO(shareInfo, bufSize);
+ 
+     shareInfo->threshold = ctx->threshold;
+    COPY(ctx->shareHash, shareInfo->shareHash, kC4ShareInfo_HashBytes);
+ 
+    shareInfo->xCoordinate = hdr->xCoordinate;
+    shareInfo->shareSecretLen = hdr->shareDataLen;
+    COPY(hdr->data, shareInfo->shareSecret, hdr->shareDataLen);
     
-    *outData = buffer;
-     
-    if(outDataLen)
-        *outDataLen = bufSize;
+    *shareInfoOut = shareInfo;
+    
+    if(shareInfoLen)
+        *shareInfoLen = bufSize;
     
 done:
     
     return err;
+   
+}
 
-};
-
-
-C4Err  SHARES_ShareCombine( uint32_t     numberShares,
-                           void*        sharesIn[],
-                           void         *outData,
-                           size_t       bufSize,
-                           size_t       *outDataLen)
+C4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
+                           SHARES_ShareInfo*        sharesInfoIn[],
+                           void                     *outData,
+                           size_t                   bufSize,
+                           size_t                   *outDataLen)
 {
     C4Err       err = kC4Err_NoErr;
     
@@ -498,55 +567,59 @@ C4Err  SHARES_ShareCombine( uint32_t     numberShares,
     uint8_t				threshold = 0;
     uint8_t             *shareTable = NULL;
     size_t              allocSize = 0;
-    
+    uint8_t             shareHash[kC4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
+    uint8_t             calculatedHash[kC4ShareInfo_HashBytes];
+
     uint32_t			i, j;
- 
+    
     ValidateParam(outData);
-    ValidateParam(sharesIn);
-     
-    if(outDataLen)
-        *outDataLen = bufSize;
+    ValidateParam(sharesInfoIn);
     
     /* check all shares for consistancy */
     
     for(i = 0; i< numberShares; i++)
     {
-        ShareHeader     *hdr = (ShareHeader*)sharesIn[i];
-
-        if(hdr->magic != kSHARES_HeaderMagic)
-            RETERR(kC4Err_CorruptData);
+        SHARES_ShareInfo* info = sharesInfoIn[i];
         
         // pickup the keylength from first share
         if(i == 0)
         {
-            keyLen = hdr->shareDataLen;
-            threshold = hdr->threshold;
+            keyLen = info->shareSecretLen;
+            threshold = info->threshold;
             
             if(numberShares < threshold)
                 RETERR(kC4Err_NotEnoughShares);
-
+            
+            // copy the share Hash
+            COPY(info->shareHash, shareHash, kC4ShareInfo_HashBytes);
+            
+            ValidateParam(bufSize >= keyLen);
+         }
+        else
+        {
+            // they all need to be the same size
+            ValidateParam(info->shareSecretLen == keyLen);
+            // they all need to be the same size
+            ValidateParam(info->threshold == threshold);
+            // Compare the shareHash
+            ValidateParam(CMP(info->shareHash, shareHash, kC4ShareInfo_HashBytes));
         }
-        
-        // they all need to be the same size
-        if(hdr->shareDataLen != keyLen)
-            RETERR(kC4Err_CorruptData);
-   
-        // they all need to be the same size
-        if(hdr->threshold != threshold)
-            RETERR(kC4Err_CorruptData);
     }
     
     // recreate data structure with existng shares.
     allocSize =  (sizeof(ShareHeader) + keyLen) * numberShares ;
-    
     shareTable = XMALLOC( allocSize); CKNULL(shareTable);
     ZERO(shareTable, allocSize);
-   
+    
     for(i = 0; i< numberShares; i++)
     {
-        ShareHeader     *hdr = (ShareHeader*)sharesIn[i];
-        ShareHeader     *hdr1 = sGetShareData(shareTable, keyLen, i);
-         COPY(hdr, hdr1, sizeof(ShareHeader) + keyLen);
+        SHARES_ShareInfo* info = sharesInfoIn[i];
+         ShareHeader     *hdr = sGetShareData(shareTable, keyLen, i);
+        
+        hdr->xCoordinate    = info->xCoordinate;
+        hdr->threshold      = info->threshold;
+        hdr->shareDataLen   = (uint_32t) info->shareSecretLen;
+        COPY(info->shareSecret, hdr->data, info->shareSecretLen);
     }
     
     /* Set up Lagrange coefficients to interpolate to x=X0 */
@@ -556,10 +629,17 @@ C4Err  SHARES_ShareCombine( uint32_t     numberShares,
     for( j=0; j<bufSize; ++j )
     {
         ((uint8_t *)outData)[j] =  sInterpolation(shareTable, keyLen ,threshold, j);
-     }
+    }
+  
+    // check for valid secret
+    err = sSHARE_HASH(outData, keyLen, threshold, calculatedHash, kC4ShareInfo_HashBytes ); CKERR;
     
+     if (!CMP(calculatedHash, shareHash, kC4ShareInfo_HashBytes) )
+            RETERR(kC4Err_CorruptData);
+
+    if(outDataLen)
+        *outDataLen = keyLen;
 done:
-    
     
     if(shareTable)
     {
@@ -568,5 +648,5 @@ done:
         
     }
     return err;
-
+    
 }

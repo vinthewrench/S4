@@ -350,18 +350,11 @@ char *cipher_algor_table(Cipher_Algorithm algor)
         case kCipher_Algorithm_AES192: 		return (("AES-192"));
         case kCipher_Algorithm_AES256: 		return (("AES-256"));
         case kCipher_Algorithm_2FISH256: 		return (("Twofish-256"));
-        default:				return (("Invalid"));
-    }
-}
 
-char *tbc_algor_table(TBC_Algorithm algor)
-{
-    switch (algor )
-    {
-        case kTBC_Algorithm_3FISH256: 		return (("ThreeFish-256"));
-        case kTBC_Algorithm_3FISH512: 		return (("ThreeFish-512"));
-        case kTBC_Algorithm_3FISH1024: 		return (("ThreeFish-1024"));
-        default:				return (("Invalid"));
+        case kCipher_Algorithm_3FISH256: 		return (("ThreeFish-256"));
+        case kCipher_Algorithm_3FISH512: 		return (("ThreeFish-512"));
+        case kCipher_Algorithm_3FISH1024: 		return (("ThreeFish-1024"));
+default:				return (("Invalid"));
     }
 }
 

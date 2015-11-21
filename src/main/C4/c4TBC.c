@@ -19,7 +19,7 @@ struct TBC_Context
 {
 #define kTBC_ContextMagic		0x43347462
     uint32_t            magic;
-    TBC_Algorithm       algor;
+    Cipher_Algorithm    algor;
     
     int                 keybits;
     u64b_t             key[16];        // need a copy of key to reset the state
@@ -43,7 +43,7 @@ static bool sTBC_ContextIsValid( const TBC_ContextRef  ref)
 ValidateParam( sTBC_ContextIsValid( s ) )
 
 
-C4Err TBC_Init(TBC_Algorithm algorithm,
+C4Err TBC_Init(Cipher_Algorithm algorithm,
                const void *key,
                TBC_ContextRef * ctxOut)
 {
@@ -56,15 +56,15 @@ C4Err TBC_Init(TBC_Algorithm algorithm,
     
     switch(algorithm)
     {
-        case kTBC_Algorithm_3FISH256:
+        case kCipher_Algorithm_3FISH256:
             keybits = Threefish256;
             break;
             
-        case kTBC_Algorithm_3FISH512:
+        case kCipher_Algorithm_3FISH512:
             keybits = Threefish512;
             break;
             
-        case kTBC_Algorithm_3FISH1024:
+        case kCipher_Algorithm_3FISH1024:
             keybits = Threefish1024 ;
             break;
             

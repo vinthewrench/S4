@@ -79,11 +79,12 @@ _C4_Store8
 
 _SHARES_Init
 _SHARES_Free
-_SHARES_GetShare
-_SHARES_ShareCombine
+_SHARES_GetShareInfo
+_SHARES_CombineShareInfo
 
 _C4Key_NewSymmetric
 _C4Key_NewTBC
+_C4Key_NewShare
 _C4Key_Free
 _C4Key_SerializeToPassPhrase
 _C4Key_SerializeToPubKey

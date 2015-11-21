@@ -175,11 +175,19 @@ enum Cipher_Algorithm_
     kCipher_Algorithm_AES192         = 2,
     kCipher_Algorithm_AES256         = 3,
     kCipher_Algorithm_2FISH256       = 4,
+  
+    
+    kCipher_Algorithm_3FISH256      = 100,
+    kCipher_Algorithm_3FISH512      = 102,
+    kCipher_Algorithm_3FISH1024     = 103,
+
+    kCipher_Algorithm_SharedKey      =  200,
     
     kCipher_Algorithm_Invalid           =  kEnumMaxValue,
     
     ENUM_FORCE( Cipher_Algorithm_ )
 };
+
 
 ENUM_TYPEDEF( Cipher_Algorithm_, Cipher_Algorithm   );
 
@@ -248,20 +256,8 @@ typedef struct TBC_Context *      TBC_ContextRef;
 
 #define TBC_ContextRefIsValid( ref )		( (ref) != kInvalidTBC_ContextRef )
 
-enum TBC_Algorithm_
-{
-    kTBC_Algorithm_3FISH256                = 1,
-    kTBC_Algorithm_3FISH512             = 2,
-    kTBC_Algorithm_3FISH1024          = 3,
 
-    kTBC_Algorithm_Invalid           =  kEnumMaxValue,
-
-    ENUM_FORCE( TBC_Algorithm_ )
-};
-
-ENUM_TYPEDEF( TBC_Algorithm_, TBC_Algorithm   );
-
-C4Err TBC_Init(TBC_Algorithm algorithm,
+C4Err TBC_Init(Cipher_Algorithm algorithm,
                const void *key,
                TBC_ContextRef * ctx);
 
@@ -348,6 +344,19 @@ typedef struct SHARES_Context *      SHARES_ContextRef;
 #define SHARES_ContextRefIsValid( ref )		( (ref) != kInvalidSHARES_ContextRef )
 
 
+#define kC4ShareInfo_HashBytes      8
+
+typedef struct SHARES_ShareInfo
+{
+    uint8_t         threshold;                              /* Number of shares needed to combine */
+    uint8_t			xCoordinate;                            /* X coordinate of share  AKA the share index */
+    uint8_t			shareHash[kC4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
+    
+    size_t          shareSecretLen;
+    uint8_t         shareSecret[64];                        /* the actual share secret */
+} SHARES_ShareInfo;
+
+
 C4Err SHARES_Init( const void       *key,
                   size_t           keyLen,
                   uint32_t         totalShares,
@@ -356,17 +365,17 @@ C4Err SHARES_Init( const void       *key,
 
 void  SHARES_Free(SHARES_ContextRef  ctx);
 
+C4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
+                            uint32_t            shareNumber,
+                            SHARES_ShareInfo    **shareInfo,
+                            size_t              *shareInfoLen);
 
-C4Err  SHARES_GetShare(SHARES_ContextRef  ctx,
-                       uint32_t shareNumber,
-                       void **outData,
-                       size_t *outDataLen);
+C4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
+                               SHARES_ShareInfo*        sharesInfoIn[],
+                               void                     *outData,
+                               size_t                   bufSize,
+                               size_t                   *outDataLen);
 
-C4Err  SHARES_ShareCombine( uint32_t     numberShares,
-                            void*       shares[],
-                            void         *outData,
-                            size_t       bufSize,
-                             size_t       *outDataLen);
 #ifdef __clang__
 #pragma mark - Hash word Encoding
 #endif

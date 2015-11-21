@@ -14,14 +14,14 @@
 
 
 typedef struct  {
-    char            *msg;
-    TBC_Algorithm   algor;
-    int            keysize;
+    char                *msg;
+    Cipher_Algorithm   algor;
+    int                 keysize;
     
-    uint64_t*        key;
-    uint64_t*        PT;			/* Plaintext			*/
-    uint64_t*        tweek;		/* tweek	*/
-    uint64_t*        TBC;         /* TBC	Known Answer	*/
+    uint64_t*           key;
+    uint64_t*           PT;			/* Plaintext			*/
+    uint64_t*           tweek;		/* tweek	*/
+    uint64_t*           TBC;         /* TBC	Known Answer	*/
 } katvector;
 
 
@@ -43,7 +43,7 @@ static C4Err RunCipherKAT(  katvector *kat)
     uint8_t PT[1024];
     char* name = NULL;
  
-    name = tbc_algor_table(kat->algor);
+    name = cipher_algor_table(kat->algor);
     
     OPTESTLogInfo("\t%-14s %s   ", name, kat->msg);
     
@@ -187,14 +187,14 @@ C4Err TestTBCiphers()
 
        katvector kat_vector_array[] =
     {
-        {"No Offet",	kTBC_Algorithm_3FISH256,   256,  three_256_00_key,  three_256_00_input,  three_256_00_tweak, three_256_00_result  },
-        {"Large Offset",	kTBC_Algorithm_3FISH256,   256,  three_256_01_key,  three_256_01_input,  three_256_01_tweak, three_256_01_result  },
+        {"No Offet",        kCipher_Algorithm_3FISH256,   256,  three_256_00_key,  three_256_00_input,  three_256_00_tweak, three_256_00_result  },
+        {"Large Offset",	kCipher_Algorithm_3FISH256,   256,  three_256_01_key,  three_256_01_input,  three_256_01_tweak, three_256_01_result  },
 
-        {"No Offset",	kTBC_Algorithm_3FISH512,   512,  three_512_00_key,  three_512_00_input,  three_512_00_tweak, three_512_00_result  },
-        {"Large Offset",	kTBC_Algorithm_3FISH512,   512,  three_512_01_key,  three_512_01_input,  three_512_01_tweak, three_512_01_result  },
+        {"No Offset",       kCipher_Algorithm_3FISH512,   512,  three_512_00_key,  three_512_00_input,  three_512_00_tweak, three_512_00_result  },
+        {"Large Offset",	kCipher_Algorithm_3FISH512,   512,  three_512_01_key,  three_512_01_input,  three_512_01_tweak, three_512_01_result  },
     
-        {"No Offset",	kTBC_Algorithm_3FISH1024,   1024,  three_1024_00_key,  three_1024_00_input,  three_1024_00_tweak, three_1024_00_result  },
-        {"Large Offset",	kTBC_Algorithm_3FISH1024,   1024,  three_1024_01_key,  three_1024_01_input,  three_1024_01_tweak, three_1024_01_result  },
+        {"No Offset",       kCipher_Algorithm_3FISH1024,   1024,  three_1024_00_key,  three_1024_00_input,  three_1024_00_tweak, three_1024_00_result  },
+        {"Large Offset",	kCipher_Algorithm_3FISH1024,   1024,  three_1024_01_key,  three_1024_01_input,  three_1024_01_tweak, three_1024_01_result  },
         
      };
     

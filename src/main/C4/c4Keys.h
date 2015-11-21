@@ -68,6 +68,7 @@ enum C4KeyType_
     kC4KeyType_Tweekable           = 2,
     kC4KeyType_PBKDF2              = 3,
     kC4KeyType_PublicEncrypted      = 4,
+    kC4KeyType_Share                = 5,
     
     kC4KeyType_Invalid           =  kEnumMaxValue,
     
@@ -79,7 +80,7 @@ ENUM_TYPEDEF( C4KeyType_, C4KeyType   );
 typedef struct C4KeySymmetric_
 {
     Cipher_Algorithm    symAlgor;
-    int                 keylen;
+    size_t              keylen;
     uint8_t        		symKey[64];
     
 }C4KeySymmetric;
@@ -87,8 +88,8 @@ typedef struct C4KeySymmetric_
 
 typedef struct C4KeyTBC_
 {
-    TBC_Algorithm       tbcAlgor;
-    int                 keybits;
+    Cipher_Algorithm    tbcAlgor;
+    size_t              keybits;
     uint64_t            key[16];
     
 }C4KeyTBC;
@@ -96,11 +97,8 @@ typedef struct C4KeyTBC_
 
 typedef struct C4KeyPBKDF2_
 {
-    C4KeyType               keyAlgorithmType;
-    union {
-        TBC_Algorithm       tbcAlgor;
-        Cipher_Algorithm    symAlgor;
-    };
+    C4KeyType              keyAlgorithmType;
+    Cipher_Algorithm       cipherAlgor;
 
     uint8_t             keyHash[kC4KeyPBKDF2_HashBytes];
     uint8_t             salt[kC4KeyPBKDF2_SaltBytes];
@@ -109,15 +107,18 @@ typedef struct C4KeyPBKDF2_
     uint8_t             encrypted[256];
     size_t              encryptedLen;
     
+    // FOR PASSCODE SHARED KEYS
+    uint8_t         threshold;                              /* Number of shares needed to combine */
+    uint8_t			xCoordinate;                            /* X coordinate of share  AKA the share index */
+    uint8_t			shareHash[kC4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
+
+    
 }C4KeyPBKDF2;
 
 typedef struct C4KeyPublic_Encrypted_
 {
     C4KeyType               keyAlgorithmType;
-    union {
-        TBC_Algorithm       tbcAlgor;
-        Cipher_Algorithm    symAlgor;
-    };
+    Cipher_Algorithm        cipherAlgor;
     
     uint8_t             keyHash[kC4KeyPublic_Encrypted_HashBytes];
     
@@ -127,7 +128,13 @@ typedef struct C4KeyPublic_Encrypted_
     uint8_t             encrypted[kC4KeyPublic_Encrypted_BufferMAX];
     size_t              encryptedLen;
     
+    // FOR PUBLIC ENCRYPTED SHARED KEYS
+    uint8_t         threshold;                              /* Number of shares needed to combine */
+    uint8_t			xCoordinate;                            /* X coordinate of share  AKA the share index */
+    uint8_t			shareHash[kC4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
+    
 }C4KeyPublic_Encrypted;
+
 
 typedef struct C4KeyContext    C4KeyContext;
 
@@ -144,6 +151,7 @@ struct C4KeyContext
         C4KeyTBC            tbc;
         C4KeyPBKDF2         pbkdf2;
     C4KeyPublic_Encrypted   publicKeyEncoded;
+        SHARES_ShareInfo    share;
     };
     
 };
@@ -153,9 +161,12 @@ C4Err C4Key_NewSymmetric(Cipher_Algorithm       algorithm,
                          const void             *key,
                          C4KeyContextRef    *ctx);
 
-C4Err C4Key_NewTBC(     TBC_Algorithm       algorithm,
+C4Err C4Key_NewTBC(     Cipher_Algorithm       algorithm,
                    const void          *key,
                    C4KeyContextRef     *ctx);
+
+C4Err C4Key_NewShare(    SHARES_ShareInfo   *share,
+                         C4KeyContextRef    *ctx);
 
 void C4Key_Free(C4KeyContextRef ctx);
 

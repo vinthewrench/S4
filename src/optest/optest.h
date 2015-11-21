@@ -75,7 +75,6 @@ int OPTESTPrintF(const char *, ...);
 char *hash_algor_table(HASH_Algorithm algor);
 char *cipher_algor_table(Cipher_Algorithm algor);
 char* mac_algor_table(MAC_Algorithm algor);
-char *tbc_algor_table(TBC_Algorithm algor);
 char *key_type_table(C4KeyType type);
 uint32_t hash_algor_bits(HASH_Algorithm algor);
 

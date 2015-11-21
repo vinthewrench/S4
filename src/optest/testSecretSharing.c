@@ -64,10 +64,10 @@ C4Err  TestSecretSharing()
     uint8_t     PT1[sizeof (PT)];
     size_t      keyLen      = 0;
 
-    void*       shares[kNumShares];
-    uint8_t     testOffset[kShareThreshold];
-    void*       testShares[kShareThreshold];
-     
+    SHARES_ShareInfo*   shareInfo[kNumShares];
+    SHARES_ShareInfo*   testShares[kShareThreshold];
+    uint8_t             testOffset[kShareThreshold];
+    
     SHARES_ContextRef   shareCTX  = kInvalidSHARES_ContextRef;
     
       uint32_t 	i;
@@ -92,13 +92,12 @@ C4Err  TestSecretSharing()
     {
         size_t shareLen = 0;
         
-        err = SHARES_GetShare(shareCTX, i, &shares[i], &shareLen); CKERR;
+        err = SHARES_GetShareInfo(shareCTX, i, &shareInfo[i], &shareLen); CKERR;
       
         if(IF_LOG_VERBOSE)
         {
             OPTESTLogVerbose("\t  Share %d: (%d bytes)\n", i,shareLen);
-            dumpHex(IF_LOG_DEBUG, shares[i]  , (int)shareLen, 0);
-        
+            dumpHex(IF_LOG_DEBUG, shareInfo[i]->shareSecret  , (int)shareInfo[i]->shareSecretLen, 0);
             OPTESTLogVerbose("\n");
         }
         
@@ -116,10 +115,11 @@ C4Err  TestSecretSharing()
     sCreateTestOffsets(testOffset, sizeof(testOffset));
     
     for(i = 0; i < kShareThreshold; i++)
-          testShares[i] = shares[testOffset[i]];
-    
-  /* attempt to combine with not enough shares */
-   err =  SHARES_ShareCombine(kShareThreshold -1, testShares, PT1, sizeof(PT1),
+          testShares[i] = shareInfo[testOffset[i]];
+  
+ 
+    /* attempt to combine with not enough shares */
+   err =  SHARES_CombineShareInfo(kShareThreshold -1, testShares, PT1, sizeof(PT1),
                              &keyLen);
     
     OPTESTLogVerbose("\t Attempt to combine with not enough shares = %s\n",
@@ -129,21 +129,23 @@ C4Err  TestSecretSharing()
     
     /* Reconstruct data */
     OPTESTLogVerbose("\t Reconstructing data with just %d shares...",kShareThreshold);
-  err = SHARES_ShareCombine(kShareThreshold, testShares, PT1, sizeof(PT1),
+  err = SHARES_CombineShareInfo(kShareThreshold, testShares, PT1, sizeof(PT1),
                               &keyLen); CKERR;
 
     OPTESTLogVerbose("OK\n");
     
     /*  check result against known original message */
-    OPTESTPrintF("\t Check result against known original message...\n");
+    OPTESTLogVerbose("\t Check result against known original message...\n");
     err = compare2Results(PT, sizeof(PT), PT1, keyLen, kResultFormat_Byte, "SHAMIR Reconstruct");  //CKERR;
 
+   
+    OPTESTLogInfo("\n");
     
 done:
     
     for(i = 0; i < kNumShares; i++)
     {
-        if(shares[i]) XFREE(shares[i]);
+        if(shareInfo[i]) XFREE(shareInfo[i]);
     }
     
     if(SHARES_ContextRefIsValid(shareCTX))
