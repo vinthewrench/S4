@@ -15,7 +15,7 @@
 
 #include "c4pubtypes.h"
 #include "c4crypto.h"
-#include "c4Keys.h"
+#include "c4keys.h"
 #include "c4bufferutilities.h"
 
 #endif /* C4_h */
