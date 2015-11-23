@@ -45,7 +45,7 @@ enum C4KeyPropertyType_
 ENUM_TYPEDEF( C4KeyPropertyType_, C4KeyPropertyType   );
 
 extern char *const kC4KeyProp_KeyType;
-extern char *const kC4KeyProp_KeyAlgorithm;
+extern char *const kC4KeyProp_KeySuite;
 extern char *const kC4KeyProp_KeyData;
 extern char *const kC4KeyProp_KeyID;
 extern char *const kC4KeyProp_KeyIDString;

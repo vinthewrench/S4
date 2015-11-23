@@ -47,7 +47,7 @@
 const ltc_ecc_set_type ltc_ecc_bl_sets[] = {
     {
         52,                                                                                                          /* Actually 51.75 bytes */
-        "Curve3617",
+        "Curve41417",
         "3fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffef",  /* Prime */
         "3617",                                                                                                      /* Constant in formula */
         "7ffffffffffffffffffffffffffffffffffffffffffffffffffeb3cc92414cf706022b36f1c0338ad63cf181b0e71a5e106af79",   /* order */

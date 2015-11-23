@@ -98,7 +98,7 @@ _C4Key_GetProperty
 _SCKeyGetAllocatedProperty
 
 _kC4KeyProp_KeyType
-_kC4KeyProp_KeyAlgorithm
+_kC4KeyProp_KeySuite
 _kC4KeyProp_KeyData
 _kC4KeyProp_KeyID
 _kC4KeyProp_KeyIDString
