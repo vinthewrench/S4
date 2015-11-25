@@ -215,26 +215,26 @@ static void sInsertProperty(C4KeyContext *ctx, const char *propName,
 };
 
 
-//static void sCloneProperties(C4KeyContext *src, C4KeyContext *dest )
-//{
-//    C4KeyProperty* sprop = NULL;
-//    C4KeyProperty** lastProp = &dest->propList;
-//    
-//    for(sprop = src->propList; sprop; sprop = sprop->next)
-//    {
-//        C4KeyProperty* newProp =  XMALLOC(sizeof(C4KeyProperty));
-//        ZERO(newProp,sizeof(C4KeyProperty));
-//        newProp->prop = (uint8_t *)strndup((char *)(sprop->prop), strlen((char *)(sprop->prop)));
-//        newProp->type = sprop->type;
-//        newProp->value = XMALLOC(sprop->valueLen);
-//        COPY(sprop->value, newProp->value, sprop->valueLen );
-//        newProp->valueLen = sprop->valueLen;
-//        *lastProp = newProp;
-//        lastProp = &newProp->next;
-//    }
-//    *lastProp = NULL;
-//    
-//}
+static void sCloneProperties(C4KeyContext *src, C4KeyContext *dest )
+{
+    C4KeyProperty* sprop = NULL;
+    C4KeyProperty** lastProp = &dest->propList;
+    
+    for(sprop = src->propList; sprop; sprop = sprop->next)
+    {
+        C4KeyProperty* newProp =  XMALLOC(sizeof(C4KeyProperty));
+        ZERO(newProp,sizeof(C4KeyProperty));
+        newProp->prop = (uint8_t *)strndup((char *)(sprop->prop), strlen((char *)(sprop->prop)));
+        newProp->type = sprop->type;
+        newProp->value = XMALLOC(sprop->valueLen);
+        COPY(sprop->value, newProp->value, sprop->valueLen );
+        newProp->valueLen = sprop->valueLen;
+        *lastProp = newProp;
+        lastProp = &newProp->next;
+    }
+    *lastProp = NULL;
+    
+}
 
 
 
@@ -684,8 +684,65 @@ void C4Key_Free(C4KeyContextRef ctx)
         ZERO(ctx, sizeof(C4KeyContext));
         XFREE(ctx);
     }
+}
+
+C4Err C4Key_Copy(C4KeyContextRef ctx, C4KeyContextRef *ctxOut)
+{
+    C4Err               err = kC4Err_NoErr;
+    C4KeyContext*    keyCTX  = NULL;
+  
+    validateC4KeyContext(ctx);
+    ValidateParam(ctxOut);
+    
+    
+    keyCTX = XMALLOC(sizeof (C4KeyContext)); CKNULL(keyCTX);
+    keyCTX->magic = kC4KeyContextMagic;
+    keyCTX->type = ctx->type;
+    
+    switch (ctx->type)
+    {
+        case kC4KeyType_Symmetric:
+            keyCTX->sym = ctx->sym;
+            break;
+            
+        case kC4KeyType_Tweekable:
+            keyCTX->tbc = ctx->tbc;
+            break;
+
+        case kC4KeyType_PBKDF2:
+            keyCTX->pbkdf2 = ctx->pbkdf2;
+            break;
+            
+        case kC4KeyType_PublicEncrypted:
+            keyCTX->publicKeyEncoded = ctx->publicKeyEncoded;
+            break;
+            
+        case kC4KeyType_Share:
+            keyCTX->share = ctx->share;
+            break;
+            
+        default:
+            break;
+    }
+   
+    sCloneProperties(ctx, keyCTX);
+    
+    *ctxOut = keyCTX;
+    
+done:
+    if(IsC4Err(err))
+    {
+        if(keyCTX)
+        {
+            memset(keyCTX, sizeof (C4KeyContext), 0);
+            XFREE(keyCTX);
+        }
+    }
+       return err;
 
 }
+
+
 #ifdef __clang__
 #pragma mark - export key.
 #endif
@@ -848,7 +905,7 @@ done:
  */
 
 C4Err C4Key_SerializeToPassPhrase(C4KeyContextRef  ctx,
-                               const char       *passphrase,
+                               const uint8_t       *passphrase,
                                size_t           passphraseLen,
                                uint8_t          **outData,
                                size_t           *outSize)
@@ -2110,7 +2167,7 @@ done:
 #endif
 
 C4Err C4Key_VerifyPassPhrase(   C4KeyContextRef  ctx,
-                             const char       *passphrase,
+                             const uint8_t    *passphrase,
                              size_t           passphraseLen)
 {
     C4Err           err = kC4Err_NoErr;
@@ -2154,7 +2211,7 @@ done:
 }
 
 C4Err C4Key_DecryptFromPassPhrase( C4KeyContextRef  passCtx,
-                                  const char       *passphrase,
+                                  const uint8_t    *passphrase,
                                   size_t           passphraseLen,
                                   C4KeyContextRef       *symCtx)
 {

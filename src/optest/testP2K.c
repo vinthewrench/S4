@@ -18,7 +18,7 @@
 #define MSG_KEY_BYTES 32
 
 typedef struct  {
-    char *  passphrase;
+    uint8_t *  passphrase;
     uint8_t     salt[64];
     size_t      saltLen;
     uint32_t    rounds;
@@ -57,24 +57,24 @@ static C4Err runP2K_Pairwise()
     uint8_t     key[MSG_KEY_BYTES];
     
     p2k_kat_vector kat;
-    char*    passphrase;
+    uint8_t*    passphrase;
     
     
     kat.saltLen = 8;
     err = RNG_GetBytes(kat.salt, kat.saltLen); CKERR;
     
     
-    err = RNG_GetPassPhrase(128, &passphrase); CKERR;
+    err = RNG_GetPassPhrase(128, (char**) &passphrase); CKERR;
     
     kat.passphrase = passphrase;
 
     // calculate how many rounds we need on this machine for passphrase hashing
-    err = PASS_TO_KEY_SETUP(strlen(kat.passphrase),
+    err = PASS_TO_KEY_SETUP(strlen((char*)kat.passphrase),
                             MSG_KEY_BYTES, kat.salt, kat.saltLen, &kat.rounds); CKERR;
     OPTESTLogInfo("\t%d rounds on this device for 0.1s\n", kat.rounds);
     
     start = clock();
-    err = PASS_TO_KEY(kat.passphrase, strlen(kat.passphrase),
+    err = PASS_TO_KEY(kat.passphrase, strlen((char*)kat.passphrase),
                       kat.salt, sizeof(kat.salt), kat.rounds,
                       key, sizeof(key)); CKERR;
 
@@ -101,7 +101,7 @@ C4Err  TestP2K()
     p2k_kat_vector p2K_kat_vector_array[] =
     {
         {
-            "Tant las fotei com auziretz",
+            (uint8_t*)"Tant las fotei com auziretz",
             { 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, },
             8,
             1024,
@@ -112,7 +112,7 @@ C4Err  TestP2K()
         },
         
         {
-            "Hello. My name is Inigo Montoya. You killed my father. Prepare to die.",
+            (uint8_t*)"Hello. My name is Inigo Montoya. You killed my father. Prepare to die.",
             { 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, },
             8,
             1024,

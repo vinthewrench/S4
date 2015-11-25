@@ -170,6 +170,9 @@ C4Err C4Key_NewShare(    SHARES_ShareInfo   *share,
 
 void C4Key_Free(C4KeyContextRef ctx);
 
+
+C4Err C4Key_Copy(C4KeyContextRef ctx, C4KeyContextRef *ctxOut);
+
 C4Err C4Key_SetProperty( C4KeyContextRef ctx,
                         const char *propName, C4KeyPropertyType propType,
                         void *data,  size_t  datSize);
@@ -192,7 +195,7 @@ C4Err C4Key_SerializeToPubKey(C4KeyContextRef       ctx,
                                   size_t           *outSize);
 
 C4Err C4Key_SerializeToPassPhrase(C4KeyContextRef  ctx,
-                                  const char       *passphrase,
+                                  const uint8_t    *passphrase,
                                   size_t           passphraseLen,
                                   uint8_t          **outData,
                                   size_t           *outSize);
@@ -203,13 +206,13 @@ C4Err C4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
 
 
 C4Err C4Key_VerifyPassPhrase(   C4KeyContextRef  ctx,
-                                const char       *passphrase,
+                                const uint8_t    *passphrase,
                                 size_t           passphraseLen);
 
 
 C4Err C4Key_DecryptFromPassPhrase(   C4KeyContextRef  passCtx,
-                                 const char       *passphrase,
-                                 size_t           passphraseLen,
+                                 const uint8_t     *passphrase,
+                                 size_t             passphraseLen,
                                  C4KeyContextRef       *symCtx);
 
 C4Err C4Key_DecryptFromPubKey( C4KeyContextRef      encodedCtx,

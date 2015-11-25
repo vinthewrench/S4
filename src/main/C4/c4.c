@@ -287,8 +287,6 @@ C4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bitsOut)
     C4Err       err = kC4Err_NoErr;
     size_t      bits = 0;
     
-         err =  kC4Err_ResourceUnavailable;
-    
     switch(algorithm)
     {
         case kCipher_Algorithm_AES128: bits = 128; break;
@@ -300,15 +298,12 @@ C4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bitsOut)
         case kCipher_Algorithm_3FISH1024: bits = 1024; break;
         default:
             RETERR(kC4Err_ResourceUnavailable);
-
     };
     
-    
     if(bitsOut)
-        *bitsOut = bits << 3;
+        *bitsOut = bits >> 3;
     
 done:
-    
     return (err);
    
 }

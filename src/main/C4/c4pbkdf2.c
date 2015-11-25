@@ -84,7 +84,7 @@ done:
 
 
 
-C4Err PASS_TO_KEY (   const char  *password,
+C4Err PASS_TO_KEY (const uint8_t  *password,
                    unsigned long  password_len,
                    uint8_t       *salt,
                    unsigned long  salt_len,

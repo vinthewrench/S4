@@ -20,7 +20,7 @@ typedef struct  {
     Cipher_Algorithm    algor;
     int                 keysize;
     uint8_t             *key;
-    char                *passPhrase;
+    uint8_t             *passPhrase;
     
 } cipherKATvector;
 
@@ -164,7 +164,7 @@ static C4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     err = C4Key_SetProperty(keyCtx,kC4KeyProp_TestPassCodeID,C4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
     err = C4Key_SetProperty(keyCtx, kC4KeyProp_Time, C4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
   
-    err = C4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen(kat->passPhrase), &data, &dataLen); CKERR;
+    err = C4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen((char*)kat->passPhrase), &data, &dataLen); CKERR;
     
       OPTESTLogDebug("\n------\n%s------\n",data);
     
@@ -174,9 +174,9 @@ static C4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
  //   sDumpC4Key(OPTESTLOG_LEVEL_DEBUG, passCtx);
     
     OPTESTLogVerbose("%8s", "Verify");
-    err = C4Key_VerifyPassPhrase(passCtx[0], kat->passPhrase, strlen(kat->passPhrase)); CKERR;
+    err = C4Key_VerifyPassPhrase(passCtx[0], kat->passPhrase, strlen((char*)kat->passPhrase)); CKERR;
 
-    err = C4Key_DecryptFromPassPhrase(passCtx[0],kat->passPhrase, strlen(kat->passPhrase), &keyCtx1); CKERR;
+    err = C4Key_DecryptFromPassPhrase(passCtx[0],kat->passPhrase, strlen((char*)kat->passPhrase), &keyCtx1); CKERR;
     
     err = sCompareKeys(keyCtx, keyCtx1); CKERR;
 
@@ -219,7 +219,7 @@ static C4Err  sTestSymmetricKeys()
     C4Err     err = kC4Err_NoErr;
     int i;
     
-    char* passPhrase1 = "Tant las fotei com auziretz";
+    uint8_t* passPhrase1 = (uint8_t*)"Tant las fotei com auziretz";
    
     /* AES 128 bit key */
     uint8_t K1[] = {
@@ -318,7 +318,7 @@ static C4Err sRunSharedPBKDF2ImportExportKAT(  cipherKATvector *kat)
         err = C4Key_NewShare( shares[i], &shareCtx[i]); CKERR;
         
         err = C4Key_SetProperty(shareCtx[i],kC4KeyProp_TestPassCodeID,C4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
-        err = C4Key_SerializeToPassPhrase(shareCtx[i], kat->passPhrase, strlen(kat->passPhrase),&shareData[i], NULL); CKERR;
+        err = C4Key_SerializeToPassPhrase(shareCtx[i], kat->passPhrase, strlen((char*)kat->passPhrase),&shareData[i], NULL); CKERR;
         
         
         OPTESTLogDebug("\n------\n%s",shareData[i]);
@@ -339,7 +339,7 @@ static C4Err sRunSharedPBKDF2ImportExportKAT(  cipherKATvector *kat)
         err = C4Key_DeserializeKeys(shareData[i], strlen((char*)shareData[i]), &keyCount, &encodedCtx ); CKERR;
         ASSERTERR(keyCount != 1,  kC4Err_SelfTestFailed);
         
-        err = C4Key_DecryptFromPassPhrase(encodedCtx[0],kat->passPhrase, strlen(kat->passPhrase), &decodedCtx); CKERR;
+        err = C4Key_DecryptFromPassPhrase(encodedCtx[0],kat->passPhrase, strlen((char*)kat->passPhrase), &decodedCtx); CKERR;
         
         err = sCompareKeys(decodedCtx, shareCtx[i]); CKERR;
         
@@ -592,7 +592,7 @@ static C4Err  sTest_SharedSymTBCKeys()
     C4Err     err = kC4Err_NoErr;
     int i;
     
-    char* passPhrase1 = "Tant las fotei com auziretz";
+    uint8_t* passPhrase1 = (uint8_t*)"Tant las fotei com auziretz";
 
     /* AES 128 bit key */
     uint8_t K1[] = {
@@ -692,7 +692,7 @@ static C4Err sRunTBCImportExportKAT(  cipherKATvector *kat)
     
     err = C4Key_NewTBC(kat->algor, kat->key, &keyCtx  ); CKERR;
     
-    err = C4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen(kat->passPhrase), &data, &dataLen); CKERR;
+    err = C4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen((char*)kat->passPhrase), &data, &dataLen); CKERR;
     err = C4Key_SetProperty(keyCtx,kC4KeyProp_TestPassCodeID,C4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
     
     OPTESTLogDebug("\n------\n%s------\n",data);
@@ -703,9 +703,9 @@ static C4Err sRunTBCImportExportKAT(  cipherKATvector *kat)
   //  sDumpC4Key(OPTESTLOG_LEVEL_DEBUG, passCtx);
 
     OPTESTLogVerbose("%8s", "Verify");
-    err = C4Key_VerifyPassPhrase(passCtx[0], kat->passPhrase, strlen(kat->passPhrase)); CKERR;
+    err = C4Key_VerifyPassPhrase(passCtx[0], kat->passPhrase, strlen((char*)kat->passPhrase)); CKERR;
     
-    err = C4Key_DecryptFromPassPhrase(passCtx[0],kat->passPhrase, strlen(kat->passPhrase), &keyCtx1); CKERR;
+    err = C4Key_DecryptFromPassPhrase(passCtx[0],kat->passPhrase, strlen((char*)kat->passPhrase), &keyCtx1); CKERR;
     
     err = sCompareKeys(keyCtx, keyCtx1); CKERR;
     
@@ -745,7 +745,7 @@ static C4Err  sTestTBCKeys()
     int i;
     
     
-    char* passPhrase1 = "Tant las fotei com auziretz";
+    uint8_t* passPhrase1 =  (uint8_t*)"Tant las fotei com auziretz";
     
 //    uint64_t three_256_tweak[] = { 0x0706050403020100L, 0x0F0E0D0C0B0A0908L };
  
