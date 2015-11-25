@@ -263,7 +263,7 @@ C4Err RNG_GetBytes(     void *         out,
                       size_t         outLen
                       )
 {
-    int             err = kC4Err_NoErr;
+    C4Err             err = kC4Err_NoErr;
 
 #if _USES_COMMON_CRYPTO_
    
@@ -279,6 +279,38 @@ C4Err RNG_GetBytes(     void *         out,
     
     return (err);
     
+}
+
+
+C4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bitsOut)
+{
+    C4Err       err = kC4Err_NoErr;
+    size_t      bits = 0;
+    
+         err =  kC4Err_ResourceUnavailable;
+    
+    switch(algorithm)
+    {
+        case kCipher_Algorithm_AES128: bits = 128; break;
+        case kCipher_Algorithm_AES192: bits = 192; break;
+        case kCipher_Algorithm_AES256: bits = 256; break;
+        case kCipher_Algorithm_2FISH256: bits = 128; break;
+        case kCipher_Algorithm_3FISH256: bits = 128; break;
+        case kCipher_Algorithm_3FISH512: bits = 512; break;
+        case kCipher_Algorithm_3FISH1024: bits = 1024; break;
+        default:
+            RETERR(kC4Err_ResourceUnavailable);
+
+    };
+    
+    
+    if(bitsOut)
+        *bitsOut = bits << 3;
+    
+done:
+    
+    return (err);
+   
 }
 
 

@@ -21,6 +21,7 @@ _MAC_Free
 _MAC_HashSize
 _MAC_KDF
 
+_Cipher_GetSize
 _ECB_Encrypt
 _ECB_Decrypt
 
