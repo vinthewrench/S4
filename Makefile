@@ -26,14 +26,16 @@ INCLUDE_DIRS := \
   tomcrypt/hashes/skein \
   tomcrypt/headers \
   tommath \
-  yajl
+	../../build/include \
+  ../../libs/yajl/src/api
 
 INCLUDE_FILES := \
  	c4/c4.h \
 	c4/c4pubtypes.h \
 	c4/c4crypto.h\
 	c4/c4bufferutilities.h\
-	c4/c4keys.h
+	c4/c4keys.h \
+  scripts/git_version_hash.h 
  
 SOURCE_FILES := \
   c4/c4.c \
@@ -44,10 +46,10 @@ SOURCE_FILES := \
   c4/c4hashword.c \
   c4/c4keys.c \
   c4/c4mac.c \
-   c4/c4pbkdf2.c \
-   c4/c4share.c \
-   c4/c4tbc.c \
-   tomcrypt/ciphers/aes/aes.c \
+  c4/c4pbkdf2.c \
+  c4/c4share.c \
+  c4/c4tbc.c \
+  tomcrypt/ciphers/aes/aes.c \
   tomcrypt/ciphers/twofish/twofish_tab.c \
   tomcrypt/ciphers/twofish/twofish.c \
   tomcrypt/encauth/ccm/ccm_memory_ex.c \
@@ -369,19 +371,20 @@ SOURCE_FILES := \
   tommath/bn_s_mp_sqr.c \
   tommath/bn_s_mp_sub.c \
   tommath/bncore.c \
-  ../yajl/src/yajl_alloc.c \
-  ../yajl/src/yajl_buf.c \
-  ../yajl/src/yajl_encode.c \
-  ../yajl/src/yajl_gen.c \
-  ../yajl/src/yajl_lex.c \
-  ../yajl/src/yajl_parser.c \
-  ../yajl/src/yajl_tree.c \
-  ../yajl/src/yajl_version.c \
-  ../yajl/src/yajl.c 
+  yajl/src/yajl_alloc.c \
+  yajl/src/yajl_buf.c \
+  yajl/src/yajl_encode.c \
+  yajl/src/yajl_gen.c \
+  yajl/src/yajl_lex.c \
+  yajl/src/yajl_parser.c \
+  yajl/src/yajl_tree.c \
+  yajl/src/yajl_version.c \
+  yajl/src/yajl.c 
+
 TEST_SOURCE_DIR := src/optest
 
 TEST_SOURCE_FILES := \
- $(TEST_SOURCE_DIR)/optest.c\
+$(TEST_SOURCE_DIR)/optest.c\
 $(TEST_SOURCE_DIR)/testHash.c\
 $(TEST_SOURCE_DIR)/testHMAC.c\
 $(TEST_SOURCE_DIR)/testCiphers.c\
@@ -510,25 +513,25 @@ android-deploy:	android
 ios:
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild -target c4-ios -project c4.xcodeproj
+	xcodebuild -target "C4-ios static" -project c4.xcodeproj
 endif
 
 osx:
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild -target c4-osx -project c4.xcodeproj
+	xcodebuild -target C4-osx -project c4.xcodeproj
 endif
 
 osx-test: osx
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild test -scheme c4-osx -project c4.xcodeproj
+	xcodebuild test -scheme C4-osx -project c4.xcodeproj
 endif
 
 optest: osx
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild -target c4-optest-osx  -project c4.xcodeproj
+	xcodebuild -target C4-optest-osx  -project c4.xcodeproj
 	DYLD_FRAMEWORK_PATH=./build/osx/Release/ ./build/osx/Release/c4-optest-osx 
 endif
 
@@ -536,7 +539,7 @@ endif
 run-optest: osx
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild -target c4-optest-osx  -project c4.xcodeproj
+	xcodebuild -target C4-optest-osx  -project c4.xcodeproj
 	DYLD_FRAMEWORK_PATH=./build/osx/Release/ ./build/osx/Release/c4-optest-osx 
 endif
 
@@ -586,9 +589,11 @@ show:
 	@printf "LIBRARY_DIR = '$(LIBRARY_DIR)'\n"
 	@printf "EXPORT_HEADERS_DIR = '$(EXPORT_HEADERS_DIR)'\n"
 	@printf "MAIN_INCLUDE_DIRS = '$(MAIN_INCLUDE_DIRS)'\n"
-
+	@printf "MAIN_INCLUDE_FILES = '$(MAIN_INCLUDE_FILES)'\n"
+  
 headers: | $(EXPORT_HEADERS_DIR)
-	$(SOURCE_DIR)/scripts/fetch_git_commit_hash.sh
+	cp -fR $(SOURCE_DIR)/../libs/yajl/src/api/yajl_common.h $(EXPORT_HEADERS_DIR)/yajl/
+#	$(MAIN_SOURCE_DIR)/scripts/fetch_git_commit_hash.sh
 	cp -fR $(MAIN_INCLUDE_FILES) $(EXPORT_HEADERS_DIR)
 	chmod -x $(addsuffix /*.h,$(EXPORT_HEADERS_DIR))
 
@@ -604,8 +609,9 @@ $(SHARED_LIBRARY_FILE): $(MAIN_OBJECT_FILES) | $(LIBRARY_DIR)
 	$(LINK.c) -o $(SHARED_LIBRARY_FILE) $(MAIN_OBJECT_FILES)
 
 $(EXPORT_HEADERS_DIR):
-	$(SOURCE_DIR)/scripts/fetch_git_commit_hash.sh
+	$(MAIN_SOURCE_DIR)/scripts/fetch_git_commit_hash.sh
 	mkdir -p $(EXPORT_HEADERS_DIR)
+	mkdir -p $(EXPORT_HEADERS_DIR)/yajl/
 
 $(ARCHIVE_FILE): shared static headers | $(ARCHIVE_DIR)
 	cd $(BUILD_DIR) && tar -c -z -f $(ARCHIVE_FILE) $(REL_EXPORT_HEADERS_DIR) $(REL_LIBRARY_DIR)
