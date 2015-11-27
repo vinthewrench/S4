@@ -35,7 +35,7 @@ INCLUDE_FILES := \
 	c4/c4crypto.h\
 	c4/c4bufferutilities.h\
 	c4/c4keys.h \
-  scripts/git_version_hash.h 
+  scripts/git_version_hash.h \
  
 SOURCE_FILES := \
   c4/c4.c \
@@ -371,15 +371,15 @@ SOURCE_FILES := \
   tommath/bn_s_mp_sqr.c \
   tommath/bn_s_mp_sub.c \
   tommath/bncore.c \
-  yajl/src/yajl_alloc.c \
-  yajl/src/yajl_buf.c \
-  yajl/src/yajl_encode.c \
-  yajl/src/yajl_gen.c \
-  yajl/src/yajl_lex.c \
-  yajl/src/yajl_parser.c \
-  yajl/src/yajl_tree.c \
-  yajl/src/yajl_version.c \
-  yajl/src/yajl.c 
+  ../../libs/yajl/src/yajl_alloc.c \
+  ../../libs/yajl/src/yajl_buf.c \
+  ../../libs/yajl/src/yajl_encode.c \
+  ../../libs/yajl/src/yajl_gen.c \
+  ../../libs/yajl/src/yajl_lex.c \
+  ../../libs/yajl/src/yajl_parser.c \
+  ../../libs/yajl/src/yajl_tree.c \
+  ../../libs/yajl/src/yajl_version.c \
+  ../../libs/yajl/src/yajl.c 
 
 TEST_SOURCE_DIR := src/optest
 
@@ -463,7 +463,7 @@ ifneq ($(NDK_DIR),)
 	NDK_BUILD := $(NDK_DIR)/ndk-build
 endif
 
-all: host android osx ios
+all: headers host android osx ios
 
 host: shared static test archive
 
@@ -593,7 +593,7 @@ show:
   
 headers: | $(EXPORT_HEADERS_DIR)
 	cp -fR $(SOURCE_DIR)/../libs/yajl/src/api/yajl_common.h $(EXPORT_HEADERS_DIR)/yajl/
-#	$(MAIN_SOURCE_DIR)/scripts/fetch_git_commit_hash.sh
+	cp -fR $(SOURCE_DIR)/../libs/yajl/build/yajl-2.1.1/include/yajl/yajl_version.h $(EXPORT_HEADERS_DIR)/yajl/
 	cp -fR $(MAIN_INCLUDE_FILES) $(EXPORT_HEADERS_DIR)
 	chmod -x $(addsuffix /*.h,$(EXPORT_HEADERS_DIR))
 
