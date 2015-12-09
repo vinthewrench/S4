@@ -1,13 +1,13 @@
 //
-//  c4pubtypes.h
-//  C4
+//  s4pubtypes.h
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#ifndef c4pubtypes_h
-#define c4pubtypes_h
+#ifndef s4pubtypes_h
+#define s4pubtypes_h
 
 
 
@@ -50,10 +50,10 @@ k ## enumName ## force = kEnumMaxValue
 #define MAX(a,b) (a >= b ? a : b)
 #endif
 
-#define IsC4Err(_err_)  (_err_ != kC4Err_NoErr)
-#define IsntC4Err(_err_)  (_err_ == kC4Err_NoErr)
+#define IsS4Err(_err_)  (_err_ != kS4Err_NoErr)
+#define IsntS4Err(_err_)  (_err_ == kS4Err_NoErr)
 
-#define CKERR  if((err != kC4Err_NoErr)) {\
+#define CKERR  if((err != kS4Err_NoErr)) {\
 STATUS_LOG("ERROR %d  %s:%d \n",  err, __FILE__, __LINE__); \
 goto done; }
 
@@ -108,7 +108,7 @@ static void * (* const volatile __memset_vp)(void *, int, size_t) = (memset);
 (((l1) == (l2)) && (memcmp((void *)(b1), (void *)(b2), (l1)) == 0))
 
 #define CKNULL(_p) if(IsNull(_p)) {\
-err = kC4Err_OutOfMemory; \
+err = kS4Err_OutOfMemory; \
 goto done; }
 
 #define BOOLVAL(x) (!(!(x)))
@@ -122,57 +122,57 @@ goto done; }
 if ( ! (expr ) )	\
 {\
 STATUS_LOG("ERROR %s(%d): %s is not true\n",  __FILE__, __LINE__, #expr ); \
-return( kC4Err_BadParams );\
+return( kS4Err_BadParams );\
 };
 
 #define ValidatePtr( ptr )	\
 ValidateParam( (ptr) != NULL )
 
 
-enum C4Err
+enum S4Err
 {
-    kC4Err_NoErr = 0,
-    kC4Err_NOP,						// 1
-    kC4Err_UnknownError,			// 2
-    kC4Err_BadParams,				// 3
-    kC4Err_OutOfMemory,				// 4
-    kC4Err_BufferTooSmall,			// 5
+    kS4Err_NoErr = 0,
+    kS4Err_NOP,						// 1
+    kS4Err_UnknownError,			// 2
+    kS4Err_BadParams,				// 3
+    kS4Err_OutOfMemory,				// 4
+    kS4Err_BufferTooSmall,			// 5
     
-    kC4Err_UserAbort,				// 6
-    kC4Err_UnknownRequest,			// 7
-    kC4Err_LazyProgrammer,			// 8
+    kS4Err_UserAbort,				// 6
+    kS4Err_UnknownRequest,			// 7
+    kS4Err_LazyProgrammer,			// 8
     
-    kC4Err_AssertFailed,            // 9
+    kS4Err_AssertFailed,            // 9
     
-    kC4Err_FeatureNotAvailable,     // 10
-    kC4Err_ResourceUnavailable,     // 11
-    kC4Err_NotConnected,            // 12
-    kC4Err_ImproperInitialization,	// 13
-    kC4Err_CorruptData,				// 14
-    kC4Err_SelfTestFailed,			// 15
-    kC4Err_BadIntegrity,            // 16
-    kC4Err_BadHashNumber,			// 17
-    kC4Err_BadCipherNumber,			// 18
-    kC4Err_BadPRNGNumber,			// 19
+    kS4Err_FeatureNotAvailable,     // 10
+    kS4Err_ResourceUnavailable,     // 11
+    kS4Err_NotConnected,            // 12
+    kS4Err_ImproperInitialization,	// 13
+    kS4Err_CorruptData,				// 14
+    kS4Err_SelfTestFailed,			// 15
+    kS4Err_BadIntegrity,            // 16
+    kS4Err_BadHashNumber,			// 17
+    kS4Err_BadCipherNumber,			// 18
+    kS4Err_BadPRNGNumber,			// 19
     
-    kC4Err_SecretsMismatch,			// 20
-    kC4Err_KeyNotFound,				// 21
+    kS4Err_SecretsMismatch,			// 20
+    kS4Err_KeyNotFound,				// 21
     
-    kC4Err_ProtocolError,			// 22
-    kC4Err_ProtocolContention,		// 23
+    kS4Err_ProtocolError,			// 22
+    kS4Err_ProtocolContention,		// 23
     
-    kC4Err_KeyLocked,				// 24
-    kC4Err_KeyExpired,				// 25
+    kS4Err_KeyLocked,				// 24
+    kS4Err_KeyExpired,				// 25
     
-    kC4Err_EndOfIteration,			// 26
-    kC4Err_OtherError,				// 27
-    kC4Err_PubPrivKeyNotFound,		// 28
+    kS4Err_EndOfIteration,			// 26
+    kS4Err_OtherError,				// 27
+    kS4Err_PubPrivKeyNotFound,		// 28
     
-    kC4Err_NotEnoughShares,         // 29
+    kS4Err_NotEnoughShares,         // 29
 
     
 };
 
-typedef int C4Err;
+typedef int S4Err;
 
-#endif /* c4pubtypes_h */
+#endif /* s4pubtypes_h */

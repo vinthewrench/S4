@@ -1,23 +1,23 @@
-# libc4
+# libs4
 
-C4 is an extensive cross platform library of cryptographic functions that can be called 
+S4 is an extensive cross platform library of cryptographic functions that can be called 
 from the C API. It was designed to be portable, such that it can be cross-compiled 
 for different architectures,  including OS X, IOS,  Linux, Android, and Windows.
 
 
 # Building for OS X
 
-The OS X version of C4 is built using Xcode 7.1. and uses the C4-osx target. This will
- produce the C4.Framework  in the build/osx/Debug or build/osx/Release directory.  
+The OS X version of S4 is built using Xcode 7.1. and uses the S4-osx target. This will
+ produce the S4.Framework  in the build/osx/Debug or build/osx/Release directory.  
  Both Xcode tests and Operational tests have been provided. The Operational tests can
-  be built and run using the C4-optest Xcode target.
+  be built and run using the S4-optest Xcode target.
 
 # Building for IOS
 
-The IOS  version of C4 is built using Xcode 7.1. and uses the 'C4-ios static' target.
- This will produce the libC4.a in the build/ios/Debug or build/ios/Release directory. 
+The IOS  version of S4 is built using Xcode 7.1. and uses the 'S4-ios static' target.
+ This will produce the libS4.a in the build/ios/Debug or build/ios/Release directory. 
   Only the Xcode tests which calls the Operational tests have been provided. The Xcode
-   test Operational tests can be built and run using the C4-ios Test  target.
+   test Operational tests can be built and run using the S4-ios Test  target.
 
 
 # Building for the unix OS (Linux)
@@ -29,7 +29,7 @@ systems, assuming standard C build tools are available.
 
 # Features
 
-C4 allows the programmer to make high level C calls without having to have expertise 
+S4 allows the programmer to make high level C calls without having to have expertise 
 in the low level cryptography algorithms. It presents the interface in a consistant 
 usable structure.
 
@@ -127,32 +127,32 @@ supported Keysizes are ECC-384 and 414 (Bernstien/Lange Curve41417)
 - PGPWordEncode
 - PGPWordEncode64
 
-#C4 Keys API
+#S4 Keys API
 
-C4 also provides a higher level API to take cryptographic keys and convert back and forth
+S4 also provides a higher level API to take cryptographic keys and convert back and forth
 from a JSON representation.
 
-Keys are maintained in an internal C4KeyContextRef format and can be created and manipulated
+Keys are maintained in an internal S4KeyContextRef format and can be created and manipulated
 using the following API calls.
 
-- C4Key_NewSymmetric
-- C4Key_NewTBC
-- C4Key_NewShare
-- C4Key_Free
-- C4Key_SetProperty
-- C4Key_GetProperty, SCKeyGetAllocatedProperty
+- S4Key_NewSymmetric
+- S4Key_NewTBC
+- S4Key_NewShare
+- S4Key_Free
+- S4Key_SetProperty
+- S4Key_GetProperty, SCKeyGetAllocatedProperty
 
-Keys pointed to by the C4KeyContextRef can be converted back and forth to JSON using
+Keys pointed to by the S4KeyContextRef can be converted back and forth to JSON using
 
-- C4Key_SerializeToPubKey
-- C4Key_SerializeToPassPhrase
-- C4Key_DeserializeKeys
+- S4Key_SerializeToPubKey
+- S4Key_SerializeToPassPhrase
+- S4Key_DeserializeKeys
 
 and can be decoded back to original format using
 
-- C4Key_DecryptFromPassPhrase
-- C4Key_DecryptFromPubKey 
-- C4Key_VerifyPassPhrase
+- S4Key_DecryptFromPassPhrase
+- S4Key_DecryptFromPubKey 
+- S4Key_VerifyPassPhrase
 
 
 

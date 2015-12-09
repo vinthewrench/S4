@@ -1,13 +1,13 @@
 //
-//  c4Share.c
-//  C4
+//  s4Share.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
 
-#include "c4Internal.h"
+#include "s4Internal.h"
 
 #ifdef __clang__
 #pragma mark - Shamir's Secret Sharing.
@@ -228,7 +228,7 @@ struct SHARES_Context
     size_t                  shareLen;
     uint32_t                totalShares;
     uint32_t                threshold;
-    uint8_t                 shareHash[kC4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
+    uint8_t                 shareHash[kS4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
     uint8_t                 shareData[];
 };
 
@@ -255,13 +255,13 @@ static bool sSHARES_ContextIsValid( const SHARES_ContextRef  ref)
 ValidateParam( sSHARES_ContextIsValid( s ) )
 
 
-C4Err SHARES_GetShareHash( const uint8_t *key,
+S4Err SHARES_GetShareHash( const uint8_t *key,
                          size_t         keyLenIn,
                          uint32_t       thresholdIn,
                          uint8_t        *mac_buf,
                          unsigned long  mac_len)
 {
-    C4Err           err = kC4Err_NoErr;
+    S4Err           err = kS4Err_NoErr;
     
     MAC_ContextRef  macRef     = kInvalidMAC_ContextRef;
     
@@ -303,10 +303,10 @@ done:
  * plus one additional value, xInput, which is the value we are going
  * to interpolate to.
  *
- * Returns kC4Err_NoErr on success, error if not all x[i] are unique.
+ * Returns kS4Err_NoErr on success, error if not all x[i] are unique.
  */
 
-static C4Err sComputeLagrange(void* shareData, size_t shareLen, uint32_t nShares, uint8_t xInput)
+static S4Err sComputeLagrange(void* shareData, size_t shareLen, uint32_t nShares, uint8_t xInput)
 {
     uint32_t		i, j;
     uint8_t			xi, xj;
@@ -333,7 +333,7 @@ static C4Err sComputeLagrange(void* shareData, size_t shareLen, uint32_t nShares
         for (j = 0; j < nShares; j++) {
             xj = (i == j) ? xInput : sGetShareData(shareData, shareLen, j)->xCoordinate;
             if (xi == xj)
-                return kC4Err_AssertFailed;
+                return kS4Err_AssertFailed;
             denom += f_log[f_sub(xi,xj)];
         }
         denom = (denom%FIELD_SIZE)+(denom/FIELD_SIZE);
@@ -346,7 +346,7 @@ static C4Err sComputeLagrange(void* shareData, size_t shareLen, uint32_t nShares
         
         sGetShareData(shareData, shareLen, i)->lagrange = (uint8_t)denom;
     }
-    return kC4Err_NoErr;	/* Success */
+    return kS4Err_NoErr;	/* Success */
 }
 
 
@@ -357,7 +357,7 @@ static C4Err sComputeLagrange(void* shareData, size_t shareLen, uint32_t nShares
  */
 
 
-static C4Err sInterpolation(void* shareData, size_t shareLen, uint32_t nShares, uint32_t byteNumber)
+static S4Err sInterpolation(void* shareData, size_t shareLen, uint32_t nShares, uint32_t byteNumber)
 {
     uint8_t x, y;
     uint8_t lagrange;
@@ -381,13 +381,13 @@ static C4Err sInterpolation(void* shareData, size_t shareLen, uint32_t nShares, 
 
 #define SHARE_DATA(_context_, _shareNum_) (sGetShareData(&_context_->shareData, _context_->shareLen, _shareNum_))
 
-C4Err SHARES_Init( const void       *key,
+S4Err SHARES_Init( const void       *key,
                    size_t           keyLen,
                    uint32_t         totalShares,
                    uint32_t         threshold,
                    SHARES_ContextRef *ctx)
 {
-    C4Err               err = kC4Err_NoErr;
+    S4Err               err = kS4Err_NoErr;
     SHARES_Context*    shareCTX = NULL;
     
     size_t          allocSize = 0;
@@ -410,7 +410,7 @@ C4Err SHARES_Init( const void       *key,
     shareCTX->totalShares   = totalShares;
     shareCTX->threshold     = threshold;
 
-    err = SHARES_GetShareHash(key, keyLen, shareCTX->threshold,  shareCTX->shareHash, kC4ShareInfo_HashBytes ); CKERR;
+    err = SHARES_GetShareHash(key, keyLen, shareCTX->threshold,  shareCTX->shareHash, kS4ShareInfo_HashBytes ); CKERR;
                      
     /* Set X coordinate randomly for each share */
     for( i=0; i<totalShares; ++i )
@@ -517,12 +517,12 @@ void  SHARES_Free(SHARES_ContextRef  ctx)
     }
 }
 
-C4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
+S4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
                            uint32_t            shareNumber,
                            SHARES_ShareInfo    **shareInfoOut,
                            size_t              *shareInfoLen)
 {
-    C4Err               err = kC4Err_NoErr;
+    S4Err               err = kS4Err_NoErr;
     size_t              bufSize = 0;
     SHARES_ShareInfo*   shareInfo = NULL;
     
@@ -538,7 +538,7 @@ C4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
     ZERO(shareInfo, bufSize);
  
      shareInfo->threshold = ctx->threshold;
-    COPY(ctx->shareHash, shareInfo->shareHash, kC4ShareInfo_HashBytes);
+    COPY(ctx->shareHash, shareInfo->shareHash, kS4ShareInfo_HashBytes);
  
     shareInfo->xCoordinate = hdr->xCoordinate;
     shareInfo->shareSecretLen = hdr->shareDataLen;
@@ -555,20 +555,20 @@ done:
    
 }
 
-C4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
+S4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
                            SHARES_ShareInfo*        sharesInfoIn[],
                            void                     *outData,
                            size_t                   bufSize,
                            size_t                   *outDataLen)
 {
-    C4Err       err = kC4Err_NoErr;
+    S4Err       err = kS4Err_NoErr;
     
     size_t              keyLen = 0;
     uint8_t				threshold = 0;
     uint8_t             *shareTable = NULL;
     size_t              allocSize = 0;
-    uint8_t             shareHash[kC4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
-    uint8_t             calculatedHash[kC4ShareInfo_HashBytes];
+    uint8_t             shareHash[kS4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
+    uint8_t             calculatedHash[kS4ShareInfo_HashBytes];
 
     uint32_t			i, j;
     
@@ -588,10 +588,10 @@ C4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
             threshold = info->threshold;
             
             if(numberShares < threshold)
-                RETERR(kC4Err_NotEnoughShares);
+                RETERR(kS4Err_NotEnoughShares);
             
             // copy the share Hash
-            COPY(info->shareHash, shareHash, kC4ShareInfo_HashBytes);
+            COPY(info->shareHash, shareHash, kS4ShareInfo_HashBytes);
             
             ValidateParam(bufSize >= keyLen);
          }
@@ -602,7 +602,7 @@ C4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
             // they all need to be the same size
             ValidateParam(info->threshold == threshold);
             // Compare the shareHash
-            ValidateParam(CMP(info->shareHash, shareHash, kC4ShareInfo_HashBytes));
+            ValidateParam(CMP(info->shareHash, shareHash, kS4ShareInfo_HashBytes));
         }
     }
     
@@ -632,10 +632,10 @@ C4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
     }
   
     // check for valid secret
-    err = SHARES_GetShareHash(outData, keyLen, threshold, calculatedHash, kC4ShareInfo_HashBytes ); CKERR;
+    err = SHARES_GetShareHash(outData, keyLen, threshold, calculatedHash, kS4ShareInfo_HashBytes ); CKERR;
     
-     if (!CMP(calculatedHash, shareHash, kC4ShareInfo_HashBytes) )
-            RETERR(kC4Err_CorruptData);
+     if (!CMP(calculatedHash, shareHash, kS4ShareInfo_HashBytes) )
+            RETERR(kS4Err_CorruptData);
 
     if(outDataLen)
         *outDataLen = keyLen;

@@ -1,13 +1,13 @@
 //
-//  c4ECC.c
-//  C4
+//  s4ECC.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
 
-#include "c4Internal.h"
+#include "s4Internal.h"
 
 
 #ifdef __clang__
@@ -48,9 +48,9 @@ bool sECC_ContextIsValid( const ECC_ContextRef  ref)
 
 
 
-C4Err ECC_Init(ECC_ContextRef * ctx)
+S4Err ECC_Init(ECC_ContextRef * ctx)
 {
-    C4Err           err = kC4Err_NoErr;
+    S4Err           err = kS4Err_NoErr;
     ECC_Context*    eccCTX = kInvalidECC_ContextRef;
     
     ValidateParam(ctx);
@@ -70,9 +70,9 @@ done:
 }
 
 
-C4Err ECC_Generate(ECC_ContextRef  ctx, size_t keysize )
+S4Err ECC_Generate(ECC_ContextRef  ctx, size_t keysize )
 {
-    C4Err   err = kC4Err_NoErr;
+    S4Err   err = kS4Err_NoErr;
     
     validateECCContext(ctx);
     
@@ -121,9 +121,9 @@ void ECC_Free(ECC_ContextRef  ctx)
     }
 }
 
-C4Err ECC_Export_ANSI_X963(ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *datSize)
+S4Err ECC_Export_ANSI_X963(ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *datSize)
 {
-    C4Err           err = kC4Err_NoErr;
+    S4Err           err = kS4Err_NoErr;
     unsigned long   length = bufSize;
     
     validateECCContext(ctx);
@@ -141,9 +141,9 @@ done:
 }
 
 
-C4Err ECC_Import_ANSI_X963(ECC_ContextRef  ctx,   void *in, size_t inlen )
+S4Err ECC_Import_ANSI_X963(ECC_ContextRef  ctx,   void *in, size_t inlen )
 {
-    C4Err       err = kC4Err_NoErr;
+    S4Err       err = kS4Err_NoErr;
     
     validateECCContext(ctx);
     
@@ -175,9 +175,9 @@ done:
     
 }
 
-C4Err ECC_Export(ECC_ContextRef  ctx, int exportPrivate, void *outData, size_t bufSize, size_t *datSize)
+S4Err ECC_Export(ECC_ContextRef  ctx, int exportPrivate, void *outData, size_t bufSize, size_t *datSize)
 {
-    C4Err           err = kC4Err_NoErr;
+    S4Err           err = kS4Err_NoErr;
     unsigned long   length = bufSize;
     int             keyType = PK_PUBLIC;
     
@@ -198,9 +198,9 @@ done:
 }
 
 
-C4Err ECC_Import(ECC_ContextRef  ctx,   void *in, size_t inlen )
+S4Err ECC_Import(ECC_ContextRef  ctx,   void *in, size_t inlen )
 {
-    C4Err       err = kC4Err_NoErr;
+    S4Err       err = kS4Err_NoErr;
     
     validateECCContext(ctx);
     
@@ -234,12 +234,12 @@ done:
     
 }
 
-C4Err ECC_Import_Info( void *in, size_t inlen,
+S4Err ECC_Import_Info( void *in, size_t inlen,
                       bool *isPrivate,
                       bool *isANSIx963,
                       size_t *keySizeOut  )
 {
-    C4Err           err = kC4Err_NoErr;
+    S4Err           err = kS4Err_NoErr;
     int             status  =  CRYPT_OK;
     
     uint8_t*        inByte = in;
@@ -298,7 +298,7 @@ done:
     
     if(status != CRYPT_OK)
     {
-        err = sCrypt2C4Err(status);
+        err = sCrypt2S4Err(status);
     }
     
     if(x) mp_clear(x);
@@ -311,9 +311,9 @@ done:
 
 
 
-C4Err ECC_SharedSecret(ECC_ContextRef  privCtx, ECC_ContextRef  pubCtx, void *outData, size_t bufSize, size_t *datSize)
+S4Err ECC_SharedSecret(ECC_ContextRef  privCtx, ECC_ContextRef  pubCtx, void *outData, size_t bufSize, size_t *datSize)
 {
-    C4Err           err = kC4Err_NoErr;
+    S4Err           err = kS4Err_NoErr;
     unsigned long   length = bufSize;
     
     validateECCContext(privCtx);
@@ -337,9 +337,9 @@ C4Err ECC_SharedSecret(ECC_ContextRef  privCtx, ECC_ContextRef  pubCtx, void *ou
     return (err);
 }
 
-C4Err ECC_KeySize( ECC_ContextRef  ctx, size_t * bits)
+S4Err ECC_KeySize( ECC_ContextRef  ctx, size_t * bits)
 {
-    C4Err  err = kC4Err_NoErr;
+    S4Err  err = kS4Err_NoErr;
     
     validateECCContext(ctx);
     ValidateParam(ctx->isInited);
@@ -351,9 +351,9 @@ C4Err ECC_KeySize( ECC_ContextRef  ctx, size_t * bits)
     return (err);
 }
 
-C4Err ECC_CurveName( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen)
+S4Err ECC_CurveName( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen)
 {
-    C4Err  err = kC4Err_NoErr;
+    S4Err  err = kS4Err_NoErr;
     
     validateECCContext(ctx);
     ValidateParam(ctx->isInited);
@@ -362,7 +362,7 @@ C4Err ECC_CurveName( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t 
     char* curveName =  ctx->key.dp->name;
     
     if(bufSize < strlen(curveName))
-        RETERR (kC4Err_BufferTooSmall);
+        RETERR (kS4Err_BufferTooSmall);
     
     strncpy(outData, curveName, bufSize);
     
@@ -374,9 +374,9 @@ done:
 }
 
 
-C4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen)
+S4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen)
 {
-    C4Err  err = kC4Err_NoErr;
+    S4Err  err = kS4Err_NoErr;
     HASH_ContextRef hash = kInvalidHASH_ContextRef;
      uint8_t         pubKey[256];
     size_t          pubKeyLen = 0;
@@ -415,9 +415,9 @@ done:
 
 
 
-C4Err ECC_Encrypt(ECC_ContextRef  pubCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen)
+S4Err ECC_Encrypt(ECC_ContextRef  pubCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen)
 {
-    C4Err     err = kC4Err_NoErr;
+    S4Err     err = kS4Err_NoErr;
     int          status  =  CRYPT_OK;
     unsigned long   length = bufSize;
     
@@ -445,7 +445,7 @@ C4Err ECC_Encrypt(ECC_ContextRef  pubCtx, void *inData, size_t inDataLen,  void 
     
     if(status != CRYPT_OK)
     {
-        err = sCrypt2C4Err(status); CKERR;
+        err = sCrypt2S4Err(status); CKERR;
     }
     
     *outDataLen = length;
@@ -456,9 +456,9 @@ done:
 }
 
 
-C4Err ECC_Decrypt(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen)
+S4Err ECC_Decrypt(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen)
 {
-    C4Err     err = kC4Err_NoErr;
+    S4Err     err = kS4Err_NoErr;
     int          status  =  CRYPT_OK;
     unsigned long   length = bufSize;
     
@@ -478,7 +478,7 @@ C4Err ECC_Decrypt(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,  void
     
     if(status != CRYPT_OK)
     {
-        err = sCrypt2C4Err(status); CKERR;
+        err = sCrypt2S4Err(status); CKERR;
     }
     
     *outDataLen = length;
@@ -489,9 +489,9 @@ done:
 }
 
 
-C4Err ECC_Sign(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen)
+S4Err ECC_Sign(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen)
 {
-    C4Err     err = kC4Err_NoErr;
+    S4Err     err = kS4Err_NoErr;
     int          status  =  CRYPT_OK;
     unsigned long   length = bufSize;
     
@@ -515,7 +515,7 @@ C4Err ECC_Sign(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,  void *o
     
     if(status != CRYPT_OK)
     {
-        err = sCrypt2C4Err(status); CKERR;
+        err = sCrypt2S4Err(status); CKERR;
     }
     
     *outDataLen = length;
@@ -526,9 +526,9 @@ done:
 }
 
 
-C4Err ECC_Verify(ECC_ContextRef  pubCtx, void *sig, size_t sigLen,  void *hash, size_t hashLen)
+S4Err ECC_Verify(ECC_ContextRef  pubCtx, void *sig, size_t sigLen,  void *hash, size_t hashLen)
 {
-    C4Err     err = kC4Err_NoErr;
+    S4Err     err = kS4Err_NoErr;
     int          status  =  CRYPT_OK;
     int           valid = 0;
     
@@ -551,10 +551,10 @@ C4Err ECC_Verify(ECC_ContextRef  pubCtx, void *sig, size_t sigLen,  void *hash, 
     
     if(status != CRYPT_OK)
     {
-        err = sCrypt2C4Err(status); CKERR;
+        err = sCrypt2S4Err(status); CKERR;
     }
     
-    if(!valid) err = kC4Err_BadIntegrity;
+    if(!valid) err = kS4Err_BadIntegrity;
     
     
 done:

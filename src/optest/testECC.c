@@ -1,6 +1,6 @@
 //
 //  testECC.c
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -8,16 +8,16 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "c4.h"
+#include "s4.h"
 #include "optest.h"
 
 
 
-static C4Err sTestECC(int keySize)
+static S4Err sTestECC(int keySize)
 {
 #define PTsize 32
     
-    C4Err     err = kC4Err_NoErr;
+    S4Err     err = kS4Err_NoErr;
     int     i;
     
     uint8_t        PT[PTsize];
@@ -113,12 +113,12 @@ static C4Err sTestECC(int keySize)
     dumpHex(IF_LOG_DEBUG, CT,  (int)CTlen, 0);
     
     err = ECC_Verify(ecc, CT, CTlen, PT, sizeof(PT));
-    OPTESTLogVerbose("\t\tVerify = %s\n",  IsC4Err(err)?"fail":"pass");
+    OPTESTLogVerbose("\t\tVerify = %s\n",  IsS4Err(err)?"fail":"pass");
     
     PT[3]= 9;
     err = ECC_Verify(ecc, CT, CTlen, PT, sizeof(PT));
-    OPTESTLogVerbose("\t\tVerify bad packet = %s\n",  IsC4Err(err)?"fail":"pass");
-    if(err == kC4Err_BadIntegrity) err = kC4Err_NoErr;
+    OPTESTLogVerbose("\t\tVerify bad packet = %s\n",  IsS4Err(err)?"fail":"pass");
+    if(err == kS4Err_BadIntegrity) err = kS4Err_NoErr;
     
     OPTESTLogVerbose("\n");
 done:
@@ -130,10 +130,10 @@ done:
     
 }
 
-C4Err sTestECC_DH(int keySize)
+S4Err sTestECC_DH(int keySize)
 {
     
-    C4Err     err = kC4Err_NoErr;
+    S4Err     err = kS4Err_NoErr;
     
     uint8_t         pubKey1[256];
     size_t          pubKeyLen1 = 0;
@@ -259,9 +259,9 @@ done:
 }
 
 
-C4Err  TestECC()
+S4Err  TestECC()
 {
-    C4Err     err = kC4Err_NoErr;
+    S4Err     err = kS4Err_NoErr;
     
     OPTESTLogInfo("\nTesting ECC\n");
     err = sTestECC(384); CKERR;

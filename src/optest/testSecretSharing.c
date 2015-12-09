@@ -1,6 +1,6 @@
 //
 //  testSecretSharing.c
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "c4.h"
+#include "s4.h"
 #include "optest.h"
  #include <stdlib.h>
 
@@ -56,10 +56,10 @@ void sCreateTestOffsets(uint8_t* array, int maxCount)
     
   }
 
-C4Err  TestSecretSharing()
+S4Err  TestSecretSharing()
 {
    
-    C4Err       err = kC4Err_NoErr;
+    S4Err       err = kS4Err_NoErr;
     uint8_t     PT[PTsize];
     uint8_t     PT1[sizeof (PT)];
     size_t      keyLen      = 0;
@@ -106,7 +106,7 @@ C4Err  TestSecretSharing()
 //             /*  check shares for data leakage against known original message */
 //            err = CMP(shareBuf+(shareSize *i) + kSHAMIR_HEADERSIZE,
 //                      PT,  sizeof (PT))
-//            ? kC4Err_SelfTestFailed : kC4Err_NoErr;
+//            ? kS4Err_SelfTestFailed : kS4Err_NoErr;
 //            CKERR;
     
       }
@@ -123,8 +123,8 @@ C4Err  TestSecretSharing()
                              &keyLen);
     
     OPTESTLogVerbose("\t Attempt to combine with not enough shares = %s\n",
-                     IsC4Err(err)?"fail":"pass");
-    if(err == kC4Err_NotEnoughShares) err = kC4Err_NoErr;
+                     IsS4Err(err)?"fail":"pass");
+    if(err == kS4Err_NotEnoughShares) err = kS4Err_NoErr;
     CKERR;
     
     /* Reconstruct data */

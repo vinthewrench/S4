@@ -1,6 +1,6 @@
 //
 //  optestutilities.c
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stddef.h>
 
-#include "c4.h"
+#include "s4.h"
 #include "optest.h"
 
 void OutputString(char *s);
@@ -231,13 +231,13 @@ int compare2Results(const void* expected, size_t expectedLen,
                     const void* calculated, size_t  calculatedLen,
                     DumpFormatType format, char* comment )
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     if(calculatedLen != expectedLen)
     {
         OPTESTLogError( "\n\t\tFAILED %s \n",comment );
         OPTESTLogError( "\t\texpected %d bytes , calculated %d bytes \n", expectedLen, calculatedLen);
-        err =  kC4Err_SelfTestFailed;
+        err =  kS4Err_SelfTestFailed;
     }
     else
         err = compareResults(expected,calculated , expectedLen, format, comment );
@@ -246,15 +246,15 @@ int compare2Results(const void* expected, size_t expectedLen,
 }
 
 
-C4Err compareResults(const void* expected, const void* calculated, size_t len,
+S4Err compareResults(const void* expected, const void* calculated, size_t len,
                         DumpFormatType format, char* comment  )
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     err = CMP(expected, calculated, len)
-    ? kC4Err_NoErr : kC4Err_SelfTestFailed;
+    ? kS4Err_NoErr : kS4Err_SelfTestFailed;
     
-    if( (err != kC4Err_NoErr)  && IsntNull(comment) && (format != kResultFormat_None))
+    if( (err != kS4Err_NoErr)  && IsntNull(comment) && (format != kResultFormat_None))
     {
         OPTESTLogError( "\n\t\tFAILED %s\n",comment );
         switch(format)
@@ -358,14 +358,14 @@ default:				return (("Invalid"));
     }
 }
 
-char *key_type_table(C4KeyType type)
+char *key_type_table(S4KeyType type)
 {
     switch (type )
     {
-        case kC4KeyType_Symmetric: 		return (("Symmetric"));
-        case kC4KeyType_Tweekable: 		return (("TBC"));
-        case kC4KeyType_PBKDF2: 		return (("Encr-PBKDF2 "));
-        case kC4KeyType_PublicEncrypted: 		return (("Encr-PubKey"));
+        case kS4KeyType_Symmetric: 		return (("Symmetric"));
+        case kS4KeyType_Tweekable: 		return (("TBC"));
+        case kS4KeyType_PBKDF2: 		return (("Encr-PBKDF2 "));
+        case kS4KeyType_PublicEncrypted: 		return (("Encr-PubKey"));
         default:				return (("Invalid"));
     }
 }

@@ -1,12 +1,12 @@
 //
-//  c4MAC.c
-//  C4
+//  s4MAC.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#include "c4Internal.h"
+#include "s4Internal.h"
 
 
 #ifdef __clang__
@@ -94,9 +94,9 @@ int sCCMacFinal(CCHmacContext *ctx, unsigned char *out, unsigned long *outlen)
 
 #endif
 
-C4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_t macKeyLen, MAC_ContextRef * ctx)
+S4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_t macKeyLen, MAC_ContextRef * ctx)
 {
-    int             err = kC4Err_NoErr;
+    int             err = kS4Err_NoErr;
     const struct    ltc_hash_descriptor* hashDesc = NULL;
     MAC_Context*   macCTX = NULL;
     
@@ -106,7 +106,7 @@ C4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_
     hashDesc = sDescriptorForHash(hash);
     
     if(IsNull(hashDesc))
-        RETERR( kC4Err_BadHashNumber);
+        RETERR( kS4Err_BadHashNumber);
     
     
     macCTX = XMALLOC(sizeof (MAC_Context)); CKNULL(macCTX);
@@ -202,20 +202,20 @@ C4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_
                     break;
                     
                 default:
-                    RETERR( kC4Err_BadHashNumber) ;
+                    RETERR( kS4Err_BadHashNumber) ;
             }
         }
             break;
             
         default:
-            RETERR( kC4Err_BadHashNumber) ;
+            RETERR( kS4Err_BadHashNumber) ;
     }
     
     *ctx = macCTX;
     
 done:
     
-    if(IsC4Err(err))
+    if(IsS4Err(err))
     {
         if(IsntNull(macCTX))
         {
@@ -227,9 +227,9 @@ done:
 }
 
 
-C4Err MAC_HashSize( MAC_ContextRef  ctx, size_t * bytes)
+S4Err MAC_HashSize( MAC_ContextRef  ctx, size_t * bytes)
 {
-    int  err = kC4Err_NoErr;
+    int  err = kS4Err_NoErr;
     
     validateMACContext(ctx);
     
@@ -241,9 +241,9 @@ C4Err MAC_HashSize( MAC_ContextRef  ctx, size_t * bytes)
 }
 
 
-C4Err MAC_Update(MAC_ContextRef  ctx, const void *data, size_t dataLength)
+S4Err MAC_Update(MAC_ContextRef  ctx, const void *data, size_t dataLength)
 {
-    int             err = kC4Err_NoErr;
+    int             err = kS4Err_NoErr;
     
     validateMACContext(ctx);
     
@@ -253,9 +253,9 @@ C4Err MAC_Update(MAC_ContextRef  ctx, const void *data, size_t dataLength)
     return (err);
 }
 
-C4Err MAC_Final(MAC_ContextRef  ctx, void *macOut,  size_t *resultLen)
+S4Err MAC_Final(MAC_ContextRef  ctx, void *macOut,  size_t *resultLen)
 {
-    int             err = kC4Err_NoErr;
+    int             err = kS4Err_NoErr;
     unsigned long  outlen = *resultLen;
     
     validateMACContext(ctx);
@@ -280,7 +280,7 @@ void MAC_Free(MAC_ContextRef  ctx)
 }
 
 
-C4Err  MAC_KDF(  MAC_Algorithm      mac,
+S4Err  MAC_KDF(  MAC_Algorithm      mac,
                HASH_Algorithm     hash,
                uint8_t*           K,
                unsigned long      Klen,
@@ -291,7 +291,7 @@ C4Err  MAC_KDF(  MAC_Algorithm      mac,
                unsigned long      outLen,
                uint8_t            *out)
 {
-    C4Err             err = kC4Err_NoErr;
+    S4Err             err = kS4Err_NoErr;
     MAC_ContextRef       macRef = kInvalidMAC_ContextRef;
     uint8_t              L[4];
     size_t               resultLen = 0;

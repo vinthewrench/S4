@@ -1,25 +1,25 @@
 //
-//  c4Cipher.c
-//  C4
+//  s4Cipher.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#include "c4Internal.h"
+#include "s4Internal.h"
 
 
 #ifdef __clang__
 #pragma mark - EBC Symmetric Crypto
 #endif
 
-C4Err ECB_Encrypt(Cipher_Algorithm algorithm,
+S4Err ECB_Encrypt(Cipher_Algorithm algorithm,
                   const void *	key,
                   const void *	in,
                   size_t         bytesIn,
                   void *         out )
 {
-    int             err = kC4Err_NoErr;
+    int             err = kS4Err_NoErr;
     int             status  =  CRYPT_OK;
     symmetric_ECB   ECB;
     
@@ -49,7 +49,7 @@ C4Err ECB_Encrypt(Cipher_Algorithm algorithm,
             break;
             
         default:
-            RETERR(kC4Err_BadCipherNumber);
+            RETERR(kS4Err_BadCipherNumber);
     }
     
     status  = ecb_start(cipher, key, keylen, 0, &ECB ); CKSTAT;
@@ -62,20 +62,20 @@ done:
     ecb_done(&ECB);
     
     if(status != CRYPT_OK)
-        err = sCrypt2C4Err(status);
+        err = sCrypt2S4Err(status);
     
     return err;
     
 }
 
 
-C4Err ECB_Decrypt(Cipher_Algorithm algorithm,
+S4Err ECB_Decrypt(Cipher_Algorithm algorithm,
                   const void *	key,
                   const void *	in,
                   size_t         bytesIn,
                   void *         out )
 {
-    int             err = kC4Err_NoErr;
+    int             err = kS4Err_NoErr;
     int             status  =  CRYPT_OK;
     symmetric_ECB   ECB;
     
@@ -105,7 +105,7 @@ C4Err ECB_Decrypt(Cipher_Algorithm algorithm,
             break;
             
         default:
-            RETERR(kC4Err_BadCipherNumber);
+            RETERR(kS4Err_BadCipherNumber);
     }
     
     status  = ecb_start(cipher, key, keylen, 0, &ECB ); CKSTAT;
@@ -118,7 +118,7 @@ done:
     ecb_done(&ECB);
     
     if(status != CRYPT_OK)
-        err = sCrypt2C4Err(status);
+        err = sCrypt2S4Err(status);
     
     return err;
 }
@@ -157,12 +157,12 @@ static bool sCBC_ContextIsValid( const CBC_ContextRef  ref)
 ValidateParam( sCBC_ContextIsValid( s ) )
 
 
-C4Err CBC_Init(Cipher_Algorithm algorithm,
+S4Err CBC_Init(Cipher_Algorithm algorithm,
                const void *key,
                const void *iv,
                CBC_ContextRef * ctxOut)
 {
-    int             err     = kC4Err_NoErr;
+    int             err     = kS4Err_NoErr;
     CBC_Context*    cbcCTX  = NULL;
     int             keylen  = 0;
     int             cipher  = -1;
@@ -193,7 +193,7 @@ C4Err CBC_Init(Cipher_Algorithm algorithm,
             break;
             
         default:
-            RETERR(kC4Err_BadCipherNumber);
+            RETERR(kS4Err_BadCipherNumber);
     }
     
     
@@ -215,18 +215,18 @@ done:
             memset(cbcCTX, sizeof (CBC_Context), 0);
             XFREE(cbcCTX);
         }
-        err = sCrypt2C4Err(status);
+        err = sCrypt2S4Err(status);
     }
     
     return err;
 }
 
-C4Err CBC_Encrypt(CBC_ContextRef ctx,
+S4Err CBC_Encrypt(CBC_ContextRef ctx,
                   const void *	in,
                   size_t         bytesIn,
                   void *         out )
 {
-    C4Err           err = kC4Err_NoErr;
+    S4Err           err = kS4Err_NoErr;
     int             status  =  CRYPT_OK;
     
     validateCBCContext(ctx);
@@ -234,18 +234,18 @@ C4Err CBC_Encrypt(CBC_ContextRef ctx,
     
     status = cbc_encrypt(in, out, bytesIn, &ctx->state);
     
-    err = sCrypt2C4Err(status);
+    err = sCrypt2S4Err(status);
     
     return (err);
     
 }
 
-C4Err CBC_Decrypt(CBC_ContextRef ctx,
+S4Err CBC_Decrypt(CBC_ContextRef ctx,
                   const void *	in,
                   size_t         bytesIn,
                   void *         out )
 {
-    C4Err           err = kC4Err_NoErr;
+    S4Err           err = kS4Err_NoErr;
     int             status  =  CRYPT_OK;
     
     validateCBCContext(ctx);
@@ -253,7 +253,7 @@ C4Err CBC_Decrypt(CBC_ContextRef ctx,
     
     status = cbc_decrypt(in, out, bytesIn, &ctx->state);
     
-    err = sCrypt2C4Err(status);
+    err = sCrypt2S4Err(status);
     
     return (err);
     
@@ -275,13 +275,13 @@ void CBC_Free(CBC_ContextRef  ctx)
 #define MIN_MSG_BLOCKSIZE   32
 #define MSG_BLOCKSIZE   16
 
-C4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
+S4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
                      uint8_t *key, size_t key_len,
                      const uint8_t *iv,
                      const uint8_t *in, size_t in_len,
                      uint8_t **outData, size_t *outSize)
 {
-    C4Err    err     = kC4Err_NoErr;
+    S4Err    err     = kS4Err_NoErr;
     CBC_ContextRef      cbc = kInvalidCBC_ContextRef;
     
     uint8_t     bytes2Pad;
@@ -304,7 +304,7 @@ C4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
             ValidateParam (key_len == 32); break;
             
         default:
-            RETERR(kC4Err_BadParams);
+            RETERR(kS4Err_BadParams);
     }
     
     
@@ -334,7 +334,7 @@ C4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
     
 done:
     
-    if(IsC4Err(err))
+    if(IsS4Err(err))
     {
         if(buffer)
         {
@@ -350,14 +350,14 @@ done:
 
 
 
-C4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
+S4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
                      uint8_t *key, size_t key_len,
                      const uint8_t *iv,
                      const uint8_t *in, size_t in_len,
                      uint8_t **outData, size_t *outSize)
 
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     CBC_ContextRef      cbc = kInvalidCBC_ContextRef;
     
     uint8_t *buffer = NULL;
@@ -380,7 +380,7 @@ C4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
             ValidateParam (key_len == 32); break;
             
         default:
-            RETERR(kC4Err_BadParams);
+            RETERR(kS4Err_BadParams);
     }
     
     buffer = XMALLOC(buffLen);
@@ -392,14 +392,14 @@ C4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
     bytes2Pad = *(buffer+buffLen-1);
     
     if(bytes2Pad > buffLen)
-        RETERR(kC4Err_CorruptData);
+        RETERR(kS4Err_CorruptData);
     
     *outData = buffer;
     *outSize = buffLen- bytes2Pad;
     
     
 done:
-    if(IsC4Err(err))
+    if(IsS4Err(err))
     {
         if(buffer)
         {

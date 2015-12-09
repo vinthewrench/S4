@@ -13,7 +13,7 @@
 
 LOCAL_DIR := $(shell pwd)
 
-MODULE_NAME    := c4
+MODULE_NAME    := s4
 MODULE_VERSION := 1.0.0
 MODULE_BRANCH  := develop
 
@@ -22,7 +22,7 @@ SOURCE_DIR=$(LOCAL_DIR)/src
 MAIN_SOURCE_DIR := $(SOURCE_DIR)/main
 
 INCLUDE_DIRS := \
-  C4\
+  S4\
   tomcrypt/hashes/skein \
   tomcrypt/headers \
   tommath \
@@ -30,25 +30,25 @@ INCLUDE_DIRS := \
   ../../libs/yajl/src/api
 
 INCLUDE_FILES := \
- 	c4/c4.h \
-	c4/c4pubtypes.h \
-	c4/c4crypto.h\
-	c4/c4bufferutilities.h\
-	c4/c4keys.h \
+ 	s4/s4.h \
+	s4/s4pubtypes.h \
+	s4/s4crypto.h\
+	s4/s4bufferutilities.h\
+	s4/s4keys.h \
   scripts/git_version_hash.h \
  
 SOURCE_FILES := \
-  c4/c4.c \
-  c4/c4bufferutilities.c \
-  c4/c4cipher.c \
-  c4/c4ecc.c \
-  c4/c4hash.c \
-  c4/c4hashword.c \
-  c4/c4keys.c \
-  c4/c4mac.c \
-  c4/c4pbkdf2.c \
-  c4/c4share.c \
-  c4/c4tbc.c \
+  s4/s4.c \
+  s4/s4bufferutilities.c \
+  s4/s4cipher.c \
+  s4/s4ecc.c \
+  s4/s4hash.c \
+  s4/s4hashword.c \
+  s4/s4keys.c \
+  s4/s4mac.c \
+  s4/s4pbkdf2.c \
+  s4/s4share.c \
+  s4/s4tbc.c \
   tomcrypt/ciphers/aes/aes.c \
   tomcrypt/ciphers/twofish/twofish_tab.c \
   tomcrypt/ciphers/twofish/twofish.c \
@@ -506,41 +506,41 @@ endif
 ANDROID_LIB_DIR = ../../android/silent-text-android/libs
 android-deploy:	android
 	for arch in armeabi armeabi-v7a mips x86; do \
-		cp build/android/libs/$${arch}/libc4.so $(ANDROID_LIB_DIR)/$${arch}/ ; \
-		cp build/android/libs/$${arch}/libc4-jni.so $(ANDROID_LIB_DIR)/$${arch}/ ; \
+		cp build/android/libs/$${arch}/libs4.so $(ANDROID_LIB_DIR)/$${arch}/ ; \
+		cp build/android/libs/$${arch}/libs4-jni.so $(ANDROID_LIB_DIR)/$${arch}/ ; \
 	done
 
 ios:
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild -target "C4-ios static" -project c4.xcodeproj
+	xcodebuild -target "S4-ios static" -project s4.xcodeproj
 endif
 
 osx:
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild -target C4-osx -project c4.xcodeproj
+	xcodebuild -target S4-osx -project s4.xcodeproj
 endif
 
 osx-test: osx
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild test -scheme C4-osx -project c4.xcodeproj
+	xcodebuild test -scheme S4-osx -project s4.xcodeproj
 endif
 
 optest: osx
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild -target C4-optest-osx  -project c4.xcodeproj
-	DYLD_FRAMEWORK_PATH=./build/osx/Release/ ./build/osx/Release/c4-optest-osx 
+	xcodebuild -target S4-optest-osx  -project s4.xcodeproj
+	DYLD_FRAMEWORK_PATH=./build/osx/Release/ ./build/osx/Release/s4-optest-osx 
 endif
 
 
 run-optest: osx
 
 ifeq ($(OS_TYPE),darwin)
-	xcodebuild -target C4-optest-osx  -project c4.xcodeproj
-	DYLD_FRAMEWORK_PATH=./build/osx/Release/ ./build/osx/Release/c4-optest-osx 
+	xcodebuild -target S4-optest-osx  -project s4.xcodeproj
+	DYLD_FRAMEWORK_PATH=./build/osx/Release/ ./build/osx/Release/s4-optest-osx 
 endif
 
 help:

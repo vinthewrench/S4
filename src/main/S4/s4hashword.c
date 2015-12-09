@@ -1,12 +1,12 @@
 //
-//  c4HashWord.c
-//  C4
+//  s4HashWord.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#include "c4Internal.h"
+#include "s4Internal.h"
 
 
 #ifdef __clang__

@@ -1,12 +1,12 @@
 //
-//  c4Hash.c
-//  C4
+//  s4Hash.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#include "c4Internal.h"
+#include "s4Internal.h"
 
 #ifdef __clang__
 #pragma mark - Hash
@@ -58,9 +58,9 @@ sHASH_ContextIsValid( const HASH_ContextRef  ref)
 #define validateHASHContext( s )		\
 ValidateParam( sHASH_ContextIsValid( s ) )
 
-C4Err HASH_Import(void *inData, size_t bufSize, HASH_ContextRef * ctx)
+S4Err HASH_Import(void *inData, size_t bufSize, HASH_ContextRef * ctx)
 {
-    C4Err        err = kC4Err_NoErr;
+    S4Err        err = kS4Err_NoErr;
     HASH_Context*   hashCTX = NULL;
     
     ValidateParam(ctx);
@@ -68,7 +68,7 @@ C4Err HASH_Import(void *inData, size_t bufSize, HASH_ContextRef * ctx)
     
     
     if(sizeof(HASH_Context) != bufSize)
-        RETERR( kC4Err_BadParams);
+        RETERR( kS4Err_BadParams);
     
     hashCTX = XMALLOC(sizeof (HASH_Context)); CKNULL(hashCTX);
     
@@ -80,7 +80,7 @@ C4Err HASH_Import(void *inData, size_t bufSize, HASH_ContextRef * ctx)
     
 done:
     
-    if(IsC4Err(err))
+    if(IsS4Err(err))
     {
         if(IsntNull(hashCTX))
         {
@@ -91,9 +91,9 @@ done:
     return err;
 }
 
-C4Err HASH_Export(HASH_ContextRef ctx, void *outData, size_t bufSize, size_t *datSize)
+S4Err HASH_Export(HASH_ContextRef ctx, void *outData, size_t bufSize, size_t *datSize)
 {
-    C4Err        err = kC4Err_NoErr;
+    S4Err        err = kS4Err_NoErr;
     const struct    ltc_hash_descriptor* desc = NULL;
     
     validateHASHContext(ctx);
@@ -103,10 +103,10 @@ C4Err HASH_Export(HASH_ContextRef ctx, void *outData, size_t bufSize, size_t *da
     desc = sDescriptorForHash(ctx->algor);
     
     if(IsNull(desc))
-        RETERR( kC4Err_BadHashNumber);
+        RETERR( kS4Err_BadHashNumber);
     
     if(sizeof(HASH_Context) > bufSize)
-        RETERR( kC4Err_BufferTooSmall);
+        RETERR( kS4Err_BufferTooSmall);
     
     COPY( ctx, outData, sizeof(HASH_Context));
     
@@ -228,9 +228,9 @@ int sCCHashFinalSHA512(void *ctx, unsigned char *out)
 #endif
 
 
-C4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
+S4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
 {
-    int             err = kC4Err_NoErr;
+    int             err = kS4Err_NoErr;
     HASH_Context*   hashCTX = NULL;
     const struct ltc_hash_descriptor* desc = NULL;
     
@@ -307,7 +307,7 @@ C4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
         hashCTX->done =     (void*) desc->done;
         
         if(IsNull(desc))
-            RETERR( kC4Err_BadHashNumber);
+            RETERR( kS4Err_BadHashNumber);
         
         if(desc->init)
             err = (desc->init)(&hashCTX->state.tc_state);
@@ -323,7 +323,7 @@ C4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
     hashCTX->done =     (void*) desc->done;
     
     if(IsNull(desc))
-        RETERR( kC4Err_BadHashNumber);
+        RETERR( kS4Err_BadHashNumber);
     
     
     if(desc->init)
@@ -337,7 +337,7 @@ C4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
 done:
     
     
-    if(IsC4Err(err))
+    if(IsS4Err(err))
     {
         if(IsntNull(hashCTX))
         {
@@ -349,9 +349,9 @@ done:
     
 }
 
-C4Err HASH_Update(HASH_ContextRef ctx, const void *data, size_t dataLength)
+S4Err HASH_Update(HASH_ContextRef ctx, const void *data, size_t dataLength)
 {
-    int             err = kC4Err_NoErr;
+    int             err = kS4Err_NoErr;
     //    const struct    ltc_hash_descriptor* desc = NULL;
     
     validateHASHContext(ctx);
@@ -364,7 +364,7 @@ C4Err HASH_Update(HASH_ContextRef ctx, const void *data, size_t dataLength)
     //    desc = sDescriptorForHash(ctx->algor);
     //
     //    if(IsNull(desc))
-    //        RETERR( kC4Err_BadHashNumber);
+    //        RETERR( kS4Err_BadHashNumber);
     //
     //    if(desc->process)
     //        err = (desc->process)(&ctx->state.tc_state,data,  dataLength );
@@ -378,9 +378,9 @@ C4Err HASH_Update(HASH_ContextRef ctx, const void *data, size_t dataLength)
 
 
 
-C4Err HASH_Final(HASH_ContextRef  ctx, void *hashOut)
+S4Err HASH_Final(HASH_ContextRef  ctx, void *hashOut)
 {
-    int             err = kC4Err_NoErr;
+    int             err = kS4Err_NoErr;
     //    const struct    ltc_hash_descriptor* desc = NULL;
     
     validateHASHContext(ctx);
@@ -392,7 +392,7 @@ C4Err HASH_Final(HASH_ContextRef  ctx, void *hashOut)
     //    desc = sDescriptorForHash(ctx->algor);
     //
     //    if(IsNull(desc))
-    //        RETERR( kC4Err_BadHashNumber);
+    //        RETERR( kS4Err_BadHashNumber);
     //
     //    if(desc->done)
     //        err = (desc->done)(&ctx->state.tc_state, hashOut );
@@ -412,9 +412,9 @@ void HASH_Free(HASH_ContextRef  ctx)
     }
 }
 
-C4Err HASH_GetSize(HASH_ContextRef  ctx, size_t *hashSize)
+S4Err HASH_GetSize(HASH_ContextRef  ctx, size_t *hashSize)
 {
-    int             err = kC4Err_NoErr;
+    int             err = kS4Err_NoErr;
     
     validateHASHContext(ctx);
     
@@ -424,10 +424,10 @@ C4Err HASH_GetSize(HASH_ContextRef  ctx, size_t *hashSize)
 }
 
 
-C4Err HASH_DO(HASH_Algorithm algorithm, const unsigned char *in, unsigned long inlen, unsigned long outLen, uint8_t *out)
+S4Err HASH_DO(HASH_Algorithm algorithm, const unsigned char *in, unsigned long inlen, unsigned long outLen, uint8_t *out)
 {
     
-    C4Err             err         = kC4Err_NoErr;
+    S4Err             err         = kS4Err_NoErr;
     HASH_ContextRef     hashRef     = kInvalidHASH_ContextRef;
     uint8_t             hashBuf[128];
     uint8_t             *p = (outLen < sizeof(hashBuf))?hashBuf:out;
@@ -479,7 +479,7 @@ C4Err HASH_DO(HASH_Algorithm algorithm, const unsigned char *in, unsigned long i
     err = HASH_Final( hashRef, p); CKERR;
     
 complete:
-    if((err == kC4Err_NoErr) & (p!= out))
+    if((err == kS4Err_NoErr) & (p!= out))
         COPY(hashBuf, out, outLen);
     
 done:

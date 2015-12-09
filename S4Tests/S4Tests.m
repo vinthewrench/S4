@@ -1,6 +1,6 @@
 //
-//  C4Tests.m
-//  C4Tests
+//  S4Tests.m
+//  S4Tests
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -23,7 +23,7 @@
 
 #import <XCTest/XCTest.h>
 #include  "optest.h"
-#include  "c4.h"
+#include  "s4.h"
 
 #if TARGET_OS_IPHONE
 
@@ -35,23 +35,23 @@ void OutputString(char *s)
 
 
 
-@interface C4Tests : XCTestCase
+@interface S4Tests : XCTestCase
 
 @end
 
-@implementation C4Tests
+@implementation S4Tests
 
 unsigned int gLogLevel	= OPTESTLOG_LEVEL_ERROR;
 
--(void) CheckError: (C4Err) err
+-(void) CheckError: (S4Err) err
 {
     NSString* errorStr = nil;
     
-    if(IsC4Err(err))
+    if(IsS4Err(err))
     {
         char str[256];
         
-        if(IsntC4Err( C4_GetErrorString(err, sizeof(str), str)))
+        if(IsntS4Err( S4_GetErrorString(err, sizeof(str), str)))
         {
             errorStr = [ NSString stringWithFormat:@"Error %d:  %s\n", err, str ];
         }
@@ -70,9 +70,9 @@ unsigned int gLogLevel	= OPTESTLOG_LEVEL_ERROR;
 - (void)setUp {
     [super setUp];
     
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
-    err = C4_Init(); CKERR;
+    err = S4_Init(); CKERR;
     // Put setup code here. This method is called before the invocation of each test method in the class.
     
 done:
@@ -93,7 +93,7 @@ done:
 
 - (void)testHash {
     // This is an example of a functional test case.
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     err = TestHash();CKERR;
     
@@ -106,7 +106,7 @@ done:
 
 - (void)testHMAC {
     // This is an example of a functional test case.
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     err = TestHMAC();CKERR;
     
@@ -119,7 +119,7 @@ done:
 
 - (void)testCiphers {
     // This is an example of a functional test case.
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     err = TestCiphers();CKERR;
     
@@ -131,7 +131,7 @@ done:
 
 - (void)testTBC {
     // This is an example of a functional test case.
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     err = TestTBCiphers();CKERR;
     
@@ -143,7 +143,7 @@ done:
 
 - (void)testECC {
     // This is an example of a functional test case.
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     err = TestECC();CKERR;
     
@@ -155,7 +155,7 @@ done:
 
 - (void)testP2K {
     // This is an example of a functional test case.
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     err = TestP2K();CKERR;
     
@@ -166,7 +166,7 @@ done:
 
 
 - (void)testSecretSharing {
-     C4Err err = kC4Err_NoErr;
+     S4Err err = kS4Err_NoErr;
     
     err = TestSecretSharing();CKERR;
     
@@ -178,7 +178,7 @@ done:
 
 
 - (void)testKeys {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     err =TestKeys();CKERR;
     

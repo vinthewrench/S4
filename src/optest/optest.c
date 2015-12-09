@@ -1,6 +1,6 @@
 //
 //  optest.c
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include  "c4.h"
+#include  "s4.h"
 #include  "optest.h"
 
 
@@ -145,7 +145,7 @@ static void sUsage()
 {
     int j;
     
-    fprintf (stderr, "\nC4 Crypto Operational Testtool\n\nusage: minioptest [options] ..\nOptions: \n ");
+    fprintf (stderr, "\nS4 Crypto Operational Testtool\n\nusage: minioptest [options] ..\nOptions: \n ");
     OPTESTPrintF("\tTests:\n" );
     for( j = 0; j < OptestTableEntries; j ++)
         if(  (sOpTestTable[j].type ==  kArg_TestID) && sOpTestTable[j].longName)
@@ -299,7 +299,7 @@ static char BORDER_TEXT[] = "------------------------------------------\n";
 
 int optest_main(int argc, char **argv)
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     char str[256];
     time_t					now;
     int					j;
@@ -309,12 +309,12 @@ int optest_main(int argc, char **argv)
     /* process Test options */
     sSetupTestOptions(argc, argv);
     
-    OPTESTLogInfo("C4 Crypto Library Operational Test\n");
+    OPTESTLogInfo("S4 Crypto Library Operational Test\n");
     
     OPTESTLogInfo(" Initialize SDK\n");
-    err = C4_Init(); CKERR;
+    err = S4_Init(); CKERR;
     
-    err = C4_GetVersionString(sizeof(str), str); CKERR;
+    err = S4_GetVersionString(sizeof(str), str); CKERR;
     OPTESTLogInfo("\t%14s: %s\n","Version",str);
     
     /* log start time */
@@ -379,14 +379,14 @@ int optest_main(int argc, char **argv)
     
     
     
-    OPTESTLogInfo("\nC4 Crypto Library operations Successful\n ");
+    OPTESTLogInfo("\nS4 Crypto Library operations Successful\n ");
     
 done:
     
-    if(IsC4Err(err))
+    if(IsS4Err(err))
     {
         
-        if(IsntC4Err( C4_GetErrorString(err, sizeof(str), str)))
+        if(IsntS4Err( S4_GetErrorString(err, sizeof(str), str)))
         {
             OPTESTLogError("\nError %d:  %s\n", err, str);
         }

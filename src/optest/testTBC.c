@@ -1,6 +1,6 @@
 //
 //  testTBC.c
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/3/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "c4.h"
+#include "s4.h"
 #include "optest.h"
 
 
@@ -32,10 +32,10 @@ typedef struct  {
  */
 
 
-static C4Err RunCipherKAT(  katvector *kat)
+static S4Err RunCipherKAT(  katvector *kat)
 
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     TBC_ContextRef TBC = kInvalidTBC_ContextRef;
     
     uint8_t IN[1024];
@@ -76,9 +76,9 @@ done:
 }
 
 
-C4Err TestTBCiphers()
+S4Err TestTBCiphers()
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     unsigned int		i;
     

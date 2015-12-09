@@ -1,6 +1,6 @@
 //
 //  optest.h
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -10,7 +10,7 @@
 #define optest_h
 
 #include <stdio.h>
-#include  "c4.h"
+#include  "s4.h"
 
 #ifdef __IPHONE_OS_VERSION_MIN_REQUIRED
 #define OPTEST_IOS_SPECIFIC 1
@@ -75,7 +75,7 @@ int OPTESTPrintF(const char *, ...);
 char *hash_algor_table(HASH_Algorithm algor);
 char *cipher_algor_table(Cipher_Algorithm algor);
 char* mac_algor_table(MAC_Algorithm algor);
-char *key_type_table(C4KeyType type);
+char *key_type_table(S4KeyType type);
 uint32_t hash_algor_bits(HASH_Algorithm algor);
 
 
@@ -96,13 +96,13 @@ int compare2Results(const void* expected, size_t expectedLen,
 
 
 
-C4Err TestHash();
-C4Err TestHMAC();
-C4Err TestCiphers();
-C4Err TestECC();
-C4Err TestP2K();
-C4Err TestTBCiphers();
-C4Err TestSecretSharing();
-C4Err TestKeys();
+S4Err TestHash();
+S4Err TestHMAC();
+S4Err TestCiphers();
+S4Err TestECC();
+S4Err TestP2K();
+S4Err TestTBCiphers();
+S4Err TestSecretSharing();
+S4Err TestKeys();
 
 #endif /* optest_h */

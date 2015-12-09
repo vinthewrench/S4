@@ -1,13 +1,13 @@
 //
-//  c4PBKDF2.c
-//  C4
+//  s4PBKDF2.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
 
-#include "c4Internal.h"
+#include "s4Internal.h"
 
 
 #ifdef __clang__
@@ -18,13 +18,13 @@
 #define ROUNDMEASURE 10000
 #define MIN_ROUNDS 1500
 
-C4Err PASS_TO_KEY_SETUP(   unsigned long  password_len,
+S4Err PASS_TO_KEY_SETUP(   unsigned long  password_len,
                         unsigned long  key_len,
                         uint8_t        *salt,
                         unsigned long  salt_len,
                         uint32_t       *rounds_out)
 {
-    C4Err    err         = kC4Err_NoErr;
+    S4Err    err         = kS4Err_NoErr;
     uint8_t     *password   = NULL;
     uint8_t     *key        = NULL;
     uint32_t    rounds = MIN_ROUNDS;
@@ -63,7 +63,7 @@ C4Err PASS_TO_KEY_SETUP(   unsigned long  password_len,
     }
     
     if(elapsedTime == 0)
-        RETERR(kC4Err_UnknownError);
+        RETERR(kS4Err_UnknownError);
     
     // How many rounds to use so that it takes 0.1s ?
     rounds = (uint32_t) ((uint64_t)(msec * ROUNDMEASURE * 1000) / elapsedTime);
@@ -84,7 +84,7 @@ done:
 
 
 
-C4Err PASS_TO_KEY (const uint8_t  *password,
+S4Err PASS_TO_KEY (const uint8_t  *password,
                    unsigned long  password_len,
                    uint8_t       *salt,
                    unsigned long  salt_len,
@@ -93,7 +93,7 @@ C4Err PASS_TO_KEY (const uint8_t  *password,
                    unsigned long  key_len )
 
 {
-    C4Err    err     = kC4Err_NoErr;
+    S4Err    err     = kS4Err_NoErr;
     
 #if _USES_COMMON_CRYPTO_
     
@@ -102,7 +102,7 @@ C4Err PASS_TO_KEY (const uint8_t  *password,
                              kCCPRFHmacAlgSHA256, rounds,
                              key_buf,   key_len)
        != kCCSuccess)
-        err = kC4Err_BadParams;
+        err = kS4Err_BadParams;
     
     
 #else
@@ -116,7 +116,7 @@ C4Err PASS_TO_KEY (const uint8_t  *password,
     
 done:
     if(status != CRYPT_OK)
-        err = sCrypt2C4Err(status);
+        err = sCrypt2S4Err(status);
     
 #endif
     

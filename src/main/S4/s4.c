@@ -1,22 +1,22 @@
 //
-//  C4.c
-//  C4
+//  S4.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
- #include "c4.h"
-#include "c4Internal.h"
+ #include "s4.h"
+#include "s4Internal.h"
   
 #ifdef __clang__
 #pragma mark - init
 #endif
 
 
-C4Err C4_Init()
+S4Err S4_Init()
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     ltc_mp = ltm_desc;
 
@@ -46,43 +46,43 @@ C4Err C4_Init()
 
 typedef struct {
     int 		code;
-    C4Err       err;
+    S4Err       err;
     const   char *msg;
 } error_map_entry;
 
 static const error_map_entry error_map_table[] =
 {
-    { CRYPT_OK,     		kC4Err_NoErr,         "Successful" },
-    { CRYPT_ERROR,  		kC4Err_UnknownError,  "Generic Error" },
-    { CRYPT_NOP,    		kC4Err_NOP,         	"Non-fatal 'no-operation' requested."},
-    { CRYPT_INVALID_ARG, 	kC4Err_BadParams,    	"Invalid argument provided."},
+    { CRYPT_OK,     		kS4Err_NoErr,         "Successful" },
+    { CRYPT_ERROR,  		kS4Err_UnknownError,  "Generic Error" },
+    { CRYPT_NOP,    		kS4Err_NOP,         	"Non-fatal 'no-operation' requested."},
+    { CRYPT_INVALID_ARG, 	kS4Err_BadParams,    	"Invalid argument provided."},
     
     
-    { CRYPT_MEM,  			 kC4Err_OutOfMemory,          "Out of memory"},
-    { CRYPT_BUFFER_OVERFLOW, kC4Err_BufferTooSmall,       "Not enough space for output"},
+    { CRYPT_MEM,  			 kS4Err_OutOfMemory,          "Out of memory"},
+    { CRYPT_BUFFER_OVERFLOW, kS4Err_BufferTooSmall,       "Not enough space for output"},
     
-    { -1, 					kC4Err_UserAbort,             "User Abort"},
-    { -1, 					kC4Err_UnknownRequest,        "Unknown Request"},
-    { -1,					kC4Err_LazyProgrammer,        "Feature incomplete"},
+    { -1, 					kS4Err_UserAbort,             "User Abort"},
+    { -1, 					kS4Err_UnknownRequest,        "Unknown Request"},
+    { -1,					kS4Err_LazyProgrammer,        "Feature incomplete"},
     
-    { -1,                     	kC4Err_FeatureNotAvailable,  "Feature not available" },
-    { -1,                       kC4Err_ResourceUnavailable,  "Resource not available" },
-    { -1,                       kC4Err_NotConnected,         "Not connected" },
-    { -1,                       kC4Err_ImproperInitialization,  "Not Initialized" },
-    { CRYPT_INVALID_PACKET,     kC4Err_CorruptData,           "Corrupt Data" },
-    { CRYPT_FAIL_TESTVECTOR,    kC4Err_SelfTestFailed,        "Self Test Failed" },
-    { -1, 						kC4Err_BadIntegrity,  		"Bad Integrity" },
-    { CRYPT_INVALID_HASH, 		kC4Err_BadHashNumber,         "Invalid hash specified" },
-    { CRYPT_INVALID_CIPHER, 	kC4Err_BadCipherNumber,       "Invalid cipher specified" },
-    { CRYPT_INVALID_PRNG, 		kC4Err_BadPRNGNumber,  		"Invalid PRNG specified" },
-    { -1            ,           kC4Err_SecretsMismatch,       "Shared Secret Mismatch" },
-    { -1            ,           kC4Err_KeyNotFound,           "Key Not Found" },
-    { -1            ,           kC4Err_ProtocolError,        "Protocol Error" },
-    { -1            ,           kC4Err_KeyLocked     ,        "Key Locked" },
-    { -1            ,           kC4Err_KeyExpired    ,        "Key Expired" },
-    { -1            ,           kC4Err_OtherError    ,        "Other Error" },
+    { -1,                     	kS4Err_FeatureNotAvailable,  "Feature not available" },
+    { -1,                       kS4Err_ResourceUnavailable,  "Resource not available" },
+    { -1,                       kS4Err_NotConnected,         "Not connected" },
+    { -1,                       kS4Err_ImproperInitialization,  "Not Initialized" },
+    { CRYPT_INVALID_PACKET,     kS4Err_CorruptData,           "Corrupt Data" },
+    { CRYPT_FAIL_TESTVECTOR,    kS4Err_SelfTestFailed,        "Self Test Failed" },
+    { -1, 						kS4Err_BadIntegrity,  		"Bad Integrity" },
+    { CRYPT_INVALID_HASH, 		kS4Err_BadHashNumber,         "Invalid hash specified" },
+    { CRYPT_INVALID_CIPHER, 	kS4Err_BadCipherNumber,       "Invalid cipher specified" },
+    { CRYPT_INVALID_PRNG, 		kS4Err_BadPRNGNumber,  		"Invalid PRNG specified" },
+    { -1            ,           kS4Err_SecretsMismatch,       "Shared Secret Mismatch" },
+    { -1            ,           kS4Err_KeyNotFound,           "Key Not Found" },
+    { -1            ,           kS4Err_ProtocolError,        "Protocol Error" },
+    { -1            ,           kS4Err_KeyLocked     ,        "Key Locked" },
+    { -1            ,           kS4Err_KeyExpired    ,        "Key Expired" },
+    { -1            ,           kS4Err_OtherError    ,        "Other Error" },
     
-    { -1            ,           kC4Err_NotEnoughShares    ,     "Not enough shares to recombine secret" },
+    { -1            ,           kS4Err_NotEnoughShares    ,     "Not enough shares to recombine secret" },
     
     
     
@@ -93,18 +93,18 @@ static const error_map_entry error_map_table[] =
 
 #define ERROR_MAP_TABLE_SIZE (sizeof(error_map_table) / sizeof(error_map_entry))
 
-C4Err sCrypt2C4Err(int t_err)
+S4Err sCrypt2S4Err(int t_err)
 {
     int i;
     
     for(i = 0; i< ERROR_MAP_TABLE_SIZE; i++)
         if(error_map_table[i].code == t_err) return(error_map_table[i].err);
     
-    return kC4Err_UnknownError;
+    return kS4Err_UnknownError;
 }
 
 
-C4Err  C4_GetErrorString( C4Err err,  size_t	bufSize, char *outString)
+S4Err  S4_GetErrorString( S4Err err,  size_t	bufSize, char *outString)
 {
     int i;
     *outString = 0;
@@ -113,12 +113,12 @@ C4Err  C4_GetErrorString( C4Err err,  size_t	bufSize, char *outString)
         if(error_map_table[i].err == err)
         {
             if(strlen(error_map_table[i].msg) +1 > bufSize)
-                return (kC4Err_BufferTooSmall);
+                return (kS4Err_BufferTooSmall);
             strcpy(outString, error_map_table[i].msg);
-            return kC4Err_NoErr;
+            return kS4Err_NoErr;
         }
     
-    return kC4Err_UnknownError;
+    return kS4Err_UnknownError;
 }
 
 #ifdef __clang__
@@ -126,9 +126,9 @@ C4Err  C4_GetErrorString( C4Err err,  size_t	bufSize, char *outString)
 #endif
 
 
-C4Err  C4_GetVersionString(size_t	bufSize, char *outString)
+S4Err  S4_GetVersionString(size_t	bufSize, char *outString)
 {
-    C4Err                 err = kC4Err_NoErr;
+    S4Err                 err = kS4Err_NoErr;
     
     ValidateParam(outString);
     *outString = 0;
@@ -136,17 +136,17 @@ C4Err  C4_GetVersionString(size_t	bufSize, char *outString)
     char version_string[128];
     
     snprintf(version_string, sizeof(version_string), "%s%s (%03d) %s",
-             C4_SHORT_VERSION_STRING,
+             S4_SHORT_VERSION_STRING,
 #if _USES_COMMON_CRYPTO_
              "CC",
 #else
              "",
 #endif
-            C4_BUILD_NUMBER,
+            S4_BUILD_NUMBER,
              GIT_COMMIT_HASH);
     
     if(strlen(version_string) +1 > bufSize)
-        RETERR (kC4Err_BufferTooSmall);
+        RETERR (kS4Err_BufferTooSmall);
     
     strcpy(outString, version_string);
     
@@ -229,11 +229,11 @@ static void bin2hex(  uint8_t* inBuf, size_t inLen, uint8_t* outBuf, size_t* out
 }
 
 
-C4Err RNG_GetPassPhrase(
+S4Err RNG_GetPassPhrase(
                            size_t         bits,
                            char **         outPassPhrase )
 {
-    C4Err             err = kC4Err_NoErr;
+    S4Err             err = kS4Err_NoErr;
     
     size_t              passBytesLen = bits/8;
     uint8_t*            passBytes = XMALLOC(passBytesLen);
@@ -259,22 +259,22 @@ C4Err RNG_GetPassPhrase(
 }
 
 
-C4Err RNG_GetBytes(     void *         out,
+S4Err RNG_GetBytes(     void *         out,
                       size_t         outLen
                       )
 {
-    C4Err             err = kC4Err_NoErr;
+    S4Err             err = kS4Err_NoErr;
 
 #if _USES_COMMON_CRYPTO_
    
    if(  CCRandomGenerateBytes(out, outLen) != kCCSuccess)
-       err =  kC4Err_ResourceUnavailable;
+       err =  kS4Err_ResourceUnavailable;
  
 #else
     unsigned long count  =  sprng_read(out,outLen,NULL);
     
     if(count != outLen)
-        err =  kC4Err_ResourceUnavailable;
+        err =  kS4Err_ResourceUnavailable;
 #endif
     
     return (err);
@@ -282,9 +282,9 @@ C4Err RNG_GetBytes(     void *         out,
 }
 
 
-C4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bitsOut)
+S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bitsOut)
 {
-    C4Err       err = kC4Err_NoErr;
+    S4Err       err = kS4Err_NoErr;
     size_t      bits = 0;
     
     switch(algorithm)
@@ -297,7 +297,7 @@ C4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bitsOut)
         case kCipher_Algorithm_3FISH512: bits = 512; break;
         case kCipher_Algorithm_3FISH1024: bits = 1024; break;
         default:
-            RETERR(kC4Err_ResourceUnavailable);
+            RETERR(kS4Err_ResourceUnavailable);
     };
     
     if(bitsOut)

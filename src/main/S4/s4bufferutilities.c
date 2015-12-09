@@ -1,23 +1,23 @@
 //
-//  c4BufferUtilities.c
-//  C4
+//  s4BufferUtilities.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/3/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#include "c4Internal.h"
+#include "s4Internal.h"
 
 /* Functions to load and store in network (big) endian format */
 
-C4Err C4_LoadArray( void *val, size_t len,  uint8_t **ptr, uint8_t* limit)
+S4Err S4_LoadArray( void *val, size_t len,  uint8_t **ptr, uint8_t* limit)
 {
-    C4Err   err = kC4Err_NoErr;
+    S4Err   err = kS4Err_NoErr;
     
     uint8_t *bptr =  *ptr;
     
     if(limit && (bptr + len > limit))
-        RETERR(kC4Err_BufferTooSmall);
+        RETERR(kS4Err_BufferTooSmall);
     
     memcpy(val, bptr, len);
     
@@ -29,7 +29,7 @@ done:
 }
 
 
-uint64_t C4_Load64( uint8_t **ptr )
+uint64_t S4_Load64( uint8_t **ptr )
 {
     uint8_t *bptr = *ptr;
     uint64_t retval = ((uint64_t) bptr[0]<<56)
@@ -45,7 +45,7 @@ uint64_t C4_Load64( uint8_t **ptr )
     return (retval);
 }
 
-uint32_t C4_Load32( uint8_t **ptr )
+uint32_t S4_Load32( uint8_t **ptr )
 {
     uint8_t *bptr = *ptr;
     uint32_t retval = (bptr[0]<<24) | (bptr[1]<<16) | (bptr[2]<<8) | bptr[3];
@@ -55,7 +55,7 @@ uint32_t C4_Load32( uint8_t **ptr )
 }
 
 
-uint16_t C4_Load16( uint8_t **ptr )
+uint16_t S4_Load16( uint8_t **ptr )
 {
     uint8_t *bptr = *ptr;
     uint16_t retval = (bptr[0]<<8) | bptr[1];
@@ -64,7 +64,7 @@ uint16_t C4_Load16( uint8_t **ptr )
     return (retval);
 }
 
-uint8_t C4_Load8( uint8_t **ptr )
+uint8_t S4_Load8( uint8_t **ptr )
 {
     uint8_t *bptr = *ptr;
     uint8_t retval = *bptr;
@@ -73,7 +73,7 @@ uint8_t C4_Load8( uint8_t **ptr )
     return (retval);
 }
 
-void C4_StoreArray( void *val, size_t len,  uint8_t **ptr )
+void S4_StoreArray( void *val, size_t len,  uint8_t **ptr )
 {
     uint8_t *bptr =  *ptr;
     memcpy(bptr, val, len);
@@ -82,7 +82,7 @@ void C4_StoreArray( void *val, size_t len,  uint8_t **ptr )
     
 }
 
-void C4_StorePad( uint8_t pad, size_t len,  uint8_t **ptr )
+void S4_StorePad( uint8_t pad, size_t len,  uint8_t **ptr )
 {
     uint8_t *bptr =  *ptr;
     memset(bptr, pad, len);
@@ -92,7 +92,7 @@ void C4_StorePad( uint8_t pad, size_t len,  uint8_t **ptr )
 }
 
 
-void C4_Store64( uint64_t val, uint8_t **ptr )
+void S4_Store64( uint64_t val, uint8_t **ptr )
 {
     uint8_t *bptr = *ptr;
     *bptr++ = (uint8_t)(val>>56);
@@ -107,7 +107,7 @@ void C4_Store64( uint64_t val, uint8_t **ptr )
     *ptr =  bptr;
 }
 
-void C4_Store32( uint32_t val, uint8_t **ptr )
+void S4_Store32( uint32_t val, uint8_t **ptr )
 {
     uint8_t *bptr = *ptr;
     *bptr++ = (uint8_t)(val>>24);
@@ -117,7 +117,7 @@ void C4_Store32( uint32_t val, uint8_t **ptr )
     *ptr =  bptr;
 }
 
-void C4_Store16( uint16_t val, uint8_t **ptr )
+void S4_Store16( uint16_t val, uint8_t **ptr )
 {
     uint8_t *bptr = *ptr;
     *bptr++ = (uint8_t)(val>> 8);
@@ -125,7 +125,7 @@ void C4_Store16( uint16_t val, uint8_t **ptr )
     *ptr =  bptr;
 }
 
-void C4_Store8( uint8_t val, uint8_t **ptr )
+void S4_Store8( uint8_t val, uint8_t **ptr )
 {
     uint8_t *bptr = *ptr;
     *bptr++ = (uint8_t)val;

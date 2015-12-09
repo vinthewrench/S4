@@ -1,6 +1,6 @@
 //
 //  testHash.c
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -8,11 +8,11 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "c4.h"
+#include "s4.h"
 #include "optest.h"
 
 
-C4Err TestHashKAT(
+S4Err TestHashKAT(
             int                 algor,
             char				*name,
             uint8_t				*msg,
@@ -27,7 +27,7 @@ C4Err TestHashKAT(
     uint8_t        hashState [kHASH_ContextAllocSize];
     size_t         hashStateLen = 0;
     
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     int i;
     
@@ -79,9 +79,9 @@ done:
  Run Hash Algorithm known answer self test
  */
 
-C4Err TestHash()
+S4Err TestHash()
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     unsigned int i;
     int last_algor = -1;

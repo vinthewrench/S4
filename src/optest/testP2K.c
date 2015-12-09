@@ -1,6 +1,6 @@
 //
 //  testP2K.c
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -10,7 +10,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
-#include "c4.h"
+#include "s4.h"
 #include "optest.h"
 
 
@@ -29,9 +29,9 @@ typedef struct  {
 
 
 
-static C4Err RunP2K_KAT( p2k_kat_vector *kat)
+static S4Err RunP2K_KAT( p2k_kat_vector *kat)
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     uint8_t     key[128];
     
@@ -49,9 +49,9 @@ done:
 };
 
 
-static C4Err runP2K_Pairwise()
+static S4Err runP2K_Pairwise()
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     clock_t		start	= 0;
     double		elapsed	= 0;
     uint8_t     key[MSG_KEY_BYTES];
@@ -93,9 +93,9 @@ done:
 }
 
 
-C4Err  TestP2K()
+S4Err  TestP2K()
 {
-    C4Err     err = kC4Err_NoErr;
+    S4Err     err = kS4Err_NoErr;
     
     
     p2k_kat_vector p2K_kat_vector_array[] =

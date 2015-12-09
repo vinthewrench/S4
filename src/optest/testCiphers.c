@@ -1,6 +1,6 @@
 //
 //  testCiphers.c
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "c4.h"
+#include "s4.h"
 #include "optest.h"
 
 
@@ -33,10 +33,10 @@ typedef struct  {
 
 
 
-static C4Err RunCipherKAT(  katvector *kat)
+static S4Err RunCipherKAT(  katvector *kat)
 
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     char* name = NULL;
     uint8_t *out = NULL;
     
@@ -131,9 +131,9 @@ done:
 }
 
 
-C4Err TestCiphers()
+S4Err TestCiphers()
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     unsigned int		i;
     

@@ -1,13 +1,13 @@
 //
-//  c4Internal.h
-//  C4
+//  s4Internal.h
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#ifndef c4Internal_h
-#define c4Internal_h
+#ifndef s4Internal_h
+#define s4Internal_h
 
 
 #include <tomcrypt.h>
@@ -15,8 +15,8 @@
 #include <threefishApi.h>
 
 
-#include "c4.h"
-#include "c4Internal.h"
+#include "s4.h"
+#include "s4Internal.h"
 
 #ifdef __APPLE__
 #import "git_version_hash.h"
@@ -42,11 +42,11 @@
 
 const struct ltc_hash_descriptor* sDescriptorForHash(HASH_Algorithm algorithm);
 
-C4Err sCrypt2C4Err(int t_err);
+S4Err sCrypt2S4Err(int t_err);
 
 bool sECC_ContextIsValid( const ECC_ContextRef  ref);
 
 #define validateECCContext( s )		\
 ValidateParam( sECC_ContextIsValid( s ) )
 
-#endif /* c4Internal_h */
+#endif /* s4Internal_h */

@@ -1,7 +1,7 @@
 
-_C4_Init
-_C4_GetErrorString
-_C4_GetVersionString
+_S4_Init
+_S4_GetErrorString
+_S4_GetVersionString
 
 _ltc_mp
 
@@ -66,17 +66,17 @@ _RNG_GetPassPhrase
 _PGPWordEncode
 _PGPWordEncode64
 
-_C4_LoadArray
-_C4_StoreArray
-_C4_Load64
-_C4_Load32
-_C4_Load16
-_C4_Load8
-_C4_StorePad
-_C4_Store64
-_C4_Store32
-_C4_Store16
-_C4_Store8
+_S4_LoadArray
+_S4_StoreArray
+_S4_Load64
+_S4_Load32
+_S4_Load16
+_S4_Load8
+_S4_StorePad
+_S4_Store64
+_S4_Store32
+_S4_Store16
+_S4_Store8
 
 _SHARES_Init
 _SHARES_Free
@@ -84,29 +84,29 @@ _SHARES_GetShareInfo
 _SHARES_CombineShareInfo
 _SHARES_GetShareHash
 
-_C4Key_NewSymmetric
-_C4Key_NewTBC
-_C4Key_NewShare
-_C4Key_Free
-_C4Key_Copy
-_C4Key_SerializeToPassPhrase
-_C4Key_SerializeToPubKey
-_C4Key_DeserializeKeys
-_C4Key_VerifyPassPhrase
-_C4Key_DecryptFromPassPhrase
-_C4Key_DecryptFromPubKey
+_S4Key_NewSymmetric
+_S4Key_NewTBC
+_S4Key_NewShare
+_S4Key_Free
+_S4Key_Copy
+_S4Key_SerializeToPassPhrase
+_S4Key_SerializeToPubKey
+_S4Key_DeserializeKeys
+_S4Key_VerifyPassPhrase
+_S4Key_DecryptFromPassPhrase
+_S4Key_DecryptFromPubKey
 
-_C4Key_SetProperty
-_C4Key_GetProperty
+_S4Key_SetProperty
+_S4Key_GetProperty
 _SCKeyGetAllocatedProperty
 
-_kC4KeyProp_KeyType
-_kC4KeyProp_KeySuite
-_kC4KeyProp_KeyData
-_kC4KeyProp_KeyID
-_kC4KeyProp_KeyIDString
+_kS4KeyProp_KeyType
+_kS4KeyProp_KeySuite
+_kS4KeyProp_KeyData
+_kS4KeyProp_KeyID
+_kS4KeyProp_KeyIDString
 
-_C4Key_SerializeToShares
+_S4Key_SerializeToShares
 
 
 

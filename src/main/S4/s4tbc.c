@@ -1,12 +1,12 @@
 //
-//  c4TBC.c
-//  C4
+//  s4TBC.c
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#include "c4Internal.h"
+#include "s4Internal.h"
 
 
 #ifdef __clang__
@@ -43,11 +43,11 @@ static bool sTBC_ContextIsValid( const TBC_ContextRef  ref)
 ValidateParam( sTBC_ContextIsValid( s ) )
 
 
-C4Err TBC_Init(Cipher_Algorithm algorithm,
+S4Err TBC_Init(Cipher_Algorithm algorithm,
                const void *key,
                TBC_ContextRef * ctxOut)
 {
-    int             err     = kC4Err_NoErr;
+    int             err     = kS4Err_NoErr;
     TBC_Context*    tbcCTX  = NULL;
     int             keybits  = 0;
     u64b_t          tweek[3] = {0L,0L };
@@ -69,7 +69,7 @@ C4Err TBC_Init(Cipher_Algorithm algorithm,
             break;
             
         default:
-            RETERR(kC4Err_BadCipherNumber);
+            RETERR(kS4Err_BadCipherNumber);
     }
     
     
@@ -87,7 +87,7 @@ C4Err TBC_Init(Cipher_Algorithm algorithm,
     
 done:
     
-    if(IsC4Err(err))
+    if(IsS4Err(err))
     {
         if(tbcCTX)
         {
@@ -111,10 +111,10 @@ void TBC_Free(TBC_ContextRef  ctx)
 }
 
 
-C4Err TBC_SetTweek(TBC_ContextRef ctx,
+S4Err TBC_SetTweek(TBC_ContextRef ctx,
                    const void *	tweekIn)
 {
-    C4Err       err = kC4Err_NoErr;
+    S4Err       err = kS4Err_NoErr;
     u64b_t      tweek[2] = {0L,0L};
     
     validateTBCContext(ctx);
@@ -127,11 +127,11 @@ C4Err TBC_SetTweek(TBC_ContextRef ctx,
     
 }
 
-C4Err TBC_Encrypt(TBC_ContextRef ctx,
+S4Err TBC_Encrypt(TBC_ContextRef ctx,
                   const void *	in,
                   void *         out )
 {
-    C4Err       err = kC4Err_NoErr;
+    S4Err       err = kS4Err_NoErr;
     
     validateTBCContext(ctx);
     
@@ -141,11 +141,11 @@ C4Err TBC_Encrypt(TBC_ContextRef ctx,
     
 }
 
-C4Err TBC_Decrypt(TBC_ContextRef ctx,
+S4Err TBC_Decrypt(TBC_ContextRef ctx,
                   const void *	in,
                   void *         out )
 {
-    C4Err       err = kC4Err_NoErr;
+    S4Err       err = kS4Err_NoErr;
     
     validateTBCContext(ctx);
     

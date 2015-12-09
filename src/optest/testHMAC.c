@@ -1,6 +1,6 @@
 //
 //  testHMAC.c
-//  C4
+//  S4
 //
 //  Created by vincent Moscaritolo on 11/2/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "c4.h"
+#include "s4.h"
 #include "optest.h"
 
 
@@ -122,7 +122,7 @@ static MAC_Algorithm mac_for_algorithm(HASH_Algorithm algor)
  Run a specific HMAC test and compare against known answer.
  */
 
-static C4Err  testKDFKat(    HASH_Algorithm     hash,
+static S4Err  testKDFKat(    HASH_Algorithm     hash,
                              uint8_t*           K,
                              unsigned long      Klen,
                              char*              label,
@@ -132,7 +132,7 @@ static C4Err  testKDFKat(    HASH_Algorithm     hash,
                              unsigned long      expectedLen,
                              uint8_t *          expected )
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
  
     MAC_Algorithm mac =  mac_for_algorithm(hash);
     uint8_t kdfBuf[64];
@@ -149,7 +149,7 @@ done:
 };
 
 
-static C4Err TestHMACkat(
+static S4Err TestHMACkat(
             HASH_Algorithm      algor,
             uint8_t *              key,
             size_t				keyLen,
@@ -158,7 +158,7 @@ static C4Err TestHMACkat(
             uint8_t *              expected )
 
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     MAC_ContextRef     hmac = kInvalidMAC_ContextRef;
     
     size_t				hashSize = 0;
@@ -187,9 +187,9 @@ done:
 
 
 
-C4Err TestHMAC()
+S4Err TestHMAC()
 {
-    C4Err err = kC4Err_NoErr;
+    S4Err err = kS4Err_NoErr;
     
     int i,j;
     /*
