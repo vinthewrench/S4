@@ -255,7 +255,7 @@ static bool sSHARES_ContextIsValid( const SHARES_ContextRef  ref)
 ValidateParam( sSHARES_ContextIsValid( s ) )
 
 
-static C4Err sSHARE_HASH( const uint8_t *key,
+C4Err SHARES_GetShareHash( const uint8_t *key,
                          size_t         keyLenIn,
                          uint32_t       thresholdIn,
                          uint8_t        *mac_buf,
@@ -410,7 +410,7 @@ C4Err SHARES_Init( const void       *key,
     shareCTX->totalShares   = totalShares;
     shareCTX->threshold     = threshold;
 
-    err = sSHARE_HASH(key, keyLen, shareCTX->threshold,  shareCTX->shareHash, kC4ShareInfo_HashBytes ); CKERR;
+    err = SHARES_GetShareHash(key, keyLen, shareCTX->threshold,  shareCTX->shareHash, kC4ShareInfo_HashBytes ); CKERR;
                      
     /* Set X coordinate randomly for each share */
     for( i=0; i<totalShares; ++i )
@@ -632,7 +632,7 @@ C4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
     }
   
     // check for valid secret
-    err = sSHARE_HASH(outData, keyLen, threshold, calculatedHash, kC4ShareInfo_HashBytes ); CKERR;
+    err = SHARES_GetShareHash(outData, keyLen, threshold, calculatedHash, kC4ShareInfo_HashBytes ); CKERR;
     
      if (!CMP(calculatedHash, shareHash, kC4ShareInfo_HashBytes) )
             RETERR(kC4Err_CorruptData);

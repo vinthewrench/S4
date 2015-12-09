@@ -377,6 +377,12 @@ C4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
                                size_t                   bufSize,
                                size_t                   *outDataLen);
 
+C4Err SHARES_GetShareHash( const uint8_t *key,
+                          size_t         keyLenIn,
+                          uint32_t       thresholdIn,
+                          uint8_t        *mac_buf,
+                          unsigned long  mac_len);
+
 #ifdef __clang__
 #pragma mark - Hash word Encoding
 #endif

@@ -20,7 +20,7 @@
 #define kC4KeyPBKDF2_SaltBytes      8
 #define kC4KeyPBKDF2_HashBytes      8
 
-#define kC4Key_KeyIDBytes                   16
+#define kC4Key_KeyIDBytes                     16
 #define kC4KeyPublic_Encrypted_BufferMAX      256
 #define kC4KeyPublic_Encrypted_HashBytes      8
 
@@ -200,6 +200,13 @@ C4Err C4Key_SerializeToPassPhrase(C4KeyContextRef  ctx,
                                   uint8_t          **outData,
                                   size_t           *outSize);
 
+C4Err C4Key_SerializeToShares(C4KeyContextRef       ctx,
+                              uint32_t              totalShares,
+                              uint32_t              threshold,
+                              SHARES_ContextRef     *outShares,
+                              uint8_t               **outData,
+                              size_t                *outSize);
+
 C4Err C4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
                                     size_t           *outCount,
                                     C4KeyContextRef  *ctxArray[]);
@@ -218,4 +225,6 @@ C4Err C4Key_DecryptFromPassPhrase(   C4KeyContextRef  passCtx,
 C4Err C4Key_DecryptFromPubKey( C4KeyContextRef      encodedCtx,
                                 ECC_ContextRef      eccPriv,
                                 C4KeyContextRef     *symCtx);
+
+
 #endif /* c4Keys_h */

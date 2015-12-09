@@ -82,6 +82,7 @@ _SHARES_Init
 _SHARES_Free
 _SHARES_GetShareInfo
 _SHARES_CombineShareInfo
+_SHARES_GetShareHash
 
 _C4Key_NewSymmetric
 _C4Key_NewTBC
@@ -104,6 +105,8 @@ _kC4KeyProp_KeySuite
 _kC4KeyProp_KeyData
 _kC4KeyProp_KeyID
 _kC4KeyProp_KeyIDString
+
+_C4Key_SerializeToShares
 
 
 
