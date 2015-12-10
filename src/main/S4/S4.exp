@@ -89,12 +89,14 @@ _S4Key_NewTBC
 _S4Key_NewShare
 _S4Key_Free
 _S4Key_Copy
+_S4Key_SerializeToS4Key
 _S4Key_SerializeToPassPhrase
 _S4Key_SerializeToPubKey
 _S4Key_DeserializeKeys
 _S4Key_VerifyPassPhrase
 _S4Key_DecryptFromPassPhrase
 _S4Key_DecryptFromPubKey
+_S4Key_DecryptFromS4Key
 
 _S4Key_SetProperty
 _S4Key_GetProperty

@@ -138,7 +138,7 @@ done:
 }
 
 
-static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
+static S4Err sRunCipherPBKDF2ImportExportKAT(  cipherKATvector *kat)
 {
     S4Err err = kS4Err_NoErr;
     S4KeyContextRef keyCtx =  kInvalidS4KeyContextRef;
@@ -213,6 +213,93 @@ done:
     return err;
 }
 
+static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
+{
+    S4Err err = kS4Err_NoErr;
+    S4KeyContextRef passKeyCtx =  kInvalidS4KeyContextRef;
+    S4KeyContextRef keyCtx =  kInvalidS4KeyContextRef;
+    S4KeyContextRef keyCtx1 =  kInvalidS4KeyContextRef;
+    
+    S4KeyContextRef  *importCtx = NULL;
+    
+    uint8_t         unlockingKey[32];
+    size_t      keyCount = 0;
+    
+    char* name = NULL;
+    
+    uint8_t     *data = NULL;
+    size_t      dataLen = 0;
+    
+    time_t          testDate  = time(NULL) ;
+    
+    name = cipher_algor_table(kat->algor);
+    
+    OPTESTLogVerbose("\t%-14s ", name);
+    OPTESTLogVerbose("%8s", "Export");
+    
+    // create a random  unlocking key
+    err = RNG_GetBytes(unlockingKey, sizeof(unlockingKey)); CKERR;
+    
+    err = S4Key_NewSymmetric(kCipher_Algorithm_2FISH256, unlockingKey, &passKeyCtx  ); CKERR;
+  
+    err = S4Key_NewSymmetric(kat->algor, kat->key, &keyCtx  ); CKERR;
+    
+    err = S4Key_SetProperty(keyCtx,kS4KeyProp_TestPassCodeID,S4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
+    err = S4Key_SetProperty(keyCtx, kS4KeyProp_Time, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
+    
+    err = S4Key_SerializeToS4Key(keyCtx, passKeyCtx, &data, &dataLen); CKERR;
+    
+    OPTESTLogDebug("\n------\n%s------\n",data);
+    
+    OPTESTLogVerbose("%8s", "Import");
+    err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importCtx ); CKERR;
+    ASSERTERR(keyCount != 1,  kS4Err_SelfTestFailed);
+    
+    OPTESTLogVerbose("%8s", "Verify");
+    err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &keyCtx1); CKERR;
+    
+    err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+    
+    if(data)
+    {
+        asprintf(&exported_keys,"%s %s %s", exported_keys,strlen(exported_keys) > 1?",":"", data );
+        exported_key_count++;
+    }
+    
+done:
+    if(data)
+        XFREE(data);
+    
+    if(S4KeyContextRefIsValid(keyCtx))
+    {
+        S4Key_Free(keyCtx);
+    }
+
+    if(importCtx)
+    {
+        if(S4KeyContextRefIsValid(importCtx[0]))
+        {
+            S4Key_Free(importCtx[0]);
+        }
+        XFREE(importCtx);
+        
+    }
+    
+    if(S4KeyContextRefIsValid(passKeyCtx))
+    {
+        S4Key_Free(passKeyCtx);
+    }
+ 
+    if(S4KeyContextRefIsValid(keyCtx1))
+    {
+        S4Key_Free(keyCtx1);
+    }
+    
+    OPTESTLogVerbose("\n");
+    
+    return err;
+}
+
 
 static S4Err  sTestSymmetricKeys()
 {
@@ -250,12 +337,22 @@ static S4Err  sTestSymmetricKeys()
         {"Key 4",   kCipher_Algorithm_2FISH256, 256,   K3, passPhrase1},
     };
     
-    OPTESTLogInfo("\nTesting PBKDF2 Symmetric S4Key Encoding\n");
-
+    
+    
+    OPTESTLogInfo("\nTesting Symmetric S4Key Encoding\n");
+    
     /* run  known answer tests (KAT) */
     for (i = 0; i < sizeof(kat_vector_array)/ sizeof(cipherKATvector) ; i++)
     {
         err = sRunCipherImportExportKAT( &kat_vector_array[i] ); CKERR;
+    }
+    
+    OPTESTLogInfo("\nTesting  Symmetric PBKDF2 S4Key Encoding\n");
+
+    /* run  known answer tests (KAT) */
+    for (i = 0; i < sizeof(kat_vector_array)/ sizeof(cipherKATvector) ; i++)
+    {
+        err = sRunCipherPBKDF2ImportExportKAT( &kat_vector_array[i] ); CKERR;
       }
     
   
@@ -670,8 +767,98 @@ done:
     return err;
 }
 
-
 static S4Err sRunTBCImportExportKAT(  cipherKATvector *kat)
+{
+    S4Err err = kS4Err_NoErr;
+    S4KeyContextRef keyCtx =  kInvalidS4KeyContextRef;
+    S4KeyContextRef keyCtx1=  kInvalidS4KeyContextRef;
+    S4KeyContextRef passKeyCtx =  kInvalidS4KeyContextRef;
+
+    S4KeyContextRef  *importCtx = NULL;
+    
+    uint8_t         unlockingKey[32];
+
+    size_t      keyCount = 0;
+    
+    char* name = NULL;
+    
+    uint8_t     *data = NULL;
+    size_t      dataLen = 0;
+    time_t          testDate  = time(NULL) ;
+    
+    name = cipher_algor_table(kat->algor);
+    
+    OPTESTLogVerbose("\t%-14s ", name);
+    
+    OPTESTLogVerbose("%8s", "Export");
+    
+    // create a random  unlocking key
+    err = RNG_GetBytes(unlockingKey, sizeof(unlockingKey)); CKERR;
+    
+    err = S4Key_NewSymmetric(kCipher_Algorithm_2FISH256, unlockingKey, &passKeyCtx  ); CKERR;
+
+    err = S4Key_NewTBC(kat->algor, kat->key, &keyCtx  ); CKERR;
+    
+    err = S4Key_SetProperty(keyCtx,kS4KeyProp_TestPassCodeID,S4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
+    err = S4Key_SetProperty(keyCtx, kS4KeyProp_Time, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
+    
+    err = S4Key_SerializeToS4Key(keyCtx, passKeyCtx, &data, &dataLen); CKERR;
+    
+    OPTESTLogDebug("\n------\n%s------\n",data);
+    
+    OPTESTLogVerbose("%8s", "Import");
+    err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importCtx ); CKERR;
+    ASSERTERR(keyCount != 1,  kS4Err_SelfTestFailed);
+    
+    OPTESTLogVerbose("%8s", "Verify");
+    err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &keyCtx1); CKERR;
+    
+    err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+    
+    if(data)
+    {
+        asprintf(&exported_keys,"%s %s %s", exported_keys,strlen(exported_keys) > 1?",":"", data );
+        exported_key_count++;
+    }
+
+done:
+    
+    if(data)
+        XFREE(data);
+    
+    if(S4KeyContextRefIsValid(keyCtx))
+    {
+        S4Key_Free(keyCtx);
+    }
+    
+    if(importCtx)
+    {
+        if(S4KeyContextRefIsValid(importCtx[0]))
+        {
+            S4Key_Free(importCtx[0]);
+        }
+        XFREE(importCtx);
+        
+    }
+    
+    if(S4KeyContextRefIsValid(passKeyCtx))
+    {
+        S4Key_Free(passKeyCtx);
+    }
+    
+    if(S4KeyContextRefIsValid(keyCtx1))
+    {
+        S4Key_Free(keyCtx1);
+    }
+    
+    
+    OPTESTLogVerbose("\n");
+    
+    return err;
+
+}
+
+static S4Err sRunTBCPBKDF2ImportExportKAT(  cipherKATvector *kat)
 {
     S4Err err = kS4Err_NoErr;
     S4KeyContextRef keyCtx =  kInvalidS4KeyContextRef;
@@ -780,12 +967,22 @@ static S4Err  sTestTBCKeys()
         {"TBC Key 1K",	kCipher_Algorithm_3FISH1024,  1024,  (void*) three_1024_key  , passPhrase1  },
     };
     
-    OPTESTLogInfo("\nTesting PBKDF2 TBC S4Key Import / Export\n");
+    
+    
+    OPTESTLogInfo("\nTesting TBC S4Key Import / Export\n");
     
     /* run  known answer tests (KAT) */
     for (i = 0; i < sizeof(kat_vector_array)/ sizeof(cipherKATvector) ; i++)
     {
         err = sRunTBCImportExportKAT( &kat_vector_array[i] ); CKERR;
+    }
+
+    OPTESTLogInfo("\nTesting PBKDF2 TBC S4Key Import / Export\n");
+    
+    /* run  known answer tests (KAT) */
+    for (i = 0; i < sizeof(kat_vector_array)/ sizeof(cipherKATvector) ; i++)
+    {
+        err = sRunTBCPBKDF2ImportExportKAT( &kat_vector_array[i] ); CKERR;
     }
     
     
@@ -1181,10 +1378,9 @@ S4Err  TestKeys()
 
     err = sTestSymmetricKeys(); CKERR;
     err = sTestTBCKeys(); CKERR;
-    
     err = sTestECC_TBCKeys(); CKERR;
     err = sTestECC_SymmetricKeys(); CKERR;
-    
+
     err = sTest_SharedSymTBCKeys(); CKERR;
     
 

@@ -24,6 +24,8 @@
 #define kS4KeyPublic_Encrypted_BufferMAX      256
 #define kS4KeyPublic_Encrypted_HashBytes      8
 
+#define kS4KeySymmetric_Encrypted_BufferMAX      256
+
 typedef struct S4KeyContext *      S4KeyContextRef;
 
 #define	kInvalidS4KeyContextRef		((S4KeyContextRef) NULL)
@@ -68,7 +70,8 @@ enum S4KeyType_
     kS4KeyType_Tweekable           = 2,
     kS4KeyType_PBKDF2              = 3,
     kS4KeyType_PublicEncrypted      = 4,
-    kS4KeyType_Share                = 5,
+    kS4KeyType_SymmetricEncrypted   = 5,
+    kS4KeyType_Share                = 6,
     
     kS4KeyType_Invalid           =  kEnumMaxValue,
     
@@ -136,6 +139,24 @@ typedef struct S4KeyPublic_Encrypted_
 }S4KeyPublic_Encrypted;
 
 
+typedef struct S4KeySym_Encrypted_
+{
+    S4KeyType               keyAlgorithmType;
+    Cipher_Algorithm        cipherAlgor;
+    
+    Cipher_Algorithm        encryptingAlgor;
+
+    uint8_t             keyHash[kS4KeyPublic_Encrypted_HashBytes];
+    
+    size_t              keysize;
+    uint8_t            keyID[kS4Key_KeyIDBytes];
+    
+    uint8_t             encrypted[kS4KeySymmetric_Encrypted_BufferMAX];
+    size_t              encryptedLen;
+    
+    
+}S4KeySym_Encrypted;
+
 typedef struct S4KeyContext    S4KeyContext;
 
 struct S4KeyContext
@@ -151,6 +172,7 @@ struct S4KeyContext
         S4KeyTBC            tbc;
         S4KeyPBKDF2         pbkdf2;
     S4KeyPublic_Encrypted   publicKeyEncoded;
+        S4KeySym_Encrypted  symKeyEncoded;
         SHARES_ShareInfo    share;
     };
     
@@ -184,6 +206,12 @@ S4Err S4Key_GetProperty( S4KeyContextRef ctx,
 S4Err SCKeyGetAllocatedProperty( S4KeyContextRef ctx,
                                 const char *propName,
                                 S4KeyPropertyType *outPropType, void **outData, size_t *datSize);
+
+
+S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
+                             S4KeyContextRef  passKeyCtx,
+                             uint8_t          **outData,
+                             size_t           *outSize);
 
 /*
  S4Key_SerializeToPubKey is limited to TBC keys <= 512 bits since ECC is limited to SHA-512
@@ -225,6 +253,10 @@ S4Err S4Key_DecryptFromPassPhrase(   S4KeyContextRef  passCtx,
 S4Err S4Key_DecryptFromPubKey( S4KeyContextRef      encodedCtx,
                                 ECC_ContextRef      eccPriv,
                                 S4KeyContextRef     *symCtx);
+
+S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
+                             S4KeyContextRef       passKeyCtx,
+                             S4KeyContextRef       *symCtx);
 
 
 #endif /* s4Keys_h */

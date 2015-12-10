@@ -88,6 +88,11 @@ char *const kS4KeyProp_KeyIDString      = K_PROP_KEYIDSTR;
 
 static char *const kS4KeyProp_SCKeyVersion      = K_PROP_VERSION;
 static char *const kS4KeyProp_Encoding          = K_PROP_ENCODING;
+
+static char *const kS4KeyProp_Encoding_SYM_AES128    = K_KEYSUITE_AES128;
+static char *const kS4KeyProp_Encoding_SYM_AES256    = K_KEYSUITE_AES256;
+static char *const kS4KeyProp_Encoding_SYM_2FISH256    = K_KEYSUITE_2FISH256;
+
 static char *const kS4KeyProp_Encoding_PBKDF2_AES256    = "pbkdf2-AES256";
 static char *const kS4KeyProp_Encoding_PBKDF2_2FISH256  = "pbkdf2-Twofish-256";
 
@@ -1115,6 +1120,215 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
    
 }
 
+
+
+
+S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
+                             S4KeyContextRef  passKeyCtx,
+                             uint8_t          **outData,
+                             size_t           *outSize)
+{
+    S4Err           err = kS4Err_NoErr;
+    yajl_gen_status     stat = yajl_gen_status_ok;
+    
+    uint8_t             *yajlBuf = NULL;
+    size_t              yajlLen = 0;
+    yajl_gen            g = NULL;
+    
+    uint8_t             tempBuf[1024];
+    size_t              tempLen;
+    uint8_t             *outBuf = NULL;
+    
+ 
+    uint8_t             keyHash[kS4KeyPBKDF2_HashBytes] = {0};
+
+    uint8_t             encrypted_key[128] = {0};
+    size_t              keyBytes = 0;
+    void*               keyToEncrypt = NULL;
+ 
+    Cipher_Algorithm    keyAlgorithm = kCipher_Algorithm_Invalid;
+    
+    Cipher_Algorithm    encyptAlgor = kCipher_Algorithm_Invalid;
+    void*               unlockingKey    = NULL;
+ 
+    char*           keySuiteString = "Invalid";
+     char*           encodingPropString = NULL;
+    
+    yajl_alloc_funcs allocFuncs = {
+        yajlMalloc,
+        yajlRealloc,
+        yajlFree,
+        (void *) NULL
+    };
+    
+    
+    validateS4KeyContext(ctx);
+    validateS4KeyContext(passKeyCtx);
+    ValidateParam(outData);
+    
+    
+    
+    
+    switch (passKeyCtx->type)
+    {
+        case kS4KeyType_Symmetric:
+            unlockingKey = passKeyCtx->sym.symKey;
+            encyptAlgor =  passKeyCtx->sym.symAlgor;
+            ASSERTERR(passKeyCtx->sym.symAlgor == kCipher_Algorithm_AES192, kS4Err_FeatureNotAvailable);
+            
+            switch (passKeyCtx->sym.symAlgor) {
+     
+                case kCipher_Algorithm_AES128:
+                    encodingPropString =  kS4KeyProp_Encoding_SYM_AES128;
+                    break;
+  
+                case kCipher_Algorithm_AES256:
+                    encodingPropString =  kS4KeyProp_Encoding_SYM_AES256;
+                    break;
+                    
+                case kCipher_Algorithm_2FISH256:
+                    encodingPropString =  kS4KeyProp_Encoding_SYM_2FISH256;
+                    break;
+ 
+                default:
+                    RETERR(kS4Err_FeatureNotAvailable);
+                    
+                      break;
+            }
+           
+            break;
+            
+        default:
+            RETERR(kS4Err_FeatureNotAvailable);
+            break;
+    }
+    
+    switch (ctx->type)
+    {
+        case kS4KeyType_Symmetric:
+            keyBytes = ctx->sym.keylen ;
+            keyToEncrypt = ctx->sym.symKey;
+            keySuiteString = cipher_algor_table(ctx->sym.symAlgor);
+            keyAlgorithm = ctx->sym.symAlgor;
+            
+             if (ctx->sym.symAlgor == kCipher_Algorithm_AES192)
+             {
+                 //  pad the end  (treat it like it was 256 bits)
+                 ZERO(&ctx->sym.symKey[24], 8);
+                 keyBytes = 32;
+                 
+             }
+             break;
+            
+        case kS4KeyType_Tweekable:
+            keyBytes = ctx->tbc.keybits >> 3 ;
+            keySuiteString = cipher_algor_table(ctx->tbc.tbcAlgor);
+            keyToEncrypt = ctx->tbc.key;
+            keyAlgorithm = ctx->tbc.tbcAlgor;
+            break;
+            
+        case kS4KeyType_Share:
+            keyBytes = (int)ctx->share.shareSecretLen ;
+            keySuiteString = cipher_algor_table(kCipher_Algorithm_SharedKey);
+            keyToEncrypt = ctx->share.shareSecret;
+            keyAlgorithm = kCipher_Algorithm_SharedKey;
+            
+            // we only encode block sizes of 16, 32, 48 and 64
+            ASSERTERR((keyBytes % 16) != 0, kS4Err_FeatureNotAvailable);
+            ASSERTERR(keyBytes > 64, kS4Err_FeatureNotAvailable);
+            
+            break;
+            
+        default:
+            break;
+    }
+    
+    
+    
+    err = sKEY_HASH(keyToEncrypt, keyBytes, ctx->type,
+                    keyAlgorithm, keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
+    
+    err =  ECB_Encrypt(encyptAlgor, unlockingKey, keyToEncrypt, keyBytes, encrypted_key); CKERR;
+    
+    g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
+    
+#if DEBUG
+    yajl_gen_config(g, yajl_gen_beautify, 1);
+#else
+    yajl_gen_config(g, yajl_gen_beautify, 0);
+    
+#endif
+    yajl_gen_config(g, yajl_gen_validate_utf8, 1);
+    stat = yajl_gen_map_open(g);
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SCKeyVersion, strlen(kS4KeyProp_SCKeyVersion)) ; CKYJAL;
+    sprintf((char *)tempBuf, "%d", kS4KeyProtocolVersion);
+    stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Encoding, strlen(kS4KeyProp_Encoding)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)encodingPropString, strlen(encodingPropString)) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_KeySuite, strlen(kS4KeyProp_KeySuite)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)keySuiteString, strlen(keySuiteString)) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Mac, strlen(kS4KeyProp_Mac)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(keyHash, kS4KeyPBKDF2_HashBytes, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    switch (ctx->type)
+    {
+        case kS4KeyType_Symmetric:
+        case kS4KeyType_Tweekable:
+            break;
+            
+        case kS4KeyType_Share:
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareIndex, strlen(kS4KeyProp_ShareIndex)) ; CKYJAL;
+            sprintf((char *)tempBuf, "%d", ctx->share.xCoordinate);
+            stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareThreshold, strlen(kS4KeyProp_ShareThreshold)) ; CKYJAL;
+            sprintf((char *)tempBuf, "%d", ctx->share.threshold);
+            stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareHash, strlen(kS4KeyProp_ShareHash)) ; CKYJAL;
+            tempLen = sizeof(tempBuf);
+            base64_encode(ctx->share.shareHash, kS4ShareInfo_HashBytes, tempBuf, &tempLen);
+            stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+            break;
+            
+        default:
+            break;
+    }
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_EncryptedKey, strlen(kS4KeyProp_EncryptedKey)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(encrypted_key, keyBytes, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    err = sGenPropStrings(ctx, g); CKERR;
+    
+    stat = yajl_gen_map_close(g); CKYJAL;
+    stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
+    
+    
+    outBuf = XMALLOC(yajlLen+1); CKNULL(outBuf);
+    memcpy(outBuf, yajlBuf, yajlLen);
+    outBuf[yajlLen] = 0;
+    
+    *outData = outBuf;
+    
+    if(outSize)
+        *outSize = yajlLen;
+    
+done:
+    if(IsntNull(g))
+        yajl_gen_free(g);
+    
+    return err;
+    
+}
+
 S4Err S4Key_SerializeToPubKey(S4KeyContextRef   ctx,
                               ECC_ContextRef    eccPub,
                               uint8_t          **outData,
@@ -1793,9 +2007,9 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         if( base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
         {
             
-            if(keyP->type == kS4KeyType_PBKDF2 && (dataLen == kS4KeyPBKDF2_HashBytes))
+            if(keyP->type == kS4KeyType_SymmetricEncrypted && (dataLen == kS4KeyPublic_Encrypted_HashBytes))
             {
-                COPY(buf, keyP->pbkdf2.keyHash, dataLen);
+                COPY(buf, keyP->symKeyEncoded.keyHash, dataLen);
                 valid = 1;
              }
             else  if(keyP->type == kS4KeyType_PublicEncrypted && (dataLen == kS4KeyPublic_Encrypted_HashBytes))
@@ -1803,6 +2017,12 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                 COPY(buf, keyP->publicKeyEncoded.keyHash, dataLen);
                 valid = 1;
              }
+            if(keyP->type == kS4KeyType_PBKDF2 && (dataLen == kS4KeyPBKDF2_HashBytes))
+            {
+                COPY(buf, keyP->pbkdf2.keyHash, dataLen);
+                valid = 1;
+            }
+            
                
         }
     }
@@ -1893,6 +2113,18 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                  }
   
             }
+            else  if(keyP->type == kS4KeyType_SymmetricEncrypted)
+            {
+                
+                if(dataLen <= kS4KeySymmetric_Encrypted_BufferMAX)
+                {
+                    COPY(buf, keyP->symKeyEncoded.encrypted, dataLen);
+                    keyP->symKeyEncoded.encryptedLen = dataLen;
+                    valid = 1;
+                }
+                
+            }
+
         }
     }
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_ENCODING)
@@ -1922,7 +2154,25 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
             keyP->publicKeyEncoded.keysize = 414;
             valid = 1;
         }
-     }
+        if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_SYM_2FISH256, strlen(kS4KeyProp_Encoding_SYM_2FISH256)))
+        {
+            keyP->type = kS4KeyType_SymmetricEncrypted;
+            keyP->symKeyEncoded.encryptingAlgor = kCipher_Algorithm_2FISH256;
+            valid = 1;
+        }
+        if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_SYM_AES128, strlen(kS4KeyProp_Encoding_SYM_AES128)))
+        {
+            keyP->type = kS4KeyType_SymmetricEncrypted;
+            keyP->symKeyEncoded.encryptingAlgor = kCipher_Algorithm_AES128;
+            valid = 1;
+        }
+        if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_SYM_AES256, strlen(kS4KeyProp_Encoding_SYM_AES256)))
+        {
+            keyP->type = kS4KeyType_SymmetricEncrypted;
+            keyP->symKeyEncoded.encryptingAlgor = kCipher_Algorithm_AES256;
+            valid = 1;
+        }
+    }
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_KEYALGORITHM)
     {
         S4KeyType   keyType = kS4KeyType_Invalid;
@@ -1972,6 +2222,22 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                     valid = 1;
                 }
             }
+            else if( keyP->type == kS4KeyType_SymmetricEncrypted)
+            {
+                keyP->symKeyEncoded.keyAlgorithmType = keyType;
+                if(keyType == kS4KeyType_Symmetric)
+                {
+                    keyP->symKeyEncoded.cipherAlgor = algorithm;
+                    valid = 1;
+                    
+                }
+                else  if(keyType == kS4KeyType_Tweekable)
+                {
+                    keyP->symKeyEncoded.cipherAlgor = algorithm;
+                    valid = 1;
+                }
+            }
+            
             else
             {
                 keyP->type = keyType;
@@ -2466,6 +2732,114 @@ done:
  
     return err;
 
+}
+
+
+S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
+                              S4KeyContextRef       passKeyCtx,
+                              S4KeyContextRef       *symCtx)
+{
+    S4Err               err = kS4Err_NoErr;
+    S4KeyContext*       keyCTX = NULL;
+    
+    int                 encyptAlgor = kCipher_Algorithm_Invalid;
+    void*               keyToDecrypt = NULL;
+    
+    uint8_t             decrypted_key[128] = {0};
+    size_t              decryptedLen = 0;
+    
+    uint8_t*            unlockingKey    = NULL;
+    
+    uint8_t             keyHash[kS4KeyPublic_Encrypted_HashBytes] = {0};
+    
+    validateS4KeyContext(encodedCtx);
+    validateS4KeyContext(passKeyCtx);
+    ValidateParam(symCtx);
+    
+    ValidateParam(encodedCtx->type == kS4KeyType_SymmetricEncrypted);
+    
+    
+    if(encodedCtx->symKeyEncoded.keyAlgorithmType == kS4KeyType_Symmetric)
+    {
+        decryptedLen = sGetKeyLength(kS4KeyType_Symmetric, encodedCtx->symKeyEncoded.cipherAlgor);
+        keyToDecrypt = encodedCtx->symKeyEncoded.encrypted;
+        encyptAlgor = encodedCtx->symKeyEncoded.encryptingAlgor;
+        
+    }
+    else  if(encodedCtx->symKeyEncoded.keyAlgorithmType == kS4KeyType_Tweekable)
+    {
+        decryptedLen = sGetKeyLength(kS4KeyType_Tweekable, encodedCtx->symKeyEncoded.cipherAlgor);
+        keyToDecrypt = encodedCtx->symKeyEncoded.encrypted;
+        encyptAlgor = encodedCtx->symKeyEncoded.encryptingAlgor;
+    }
+    else
+    {
+        RETERR(kS4Err_FeatureNotAvailable);
+    }
+    
+    unlockingKey = passKeyCtx->sym.symKey;
+    ASSERTERR(encyptAlgor != passKeyCtx->sym.symAlgor, kS4Err_BadParams)
+    
+    keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+    ZERO(keyCTX, sizeof(S4KeyContext));
+    
+    keyCTX->magic = kS4KeyContextMagic;
+    
+    if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Symmetric)
+    {
+        keyCTX->type  = kS4KeyType_Symmetric;
+        keyCTX->sym.symAlgor = encodedCtx->symKeyEncoded.cipherAlgor;
+        keyCTX->sym.keylen = decryptedLen;
+        
+        if(encodedCtx->symKeyEncoded.cipherAlgor  ==  kCipher_Algorithm_AES192)
+        {
+            //  it's padded at the end  (treat it like it was 256 bits)
+            decryptedLen = 32;
+        }
+        
+        err =  ECB_Decrypt(encyptAlgor, unlockingKey, keyToDecrypt, decryptedLen, decrypted_key); CKERR;
+        
+        COPY(decrypted_key, keyCTX->sym.symKey, decryptedLen);
+        
+    }
+    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Tweekable)
+    {
+        keyCTX->type  = kS4KeyType_Tweekable;
+        keyCTX->tbc.tbcAlgor = encodedCtx->symKeyEncoded.cipherAlgor;
+        keyCTX->tbc.keybits = decryptedLen << 3;
+        
+        err =  ECB_Decrypt(encyptAlgor, unlockingKey, keyToDecrypt, decryptedLen, decrypted_key); CKERR;
+        
+        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, decryptedLen >>2);   /* bytes to words */
+    }
+    
+    // check integrity of decypted value against the MAC
+    err = sKEY_HASH(decrypted_key, decryptedLen, keyCTX->type,  keyCTX->sym.symAlgor,
+                    keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
+    
+    ASSERTERR( !CMP(keyHash, encodedCtx->symKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
+              kS4Err_BadIntegrity)
+    
+    
+    
+    *symCtx = keyCTX;
+    
+    
+    
+done:
+    
+    if(IsS4Err(err))
+    {
+        if(IsntNull(keyCTX))
+        {
+            XFREE(keyCTX);
+        }
+    }
+    
+    ZERO(decrypted_key, sizeof(decrypted_key));
+    
+    return err;
+    
 }
 
 
