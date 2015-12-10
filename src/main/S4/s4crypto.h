@@ -191,7 +191,7 @@ enum Cipher_Algorithm_
 
 ENUM_TYPEDEF( Cipher_Algorithm_, Cipher_Algorithm   );
 
-S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bitsOut);
+S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bytesOut);
 
 S4Err ECB_Encrypt(Cipher_Algorithm algorithm,
                   const void *	key,

@@ -282,7 +282,7 @@ S4Err RNG_GetBytes(     void *         out,
 }
 
 
-S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bitsOut)
+S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bytesOut)
 {
     S4Err       err = kS4Err_NoErr;
     size_t      bits = 0;
@@ -300,8 +300,8 @@ S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bitsOut)
             RETERR(kS4Err_ResourceUnavailable);
     };
     
-    if(bitsOut)
-        *bitsOut = bits >> 3;
+    if(bytesOut)
+        *bytesOut = bits >> 3;
     
 done:
     return (err);
