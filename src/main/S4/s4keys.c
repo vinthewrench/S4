@@ -727,6 +727,10 @@ S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut)
             keyCTX->publicKeyEncoded = ctx->publicKeyEncoded;
             break;
             
+        case kS4KeyType_SymmetricEncrypted:
+            keyCTX->symKeyEncoded = ctx->symKeyEncoded;
+            break;
+
         case kS4KeyType_Share:
             keyCTX->share = ctx->share;
             break;
