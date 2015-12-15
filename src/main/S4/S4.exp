@@ -63,8 +63,8 @@ _PASS_TO_KEY_SETUP
 _RNG_GetBytes
 _RNG_GetPassPhrase
 
-_PGPWordEncode
-_PGPWordEncode64
+_PGPWordOdd
+_PGPWordEven
 
 _S4_LoadArray
 _S4_StoreArray

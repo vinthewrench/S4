@@ -541,22 +541,12 @@ static char pgpWordListEven[256][10] =
     "Zulu"
 };
 
-void PGPWordEncode(uint32_t in, char* out, size_t *outLen)
+char* PGPWordOdd(uint8_t in)
 {
-    *outLen =  snprintf(out, *outLen, "%s %s",
-                        pgpWordListOdd[(in >>12)&0xFF],  pgpWordListEven[(in >>4)&0xFF]  );
-    
+    return pgpWordListOdd[in];
 }
 
-void PGPWordEncode64(uint64_t in, char* out, size_t *outLen)
+char* PGPWordEven(uint8_t in)
 {
-    
-    in = in >> 32;
-    
-    *outLen =  snprintf(out, *outLen, "%s %s %s %s",
-                        pgpWordListOdd[(in >>24)&0xFF],
-                        pgpWordListEven[(in >>16)&0xFF],
-                        pgpWordListOdd[(in >> 8)&0xFF],
-                        pgpWordListEven[(in >>0)&0xFF]  );
-    
+    return pgpWordListEven[in];
 }

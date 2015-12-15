@@ -387,20 +387,13 @@ S4Err SHARES_GetShareHash( const uint8_t *key,
 #pragma mark - Hash word Encoding
 #endif
 
-
-/* given a 32 bit word.  take the  upper 20 bits and return 2 PGP words null terminated
+/* given a 8 bit word.  return the  PGP word null terminated
  as defined by  http://en.wikipedia.org/wiki/PGP_word_list
  */
 
 
-void PGPWordEncode(uint32_t in, char* out, size_t *outLen);
-
-/* given a 64 bit word.  take the upper 32 bits and  return 4 PGP words null terminated
- as defined by http://en.wikipedia.org/wiki/PGP_word_list
- */
-
-
-void PGPWordEncode64(uint64_t in, char* out, size_t *outLen);
+char* PGPWordOdd(uint8_t in);
+char* PGPWordEven(uint8_t in);
 
 
 #endif /* s4crypto_h */
