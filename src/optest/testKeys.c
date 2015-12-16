@@ -42,6 +42,9 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
     int8_t      key1[128], key2[128];
     size_t      keyLen1, keyLen2;
     
+    uint8_t         keyHash1[kS4KeyPBKDF2_HashBytes] = {0};
+    uint8_t         keyHash2[kS4KeyPBKDF2_HashBytes] = {0};
+
     err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeyType, NULL, &type1, sizeof(type1), NULL ); CKERR;
     err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeyType, NULL, &type2, sizeof(type1), NULL ); CKERR;
     ASSERTERR(type1 != type2,  kS4Err_SelfTestFailed);
@@ -59,6 +62,12 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
             err = compareResults( key1, key2, keyLen1,
                                  kResultFormat_Byte, "Symmetric key"); CKERR;
             
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_Mac, NULL, &keyHash1, sizeof(keyHash1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_Mac, NULL, &keyHash2, sizeof(keyHash2), NULL ); CKERR;
+            
+            err = compareResults( keyHash1, keyHash1, kS4KeyPBKDF2_HashBytes,
+                                 kResultFormat_Byte, "KeyHash"); CKERR;
+            
              break;
             
         case kS4KeyType_Tweekable:
@@ -73,6 +82,12 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
             err = compareResults( key1, key2, keyLen1,
                                  kResultFormat_Byte, "TBC key"); CKERR;
             
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_Mac, NULL, &keyHash1, sizeof(keyHash1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_Mac, NULL, &keyHash2, sizeof(keyHash2), NULL ); CKERR;
+            
+            err = compareResults( keyHash1, keyHash1, kS4KeyPBKDF2_HashBytes,
+                                 kResultFormat_Byte, "KeyHash"); CKERR;
+            
             break;
     
         case kS4KeyType_Share:
@@ -86,6 +101,13 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
             
             err = compareResults( keyCtx->share.shareSecret, keyCtx1->share.shareSecret, keyCtx->share.shareSecretLen,
                                  kResultFormat_Byte, "Share Hash"); CKERR;
+  
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_Mac, NULL, &keyHash1, sizeof(keyHash1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_Mac, NULL, &keyHash2, sizeof(keyHash2), NULL ); CKERR;
+            
+            err = compareResults( keyHash1, keyHash1, kS4KeyPBKDF2_HashBytes,
+                                 kResultFormat_Byte, "KeyHash"); CKERR;
+  
             break;
             
 
@@ -221,7 +243,6 @@ static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     S4KeyContextRef keyCtx1 =  kInvalidS4KeyContextRef;
     
     S4KeyContextRef  *importCtx = NULL;
-    
     uint8_t         unlockingKey[32];
     size_t      keyCount = 0;
     
@@ -259,6 +280,7 @@ static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &keyCtx1); CKERR;
     
     err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+    
     
     if(data)
     {

@@ -84,7 +84,7 @@ char *const kS4KeyProp_KeySuite         = K_KEYSUITE;
 char *const kS4KeyProp_KeyData          = K_KEYDATA;
 char *const kS4KeyProp_KeyID            = K_PROP_KEYID;
 char *const kS4KeyProp_KeyIDString      = K_PROP_KEYIDSTR;
-
+char *const kS4KeyProp_Mac               = K_PROP_MAC;
 
 static char *const kS4KeyProp_SCKeyVersion      = K_PROP_VERSION;
 static char *const kS4KeyProp_Encoding          = K_PROP_ENCODING;
@@ -103,7 +103,6 @@ static char *const kS4KeyProp_Encoding_PUBKEY_ECC384   =  "ECC-384";
 static char *const kS4KeyProp_Encoding_PUBKEY_ECC414   =  "Curve41417";
 static char *const kS4KeyProp_Salt              = K_PROP_SALT;
 static char *const kS4KeyProp_Rounds            = K_PROP_ROUNDS;
-static char *const kS4KeyProp_Mac               = K_PROP_MAC;
 static char *const kS4KeyProp_EncryptedKey      = K_PROP_ENCRYPTED;
 
 static char *const kS4KeyProp_ShareIndex      = K_INDEX;
@@ -181,6 +180,90 @@ static bool sS4KeyContextIsValid( const S4KeyContextRef  ref)
 
 #define validateS4KeyContext( s )		\
 ValidateParam( sS4KeyContextIsValid( s ) )
+
+static S4Err sPASSPHRASE_HASH( const uint8_t  *key,
+                              unsigned long  key_len,
+                              uint8_t       *salt,
+                              unsigned long  salt_len,
+                              uint32_t        roundsIn,
+                              uint8_t        *mac_buf,
+                              unsigned long  mac_len)
+{
+    S4Err           err = kS4Err_NoErr;
+    
+    MAC_ContextRef  macRef     = kInvalidMAC_ContextRef;
+    
+    uint32_t        rounds = roundsIn;
+    uint8_t         L[4];
+    char*           label = "passphrase-hash";
+    
+    L[0] = (salt_len >> 24) & 0xff;
+    L[1] = (salt_len >> 16) & 0xff;
+    L[2] = (salt_len >> 8) & 0xff;
+    L[3] = salt_len & 0xff;
+    
+    err = MAC_Init(kMAC_Algorithm_SKEIN,
+                   kHASH_Algorithm_SKEIN256,
+                   key, key_len, &macRef); CKERR
+    
+    MAC_Update(macRef,  "\x00\x00\x00\x01",  4);
+    MAC_Update(macRef,  label,  strlen(label));
+    
+    err = MAC_Update( macRef, salt, salt_len); CKERR;
+    MAC_Update(macRef,  L,  4);
+    
+    err = MAC_Update( macRef, &rounds, sizeof(rounds)); CKERR;
+    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
+    
+    size_t mac_len_SZ = (size_t)mac_len;
+    err = MAC_Final( macRef, mac_buf, &mac_len_SZ); CKERR;
+    
+done:
+    
+    MAC_Free(macRef);
+    
+    return err;
+}
+
+static S4Err sKEY_HASH( const uint8_t  *key,
+                       unsigned long  key_len,
+                       S4KeyType     keyTypeIn,
+                       int           keyAlgorithmIn,
+                       uint8_t        *mac_buf,
+                       unsigned long  mac_len)
+{
+    S4Err           err = kS4Err_NoErr;
+    
+    MAC_ContextRef  macRef     = kInvalidMAC_ContextRef;
+    
+    uint32_t        keyType = keyTypeIn;
+    uint32_t        algorithm = keyAlgorithmIn;
+    
+    char*           label = "key-hash";
+    
+    err = MAC_Init(kMAC_Algorithm_SKEIN,
+                   kHASH_Algorithm_SKEIN256,
+                   key, key_len, &macRef); CKERR
+    
+    MAC_Update(macRef,  "\x00\x00\x00\x01",  4);
+    MAC_Update(macRef,  label,  strlen(label));
+    
+    err = MAC_Update( macRef, &keyType, sizeof(keyType)); CKERR;
+    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
+    
+    err = MAC_Update( macRef, &algorithm, sizeof(algorithm)); CKERR;
+    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
+    
+    size_t mac_len_SZ = (size_t)mac_len;
+    err = MAC_Final( macRef, mac_buf, &mac_len_SZ); CKERR;
+    
+done:
+    
+    MAC_Free(macRef);
+    
+    return err;
+}
+
 
 
 #ifdef __clang__
@@ -347,7 +430,24 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 }
             }
             
-            else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
+            else if(STRCMP2(propName, kS4KeyProp_Mac))
+            {
+                switch (ctx->type) {
+                    case kS4KeyType_Symmetric:
+                    case kS4KeyType_Tweekable:
+                    case kS4KeyType_Share:
+                        actualLength = kS4KeyPublic_Encrypted_HashBytes;
+                        break;
+                        
+//                     case kS4KeyType_PublicEncrypted:
+//                        actualLength = sizeof(ctx->publicKeyEncoded.keyID);
+//                        break;
+                        
+                    default:
+                        RETERR(kS4Err_BadParams);
+                }
+            }
+           else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
             {
                 switch (ctx->type) {
                     case kS4KeyType_PublicEncrypted:
@@ -448,6 +548,43 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 RETERR(kS4Err_BadParams);
         }
     }
+    else if(STRCMP2(propName, kS4KeyProp_Mac))
+    {
+        uint8_t     keyHash[kS4KeyPBKDF2_HashBytes] = {0};
+
+        switch (ctx->type) {
+            case kS4KeyType_Symmetric:
+                err =  sKEY_HASH(ctx->sym.symKey, ctx->tbc.keybits >> 3, ctx->type,
+                                 ctx->sym.symAlgor, keyHash, kS4KeyPublic_Encrypted_HashBytes );
+                
+                COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
+                break;
+             
+            case kS4KeyType_Tweekable:
+                  err =  sKEY_HASH((uint8_t*)ctx->tbc.key, ctx->sym.keylen, ctx->type,
+                                 ctx->tbc.tbcAlgor, keyHash, kS4KeyPublic_Encrypted_HashBytes );
+                
+                COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
+                break;
+                
+
+            case kS4KeyType_Share:
+                actualLength = kS4KeyPublic_Encrypted_HashBytes;
+                
+                err =  sKEY_HASH(ctx->share.shareSecret, (int)ctx->share.shareSecretLen, ctx->type,
+                                 kCipher_Algorithm_SharedKey, keyHash, kS4KeyPublic_Encrypted_HashBytes );
+                
+                COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
+                break;
+//                
+//            case kS4KeyType_PublicEncrypted:
+//                  break;
+                
+            default:
+                RETERR(kS4Err_BadParams);
+        }
+    }
+
     else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
     {
         switch (ctx->type) {
@@ -760,90 +897,6 @@ done:
 #ifdef __clang__
 #pragma mark - export key.
 #endif
-
-
-static S4Err sPASSPHRASE_HASH( const uint8_t  *key,
-                                unsigned long  key_len,
-                                uint8_t       *salt,
-                                unsigned long  salt_len,
-                                uint32_t        roundsIn,
-                                uint8_t        *mac_buf,
-                                unsigned long  mac_len)
-{
-    S4Err           err = kS4Err_NoErr;
-  
-    MAC_ContextRef  macRef     = kInvalidMAC_ContextRef;
-    
-    uint32_t        rounds = roundsIn;
-    uint8_t         L[4];
-    char*           label = "passphrase-hash";
-    
-    L[0] = (salt_len >> 24) & 0xff;
-    L[1] = (salt_len >> 16) & 0xff;
-    L[2] = (salt_len >> 8) & 0xff;
-    L[3] = salt_len & 0xff;
-
-    err = MAC_Init(kMAC_Algorithm_SKEIN,
-                   kHASH_Algorithm_SKEIN256,
-                   key, key_len, &macRef); CKERR
-    
-    MAC_Update(macRef,  "\x00\x00\x00\x01",  4);
-    MAC_Update(macRef,  label,  strlen(label));
-    
-    err = MAC_Update( macRef, salt, salt_len); CKERR;
-    MAC_Update(macRef,  L,  4);
-    
-    err = MAC_Update( macRef, &rounds, sizeof(rounds)); CKERR;
-    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
-  
-    size_t mac_len_SZ = (size_t)mac_len;
-    err = MAC_Final( macRef, mac_buf, &mac_len_SZ); CKERR;
-    
-done:
-    
-    MAC_Free(macRef);
-    
-    return err;
-}
-
-static S4Err sKEY_HASH( const uint8_t  *key,
-                        unsigned long  key_len,
-                         S4KeyType     keyTypeIn,
-                         int           keyAlgorithmIn,
-                        uint8_t        *mac_buf,
-                        unsigned long  mac_len)
-{
-    S4Err           err = kS4Err_NoErr;
-    
-    MAC_ContextRef  macRef     = kInvalidMAC_ContextRef;
-    
-    uint32_t        keyType = keyTypeIn;
-    uint32_t        algorithm = keyAlgorithmIn;
- 
-    char*           label = "key-hash";
-    
-    err = MAC_Init(kMAC_Algorithm_SKEIN,
-                   kHASH_Algorithm_SKEIN256,
-                   key, key_len, &macRef); CKERR
-    
-    MAC_Update(macRef,  "\x00\x00\x00\x01",  4);
-    MAC_Update(macRef,  label,  strlen(label));
-    
-    err = MAC_Update( macRef, &keyType, sizeof(keyType)); CKERR;
-    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
-  
-    err = MAC_Update( macRef, &algorithm, sizeof(algorithm)); CKERR;
-    MAC_Update(macRef,  "\x00\x00\x00\x04",  4);
-
-    size_t mac_len_SZ = (size_t)mac_len;
-    err = MAC_Final( macRef, mac_buf, &mac_len_SZ); CKERR;
-    
-done:
-    
-    MAC_Free(macRef);
-    
-    return err;
-}
 
 
 
