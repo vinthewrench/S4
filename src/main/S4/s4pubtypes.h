@@ -57,7 +57,7 @@ k ## enumName ## force = kEnumMaxValue
 STATUS_LOG("ERROR %d  %s:%d \n",  err, __FILE__, __LINE__); \
 goto done; }
 
-#define ASSERTERR( _a_ , _err_ )  if((_a_))  { \
+#define ASSERTERR( _a_ , _err_ )  if(!(_a_))  { \
 err = _err_; \
 STATUS_LOG("ERROR %d  %s:%d \n",  err, __FILE__, __LINE__); \
 goto done; }

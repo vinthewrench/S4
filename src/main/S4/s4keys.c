@@ -1061,8 +1061,8 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
             encodingPropString =  kS4KeyProp_Encoding_PBKDF2_2FISH256;
            
             // we only encode block sizes of 16, 32, 48 and 64
-            ASSERTERR((keyBytes % 16) != 0, kS4Err_FeatureNotAvailable);
-            ASSERTERR(keyBytes > 64, kS4Err_FeatureNotAvailable);
+            ASSERTERR((keyBytes % 16) == 0, kS4Err_FeatureNotAvailable);
+            ASSERTERR(keyBytes <= 64, kS4Err_FeatureNotAvailable);
             
               break;
             
@@ -1231,7 +1231,7 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
         case kS4KeyType_Symmetric:
             unlockingKey = passKeyCtx->sym.symKey;
             encyptAlgor =  passKeyCtx->sym.symAlgor;
-            ASSERTERR(passKeyCtx->sym.symAlgor == kCipher_Algorithm_AES192, kS4Err_FeatureNotAvailable);
+            ASSERTERR(passKeyCtx->sym.symAlgor != kCipher_Algorithm_AES192, kS4Err_FeatureNotAvailable);
             
             switch (passKeyCtx->sym.symAlgor) {
      
@@ -1291,8 +1291,8 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
             keyAlgorithm = kCipher_Algorithm_SharedKey;
             
             // we only encode block sizes of 16, 32, 48 and 64
-            ASSERTERR((keyBytes % 16) != 0, kS4Err_FeatureNotAvailable);
-            ASSERTERR(keyBytes > 64, kS4Err_FeatureNotAvailable);
+            ASSERTERR((keyBytes % 16) == 0, kS4Err_FeatureNotAvailable);
+            ASSERTERR(keyBytes <= 64, kS4Err_FeatureNotAvailable);
             
             break;
             
@@ -2527,7 +2527,7 @@ S4Err S4Key_VerifyPassPhrase(   S4KeyContextRef  ctx,
                           ctx->pbkdf2.salt, sizeof(ctx->pbkdf2.salt), ctx->pbkdf2.rounds,
                            keyHash, kS4KeyPBKDF2_HashBytes); CKERR;
     
-   ASSERTERR(!CMP(keyHash, ctx->pbkdf2.keyHash, kS4KeyPBKDF2_HashBytes), kS4Err_BadIntegrity)
+   ASSERTERR(CMP(keyHash, ctx->pbkdf2.keyHash, kS4KeyPBKDF2_HashBytes), kS4Err_BadIntegrity)
     
 
 done:
@@ -2598,7 +2598,7 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
                            passCtx->pbkdf2.salt, sizeof(passCtx->pbkdf2.salt), passCtx->pbkdf2.rounds,
                            keyHash, kS4KeyPBKDF2_HashBytes); CKERR;
     
-    ASSERTERR(!CMP(keyHash, passCtx->pbkdf2.keyHash, kS4KeyPBKDF2_HashBytes), kS4Err_BadIntegrity)
+    ASSERTERR(CMP(keyHash, passCtx->pbkdf2.keyHash, kS4KeyPBKDF2_HashBytes), kS4Err_BadIntegrity)
     
     keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
     ZERO(keyCTX, sizeof(S4KeyContext));
@@ -2634,7 +2634,7 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
         // we dont have a way to determine the expected length of a split key.
 
         // is the Share to big?
-        ASSERTERR(keyBytes > 64 , kS4Err_CorruptData );
+        ASSERTERR(keyBytes <= 64 , kS4Err_CorruptData );
         
         keyCTX->type  = kS4KeyType_Share;
         keyCTX->share.threshold = passCtx->pbkdf2.threshold;
@@ -2723,7 +2723,7 @@ S4Err S4Key_DecryptFromPubKey( S4KeyContextRef      encodedCtx,
                           encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
                           decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
         
-        ASSERTERR(decryptedLen != keyBytes, kS4Err_CorruptData );
+        ASSERTERR(decryptedLen == keyBytes, kS4Err_CorruptData );
         
         COPY(decrypted_key, keyCTX->sym.symKey, decryptedLen);
         
@@ -2738,7 +2738,7 @@ S4Err S4Key_DecryptFromPubKey( S4KeyContextRef      encodedCtx,
                           encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
                           decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
         
-        ASSERTERR(decryptedLen != keyBytes , kS4Err_CorruptData );
+        ASSERTERR(decryptedLen == keyBytes , kS4Err_CorruptData );
         
         Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
     }
@@ -2754,7 +2754,7 @@ S4Err S4Key_DecryptFromPubKey( S4KeyContextRef      encodedCtx,
                           decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
        
         // is the Share to big?
-        ASSERTERR(decryptedLen > 64 , kS4Err_CorruptData );
+        ASSERTERR(decryptedLen <= 64 , kS4Err_CorruptData );
         
         // we dont have a way to determine the expected length of a split key.
         keyBytes =  decryptedLen;
@@ -2766,7 +2766,7 @@ S4Err S4Key_DecryptFromPubKey( S4KeyContextRef      encodedCtx,
     err = sKEY_HASH(decrypted_key, keyBytes, keyCTX->type,  encyptAlgor,
                     keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
     
-    ASSERTERR( !CMP(keyHash, encodedCtx->publicKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
+    ASSERTERR( CMP(keyHash, encodedCtx->publicKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
               kS4Err_BadIntegrity)
 
    
@@ -2835,7 +2835,7 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
     }
     
     unlockingKey = passKeyCtx->sym.symKey;
-    ASSERTERR(encyptAlgor != passKeyCtx->sym.symAlgor, kS4Err_BadParams)
+    ASSERTERR(encyptAlgor == passKeyCtx->sym.symAlgor, kS4Err_BadParams)
     
     keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
     ZERO(keyCTX, sizeof(S4KeyContext));
@@ -2874,7 +2874,7 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
     err = sKEY_HASH(decrypted_key, decryptedLen, keyCTX->type,  keyCTX->sym.symAlgor,
                     keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
     
-    ASSERTERR( !CMP(keyHash, encodedCtx->symKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
+    ASSERTERR( CMP(keyHash, encodedCtx->symKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
               kS4Err_BadIntegrity)
     
     
@@ -2995,8 +2995,8 @@ S4Err S4Key_SerializeToShares(S4KeyContextRef       ctx,
             encodingPropString =  kS4KeyProp_Encoding_PBKDF2_2FISH256;
             
             // we only encode block sizes of 16, 32, 48 and 64
-            ASSERTERR((keyBytes % 16) != 0, kS4Err_FeatureNotAvailable);
-            ASSERTERR(keyBytes > 64, kS4Err_FeatureNotAvailable);
+            ASSERTERR((keyBytes % 16) == 0, kS4Err_FeatureNotAvailable);
+            ASSERTERR(keyBytes <= 64, kS4Err_FeatureNotAvailable);
             
             break;
             

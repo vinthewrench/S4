@@ -47,18 +47,18 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
 
     err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeyType, NULL, &type1, sizeof(type1), NULL ); CKERR;
     err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeyType, NULL, &type2, sizeof(type1), NULL ); CKERR;
-    ASSERTERR(type1 != type2,  kS4Err_SelfTestFailed);
+    ASSERTERR(type1 == type2,  kS4Err_SelfTestFailed);
 
     switch (type1) {
         case kS4KeyType_Symmetric:
             
             err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeySuite, NULL, &algor1, sizeof(algor1), NULL ); CKERR;
             err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeySuite, NULL, &algor2, sizeof(algor2), NULL ); CKERR;
-            ASSERTERR(algor1 != algor2,  kS4Err_SelfTestFailed);
+            ASSERTERR(algor1 == algor2,  kS4Err_SelfTestFailed);
             
             err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeyData, NULL, &key1 , sizeof(key1), &keyLen1 ); CKERR;
             err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeyData, NULL, &key2 , sizeof(key2), &keyLen2 ); CKERR;
-            ASSERTERR(keyLen1 != keyLen2,  kS4Err_SelfTestFailed);
+            ASSERTERR(keyLen1 == keyLen2,  kS4Err_SelfTestFailed);
             err = compareResults( key1, key2, keyLen1,
                                  kResultFormat_Byte, "Symmetric key"); CKERR;
             
@@ -74,11 +74,11 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
             
             err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeySuite, NULL, &algor1, sizeof(algor1), NULL ); CKERR;
             err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeySuite, NULL, &algor2, sizeof(algor2), NULL ); CKERR;
-            ASSERTERR(algor1 != algor2,  kS4Err_SelfTestFailed);
+            ASSERTERR(algor1 == algor2,  kS4Err_SelfTestFailed);
 
             err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeyData, NULL, &key1 , sizeof(key1), &keyLen1 ); CKERR;
             err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeyData, NULL, &key2 , sizeof(key2), &keyLen2 ); CKERR;
-            ASSERTERR(keyLen1 != keyLen2,  kS4Err_SelfTestFailed);
+            ASSERTERR(keyLen1 == keyLen2,  kS4Err_SelfTestFailed);
             err = compareResults( key1, key2, keyLen1,
                                  kResultFormat_Byte, "TBC key"); CKERR;
             
@@ -91,9 +91,9 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
             break;
     
         case kS4KeyType_Share:
-            ASSERTERR(keyCtx->share.threshold != keyCtx1->share.threshold,  kS4Err_SelfTestFailed);
-            ASSERTERR(keyCtx->share.xCoordinate != keyCtx1->share.xCoordinate,  kS4Err_SelfTestFailed);
-            ASSERTERR(keyCtx->share.shareSecretLen != keyCtx1->share.shareSecretLen,  kS4Err_SelfTestFailed);
+            ASSERTERR(keyCtx->share.threshold == keyCtx1->share.threshold,  kS4Err_SelfTestFailed);
+            ASSERTERR(keyCtx->share.xCoordinate == keyCtx1->share.xCoordinate,  kS4Err_SelfTestFailed);
+            ASSERTERR(keyCtx->share.shareSecretLen == keyCtx1->share.shareSecretLen,  kS4Err_SelfTestFailed);
       
             err = compareResults( keyCtx->share.shareHash, keyCtx1->share.shareHash, kS4ShareInfo_HashBytes,
                                  kResultFormat_Byte, "Share Hash"); CKERR;
@@ -145,7 +145,7 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
         err = SCKeyGetAllocatedProperty(keyCtx, (const char*) prop->prop, &type1, &data1, &data1Len); CKERR;
         err = SCKeyGetAllocatedProperty(keyCtx, (const char*) prop->prop, &type2, &data2, &data2Len); CKERR;
         
-        ASSERTERR(type1 != type2,  kS4Err_SelfTestFailed);
+        ASSERTERR(type1 == type2,  kS4Err_SelfTestFailed);
         
         err = compare2Results( data1, data1Len, data2, data2Len, kResultFormat_Byte, ( char*) prop->prop); CKERR;
         
@@ -274,7 +274,7 @@ static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     
     OPTESTLogVerbose("%8s", "Import");
     err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importCtx ); CKERR;
-    ASSERTERR(keyCount != 1,  kS4Err_SelfTestFailed);
+    ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
     
     OPTESTLogVerbose("%8s", "Verify");
     err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &keyCtx1); CKERR;
@@ -456,7 +456,7 @@ static S4Err sRunSharedPBKDF2ImportExportKAT(  cipherKATvector *kat)
         S4KeyContextRef decodedCtx =  kInvalidS4KeyContextRef;
         
         err = S4Key_DeserializeKeys(shareData[i], strlen((char*)shareData[i]), &keyCount, &encodedCtx ); CKERR;
-        ASSERTERR(keyCount != 1,  kS4Err_SelfTestFailed);
+        ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
         
         err = S4Key_DecryptFromPassPhrase(encodedCtx[0],kat->passPhrase, strlen((char*)kat->passPhrase), &decodedCtx); CKERR;
         
@@ -630,10 +630,10 @@ static S4Err sRunSharedECCImportExportKAT(  cipherKATvector *kat)
         S4KeyContextRef decodedCtx =  kInvalidS4KeyContextRef;
         
         err = S4Key_DeserializeKeys(shareData[i], strlen((char*)shareData[i]), &keyCount, &encodedCtx ); CKERR;
-        ASSERTERR(keyCount != 1,  kS4Err_SelfTestFailed);
+        ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
         
         err = S4Key_GetProperty(encodedCtx[0], kS4KeyProp_KeyID, NULL, keyID1, sizeof(keyID1), &keyIDLen1);
-        ASSERTERR(keyIDLen != keyIDLen1,  kS4Err_SelfTestFailed);
+        ASSERTERR(keyIDLen == keyIDLen1,  kS4Err_SelfTestFailed);
         err = compareResults( keyID, keyID1, keyIDLen,
                              kResultFormat_Byte, "Pub KeyID"); CKERR;
         
@@ -830,7 +830,7 @@ static S4Err sRunTBCImportExportKAT(  cipherKATvector *kat)
     
     OPTESTLogVerbose("%8s", "Import");
     err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importCtx ); CKERR;
-    ASSERTERR(keyCount != 1,  kS4Err_SelfTestFailed);
+    ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
     
     OPTESTLogVerbose("%8s", "Verify");
     err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &keyCtx1); CKERR;
@@ -1099,7 +1099,7 @@ static S4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &encodedCtx ); CKERR;
     
     err = S4Key_GetProperty(encodedCtx[0], kS4KeyProp_KeyID, NULL, keyID1, sizeof(keyID1), &keyIDLen1);
-    ASSERTERR(keyIDLen != keyIDLen1,  kS4Err_SelfTestFailed);
+    ASSERTERR(keyIDLen == keyIDLen1,  kS4Err_SelfTestFailed);
     err = compareResults( keyID, keyID1, keyIDLen,
                          kResultFormat_Byte, "Pub KeyID"); CKERR;
     
@@ -1286,7 +1286,7 @@ static S4Err sRunTBC_ECCImportExportKAT(  cipherKATvector *kat)
     err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &encodedCtx ); CKERR;
     
     err = S4Key_GetProperty(encodedCtx[0], kS4KeyProp_KeyID, NULL, keyID1, sizeof(keyID1), &keyIDLen1);
-    ASSERTERR(keyIDLen != keyIDLen1,  kS4Err_SelfTestFailed);
+    ASSERTERR(keyIDLen == keyIDLen1,  kS4Err_SelfTestFailed);
     err = compareResults( keyID, keyID1, keyIDLen,
                          kResultFormat_Byte, "Pub KeyID"); CKERR;
     
@@ -1410,7 +1410,7 @@ S4Err  TestKeys()
     asprintf(&exported_keys,"%s ]", exported_keys );
     err = S4Key_DeserializeKeys((uint8_t*)exported_keys, strlen(exported_keys), &keyCount, &encodedCtx ); CKERR;
     OPTESTLogInfo("\tDecoded %d Items\n", keyCount);
-    ASSERTERR(keyCount != exported_key_count, kS4Err_SelfTestFailed);
+    ASSERTERR(keyCount == exported_key_count, kS4Err_SelfTestFailed);
     
     for(i = 0; i < keyCount; i++)
     {
