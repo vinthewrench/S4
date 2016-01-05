@@ -2598,7 +2598,8 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
                            passCtx->pbkdf2.salt, sizeof(passCtx->pbkdf2.salt), passCtx->pbkdf2.rounds,
                            keyHash, kS4KeyPBKDF2_HashBytes); CKERR;
     
-    ASSERTERR(CMP(keyHash, passCtx->pbkdf2.keyHash, kS4KeyPBKDF2_HashBytes), kS4Err_BadIntegrity)
+    if(!CMP(keyHash, passCtx->pbkdf2.keyHash, kS4KeyPBKDF2_HashBytes))
+        RETERR (kS4Err_BadIntegrity);
     
     keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
     ZERO(keyCTX, sizeof(S4KeyContext));
