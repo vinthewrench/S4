@@ -111,8 +111,8 @@ _kS4KeyProp_Mac
 
 _S4Key_SerializeToShares
 
-
-
+_S4Key_NewPublicKey
+_S4Key_SerializePubKey
 
 
 

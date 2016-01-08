@@ -182,6 +182,9 @@ enum Cipher_Algorithm_
     kCipher_Algorithm_3FISH1024     = 103,
 
     kCipher_Algorithm_SharedKey      =  200,
+
+    kCipher_Algorithm_ECC384        =  300,
+    kCipher_Algorithm_ECC414        =  301, /*  Dan Bernstein Curve3617  */
     
     kCipher_Algorithm_Invalid           =  kEnumMaxValue,
     

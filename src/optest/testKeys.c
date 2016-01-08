@@ -1389,6 +1389,66 @@ done:
 
 }
 
+
+static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
+{
+    S4Err     err = kS4Err_NoErr;
+    S4KeyContextRef keyPub =  kInvalidS4KeyContextRef;
+    char* name = NULL;
+    char**       keyIDStr = NULL;
+   
+    uint8_t     *data = NULL;
+    size_t      dataLen = 0;
+    
+  
+    name = cipher_algor_table(keyAlgorithm);
+    
+    OPTESTLogVerbose("\t%-8s ", name);
+    
+    OPTESTLogDebug("%-12s", "Create");
+     err = S4Key_NewPublicKey(keyAlgorithm, &keyPub); CKERR;
+    
+    err = SCKeyGetAllocatedProperty(keyPub, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
+    OPTESTLogDebug("KeyID: %s\n",  keyIDStr);
+    
+    err = S4Key_SerializePubKey(keyPub, &data, &dataLen); CKERR;
+    
+    OPTESTLogDebug("------\n%s------\n",data);
+    
+
+done:
+    if(data)
+        XFREE(data);
+
+      if(keyPub)
+    {
+        if(S4KeyContextRefIsValid(keyPub))
+        {
+            S4Key_Free(keyPub);
+        }
+        
+    }
+    
+    OPTESTLogVerbose("\n");
+    return err;
+}
+
+
+static S4Err  sTestPublicKeys()
+{
+    S4Err     err = kS4Err_NoErr;
+    
+    OPTESTLogInfo("\nTesting Public Key API\n");
+    
+    err = sRunPublicKeyTest(kCipher_Algorithm_ECC384);  CKERR;
+    err = sRunPublicKeyTest(kCipher_Algorithm_ECC414);  CKERR;
+    
+    
+done:
+    return err;
+    
+}
+
 S4Err  TestKeys()
 {
     S4Err     err = kS4Err_NoErr;
@@ -1398,11 +1458,14 @@ S4Err  TestKeys()
     
     asprintf(&exported_keys,"[" );
 
+    err = sTestPublicKeys(); CKERR;
+    goto done;
+    
+    
     err = sTestSymmetricKeys(); CKERR;
     err = sTestTBCKeys(); CKERR;
     err = sTestECC_TBCKeys(); CKERR;
     err = sTestECC_SymmetricKeys(); CKERR;
-
     err = sTest_SharedSymTBCKeys(); CKERR;
     
 

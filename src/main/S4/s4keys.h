@@ -24,6 +24,8 @@
 #define kS4KeyPublic_Encrypted_BufferMAX      256
 #define kS4KeyPublic_Encrypted_HashBytes      8
 
+#define kS4KeyPublic_MAX_PrivKeyLen 256
+
 #define kS4KeySymmetric_Encrypted_BufferMAX      256
 
 typedef struct S4KeyContext *      S4KeyContextRef;
@@ -73,7 +75,9 @@ enum S4KeyType_
     kS4KeyType_PublicEncrypted      = 4,
     kS4KeyType_SymmetricEncrypted   = 5,
     kS4KeyType_Share                = 6,
-    
+
+    kS4KeyType_PublicKey            = 7,
+ 
     kS4KeyType_Invalid           =  kEnumMaxValue,
     
     ENUM_FORCE( S4KeyType_ )
@@ -139,6 +143,23 @@ typedef struct S4KeyPublic_Encrypted_
     
 }S4KeyPublic_Encrypted;
 
+typedef struct S4KeyPublic_
+{
+    Cipher_Algorithm       cipherAlgor;            /*  kCipher_Algorithm_ECC384, kCipher_Algorithm_ECC414 */
+    bool                   isPrivate;
+    
+    uint8_t             keyID[kS4Key_KeyIDBytes];
+    
+    uint8_t             pubKey[256];
+    size_t              pubKeyLen;
+    
+    uint8_t             *privKey;
+    size_t              privKeyLen;
+    
+    ECC_ContextRef      ecc;
+
+    
+}S4KeyPublic;
 
 typedef struct S4KeySym_Encrypted_
 {
@@ -175,6 +196,8 @@ struct S4KeyContext
     S4KeyPublic_Encrypted   publicKeyEncoded;
         S4KeySym_Encrypted  symKeyEncoded;
         SHARES_ShareInfo    share;
+        
+        S4KeyPublic         pub;
     };
     
 };
@@ -189,6 +212,9 @@ S4Err S4Key_NewTBC(     Cipher_Algorithm       algorithm,
                    S4KeyContextRef     *ctx);
 
 S4Err S4Key_NewShare(    SHARES_ShareInfo   *share,
+                         S4KeyContextRef    *ctx);
+
+S4Err S4Key_NewPublicKey(Cipher_Algorithm       algorithm,
                          S4KeyContextRef    *ctx);
 
 void S4Key_Free(S4KeyContextRef ctx);
@@ -235,6 +261,10 @@ S4Err S4Key_SerializeToShares(S4KeyContextRef       ctx,
                               SHARES_ContextRef     *outShares,
                               uint8_t               **outData,
                               size_t                *outSize);
+
+S4Err S4Key_SerializePubKey(S4KeyContextRef  ctx,
+                            uint8_t          **outData,
+                            size_t           *outSize);
 
 S4Err S4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
                                     size_t           *outCount,

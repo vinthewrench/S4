@@ -354,6 +354,9 @@ char *cipher_algor_table(Cipher_Algorithm algor)
         case kCipher_Algorithm_3FISH256: 		return (("ThreeFish-256"));
         case kCipher_Algorithm_3FISH512: 		return (("ThreeFish-512"));
         case kCipher_Algorithm_3FISH1024: 		return (("ThreeFish-1024"));
+            
+        case kCipher_Algorithm_ECC384: 		return (("ECC-384"));
+        case kCipher_Algorithm_ECC414: 		return (("ECC-414"));
 default:				return (("Invalid"));
     }
 }
@@ -366,6 +369,7 @@ char *key_type_table(S4KeyType type)
         case kS4KeyType_Tweekable: 		return (("TBC"));
         case kS4KeyType_PBKDF2: 		return (("Encr-PBKDF2 "));
         case kS4KeyType_PublicEncrypted: 		return (("Encr-PubKey"));
+        case kS4KeyType_PublicKey:              return (("Public Key"));
         default:				return (("Invalid"));
     }
 }

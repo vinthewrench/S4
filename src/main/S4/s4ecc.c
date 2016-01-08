@@ -385,9 +385,11 @@ S4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t
     size_t          hashBytes = 0;
    
     validateECCContext(ctx);
+    ValidateParam(sECC_ContextIsValid(ctx))
     ValidateParam(ctx->isInited);
     ValidateParam(outData);
     
+
     err  = HASH_Init(kHASH_Algorithm_SHA256, &hash); CKERR;
     err =  ECC_Export_ANSI_X963( ctx, pubKey, sizeof(pubKey), &pubKeyLen);CKERR;
     
