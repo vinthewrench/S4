@@ -235,7 +235,7 @@ void CBC_Free(CBC_ContextRef  ctx);
 /* higher level CBC encode/decod with padding */
 
 S4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
-                     uint8_t *key, size_t key_len,
+                     uint8_t *key,
                      const uint8_t *iv,
                      const uint8_t *in, size_t in_len,
                      uint8_t **outData, size_t *outSize);
@@ -243,7 +243,7 @@ S4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
 
 
 S4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
-                     uint8_t *key, size_t key_len,
+                     uint8_t *key,
                      const uint8_t *iv,
                      const uint8_t *in, size_t in_len,
                      uint8_t **outData, size_t *outSize);

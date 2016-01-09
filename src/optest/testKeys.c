@@ -29,21 +29,24 @@ typedef struct  {
 static char *exported_keys   = NULL;
 static int exported_key_count   = 0;
 
-static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
+static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1, bool ignorePrivPub)
 {
     S4Err err = kS4Err_NoErr;
     
     ValidateParam(keyCtx);
     ValidateParam(keyCtx1);
     
-    S4KeyType   type1,type2;
-    int8_t     algor1, algor2;
+    S4KeyType           type1,type2;
+    Cipher_Algorithm     algor1, algor2;
 
     int8_t      key1[128], key2[128];
     size_t      keyLen1, keyLen2;
     
     uint8_t         keyHash1[kS4KeyPBKDF2_HashBytes] = {0};
     uint8_t         keyHash2[kS4KeyPBKDF2_HashBytes] = {0};
+
+    uint8_t         keyID1[kS4Key_KeyIDBytes] = {0};
+    uint8_t         keyID2[kS4Key_KeyIDBytes] = {0};
 
     err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeyType, NULL, &type1, sizeof(type1), NULL ); CKERR;
     err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeyType, NULL, &type2, sizeof(type1), NULL ); CKERR;
@@ -111,6 +114,29 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1)
             break;
             
 
+        case kS4KeyType_PublicKey:
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeySuite, NULL, &algor1, sizeof(algor1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeySuite, NULL, &algor2, sizeof(algor2), NULL ); CKERR;
+            ASSERTERR(algor1 == algor2,  kS4Err_SelfTestFailed);
+    
+            if(!ignorePrivPub)
+            {
+                ASSERTERR(keyCtx->pub.isPrivate == keyCtx1->pub.isPrivate,  kS4Err_SelfTestFailed);
+            }
+            
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeyID, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeyID, NULL, &keyID2, sizeof(keyID2), NULL ); CKERR;
+            
+            err = compareResults( keyID1, keyID2, kS4Key_KeyIDBytes,
+                                 kResultFormat_Byte, "keyID"); CKERR;
+
+            if(keyCtx->pub.isPrivate && keyCtx1->pub.isPrivate)
+            {
+              // we could compare the MAC on private keys.
+            }
+            
+            break;
+            
         case kS4KeyType_PBKDF2:
             switch (keyCtx->pbkdf2.keyAlgorithmType)
         {
@@ -200,7 +226,7 @@ static S4Err sRunCipherPBKDF2ImportExportKAT(  cipherKATvector *kat)
 
     err = S4Key_DecryptFromPassPhrase(passCtx[0],kat->passPhrase, strlen((char*)kat->passPhrase), &keyCtx1); CKERR;
     
-    err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+    err = sCompareKeys(keyCtx, keyCtx1, false); CKERR;
 
     if(data)
     {
@@ -279,7 +305,7 @@ static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     OPTESTLogVerbose("%8s", "Verify");
     err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &keyCtx1); CKERR;
     
-    err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+    err = sCompareKeys(keyCtx, keyCtx1, false); CKERR;
     
     
     if(data)
@@ -460,7 +486,7 @@ static S4Err sRunSharedPBKDF2ImportExportKAT(  cipherKATvector *kat)
         
         err = S4Key_DecryptFromPassPhrase(encodedCtx[0],kat->passPhrase, strlen((char*)kat->passPhrase), &decodedCtx); CKERR;
         
-        err = sCompareKeys(decodedCtx, shareCtx[i]); CKERR;
+        err = sCompareKeys(decodedCtx, shareCtx[i], false); CKERR;
         
         recoveredShares[i] = XMALLOC(sizeof(SHARES_ShareInfo)); CKNULL(recoveredShares[i]);
         COPY(&decodedCtx->share, recoveredShares[i], sizeof(SHARES_ShareInfo));
@@ -639,7 +665,7 @@ static S4Err sRunSharedECCImportExportKAT(  cipherKATvector *kat)
         
         err = S4Key_DecryptFromPubKey(encodedCtx[0], eccPriv, &decodedCtx); CKERR;
         
-        err = sCompareKeys(decodedCtx, shareCtx[i]); CKERR;
+        err = sCompareKeys(decodedCtx, shareCtx[i], false); CKERR;
         
         recoveredShares[i] = XMALLOC(sizeof(SHARES_ShareInfo)); CKNULL(recoveredShares[i]);
         COPY(&decodedCtx->share, recoveredShares[i], sizeof(SHARES_ShareInfo));
@@ -835,7 +861,7 @@ static S4Err sRunTBCImportExportKAT(  cipherKATvector *kat)
     OPTESTLogVerbose("%8s", "Verify");
     err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &keyCtx1); CKERR;
     
-    err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+    err = sCompareKeys(keyCtx, keyCtx1, false); CKERR;
     
     if(data)
     {
@@ -916,7 +942,7 @@ static S4Err sRunTBCPBKDF2ImportExportKAT(  cipherKATvector *kat)
     
     err = S4Key_DecryptFromPassPhrase(passCtx[0],kat->passPhrase, strlen((char*)kat->passPhrase), &keyCtx1); CKERR;
     
-    err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+    err = sCompareKeys(keyCtx, keyCtx1, false); CKERR;
     
 done:
     
@@ -1106,7 +1132,7 @@ static S4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     OPTESTLogVerbose("%8s", "Verify");
     err = S4Key_DecryptFromPubKey(encodedCtx[0], eccPriv, &keyCtx1); CKERR;
     
-    err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+    err = sCompareKeys(keyCtx, keyCtx1, false ); CKERR;
 
     if(data)
     {
@@ -1293,7 +1319,7 @@ static S4Err sRunTBC_ECCImportExportKAT(  cipherKATvector *kat)
     OPTESTLogVerbose("%8s", "Verify");
     err = S4Key_DecryptFromPubKey(encodedCtx[0], eccPriv, &keyCtx1); CKERR;
     
-    err = sCompareKeys(keyCtx, keyCtx1); CKERR;
+    err = sCompareKeys(keyCtx, keyCtx1, false); CKERR;
 
     if(data)
     {
@@ -1393,42 +1419,79 @@ done:
 static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
 {
     S4Err     err = kS4Err_NoErr;
-    S4KeyContextRef keyPub =  kInvalidS4KeyContextRef;
+    S4KeyContextRef pubCtx =  kInvalidS4KeyContextRef;
+    S4KeyContextRef passKeyCtx =  kInvalidS4KeyContextRef;
+    
     char* name = NULL;
     char**       keyIDStr = NULL;
    
+    
+    uint8_t     unlockingKey[32];
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
     
-  
+    S4KeyContextRef  *importCtx = NULL;
+    S4KeyContextRef     *importPubCtx =  NULL;
+    
+    
+     size_t      keyCount = 0;
+    
     name = cipher_algor_table(keyAlgorithm);
     
-    OPTESTLogVerbose("\t%-8s ", name);
+    OPTESTLogVerbose("\t%-8s\n", name);
     
-    OPTESTLogDebug("%-12s", "Create");
-     err = S4Key_NewPublicKey(keyAlgorithm, &keyPub); CKERR;
+    OPTESTLogDebug("\t  Create ");
+     err = S4Key_NewPublicKey(keyAlgorithm, &pubCtx); CKERR;
     
-    err = SCKeyGetAllocatedProperty(keyPub, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
+    err = SCKeyGetAllocatedProperty(pubCtx, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
     OPTESTLogDebug("KeyID: %s\n",  keyIDStr);
     
-    err = S4Key_SerializePubKey(keyPub, &data, &dataLen); CKERR;
+    OPTESTLogDebug("\t  Import/Export Pub\n");
+    err = S4Key_SerializePubKey(pubCtx, &data, &dataLen); CKERR;
+   OPTESTLogDebug("------\n%s------\n",data);
+   
+    err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importPubCtx ); CKERR;
+    ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
+    XFREE(data); data = NULL;
     
-    OPTESTLogDebug("------\n%s------\n",data);
+    err = sCompareKeys(pubCtx, importPubCtx[0], true); CKERR;
+    
+    // create a random  unlocking key
+    err = RNG_GetBytes(unlockingKey, sizeof(unlockingKey)); CKERR;
+    err = S4Key_NewSymmetric(kCipher_Algorithm_2FISH256, unlockingKey, &passKeyCtx  ); CKERR;
+
+    OPTESTLogDebug("\t  Import/Export Private\n");
+    err = S4Key_SerializeToS4Key(pubCtx, passKeyCtx, &data, &dataLen); CKERR;
+   OPTESTLogDebug("\n------\n%s------\n",data);
+   
+    err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importCtx ); CKERR;
+    ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
     
 
 done:
     if(data)
         XFREE(data);
 
-      if(keyPub)
+    if(importPubCtx)
     {
-        if(S4KeyContextRefIsValid(keyPub))
+        if(S4KeyContextRefIsValid(importPubCtx[0]))
         {
-            S4Key_Free(keyPub);
+            S4Key_Free(importPubCtx[0]);
         }
+        XFREE(importPubCtx);
         
     }
+
+    if(S4KeyContextRefIsValid(pubCtx))
+    {
+        S4Key_Free(pubCtx);
+    }
     
+    if(S4KeyContextRefIsValid(passKeyCtx))
+    {
+        S4Key_Free(passKeyCtx);
+    }
+
     OPTESTLogVerbose("\n");
     return err;
 }
@@ -1438,7 +1501,9 @@ static S4Err  sTestPublicKeys()
 {
     S4Err     err = kS4Err_NoErr;
     
+    
     OPTESTLogInfo("\nTesting Public Key API\n");
+    
     
     err = sRunPublicKeyTest(kCipher_Algorithm_ECC384);  CKERR;
     err = sRunPublicKeyTest(kCipher_Algorithm_ECC414);  CKERR;

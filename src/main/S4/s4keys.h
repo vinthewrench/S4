@@ -150,6 +150,8 @@ typedef struct S4KeyPublic_
     
     uint8_t             keyID[kS4Key_KeyIDBytes];
     
+    uint8_t             keyHash[kS4KeyPublic_Encrypted_HashBytes];
+
     uint8_t             pubKey[256];
     size_t              pubKeyLen;
     

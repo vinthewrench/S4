@@ -103,7 +103,7 @@ static S4Err RunCipherKAT(  katvector *kat)
         
         OPTESTLogInfo("%8s", "CBC/PAD");
    
-        err = CBC_EncryptPAD(kat->algor, kat->key, kat->keysize >>3, kat->IV,
+        err = CBC_EncryptPAD(kat->algor, kat->key, kat->IV,
                             kat->PT, kat->PTlen,
                              &CT, &CTLen); CKERR;
        
@@ -111,7 +111,7 @@ static S4Err RunCipherKAT(  katvector *kat)
         err = compare2Results( kat->CBCpad,kat->CBCPadlen, CT, CTLen , kResultFormat_Byte, "CBC/PAD Encrypt"); CKERR;
         
 
-        err = CBC_DecryptPAD(kat->algor, kat->key, kat->keysize >>3, kat->IV,
+        err = CBC_DecryptPAD(kat->algor, kat->key, kat->IV,
                              CT, CTLen,
                              &PT, &PTLen); CKERR;
      

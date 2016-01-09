@@ -276,7 +276,7 @@ void CBC_Free(CBC_ContextRef  ctx)
 #define MSG_BLOCKSIZE   16
 
 S4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
-                     uint8_t *key, size_t key_len,
+                     uint8_t *key,
                      const uint8_t *iv,
                      const uint8_t *in, size_t in_len,
                      uint8_t **outData, size_t *outSize)
@@ -287,26 +287,6 @@ S4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
     uint8_t     bytes2Pad;
     uint8_t     *buffer = NULL;
     size_t      buffLen = 0;
-    
-    /* check Key length and algorithm */
-    switch(algorithm)
-    {
-        case kCipher_Algorithm_AES128:
-            ValidateParam (key_len == 16); break;
-            
-        case kCipher_Algorithm_AES192:
-            ValidateParam (key_len == 24); break;
-            
-        case kCipher_Algorithm_AES256:
-            ValidateParam (key_len == 32); break;
-            
-        case kCipher_Algorithm_2FISH256:
-            ValidateParam (key_len == 32); break;
-            
-        default:
-            RETERR(kS4Err_BadParams);
-    }
-    
     
     /* calclulate Pad byte */
     if(in_len < MIN_MSG_BLOCKSIZE)
@@ -351,7 +331,7 @@ done:
 
 
 S4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
-                     uint8_t *key, size_t key_len,
+                     uint8_t *key,
                      const uint8_t *iv,
                      const uint8_t *in, size_t in_len,
                      uint8_t **outData, size_t *outSize)
@@ -364,25 +344,7 @@ S4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
     size_t buffLen = in_len;
     uint8_t  bytes2Pad = 0;
     
-    /* check Key length and algorithm */
-    switch(algorithm)
-    {
-        case kCipher_Algorithm_AES128:
-            ValidateParam (key_len == 16); break;
-            
-        case kCipher_Algorithm_AES192:
-            ValidateParam (key_len == 24); break;
-            
-        case kCipher_Algorithm_AES256:
-            ValidateParam (key_len == 32); break;
-            
-        case kCipher_Algorithm_2FISH256:
-            ValidateParam (key_len == 32); break;
-            
-        default:
-            RETERR(kS4Err_BadParams);
-    }
-    
+
     buffer = XMALLOC(buffLen);
     
     err = CBC_Init(algorithm, key, iv,  &cbc);CKERR;
