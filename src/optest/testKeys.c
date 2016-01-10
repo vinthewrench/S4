@@ -1419,8 +1419,10 @@ done:
 static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
 {
     S4Err     err = kS4Err_NoErr;
-    S4KeyContextRef pubCtx =  kInvalidS4KeyContextRef;
-    S4KeyContextRef passKeyCtx =  kInvalidS4KeyContextRef;
+    S4KeyContextRef pubCtx      =  kInvalidS4KeyContextRef;
+    S4KeyContextRef pubCtx1     =  kInvalidS4KeyContextRef;
+    S4KeyContextRef passKeyCtx  =  kInvalidS4KeyContextRef;
+    S4KeyContextRef copiedCtx   =  kInvalidS4KeyContextRef;
     
     char* name = NULL;
     char**       keyIDStr = NULL;
@@ -1430,9 +1432,8 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
     
-    S4KeyContextRef  *importCtx = NULL;
+    S4KeyContextRef     *importCtx = NULL;
     S4KeyContextRef     *importPubCtx =  NULL;
-    
     
      size_t      keyCount = 0;
     
@@ -1453,8 +1454,12 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importPubCtx ); CKERR;
     ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
     XFREE(data); data = NULL;
-    
     err = sCompareKeys(pubCtx, importPubCtx[0], true); CKERR;
+   
+    OPTESTLogDebug("\t  Clone Public Key\n");
+    err = S4Key_Copy(importPubCtx[0], &copiedCtx);
+    err = sCompareKeys(importPubCtx[0],copiedCtx, true); CKERR;
+    S4Key_Free(copiedCtx); copiedCtx = kInvalidS4KeyContextRef;
     
     // create a random  unlocking key
     err = RNG_GetBytes(unlockingKey, sizeof(unlockingKey)); CKERR;
@@ -1466,8 +1471,15 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
    
     err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importCtx ); CKERR;
     ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
+ 
+    err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &pubCtx1); CKERR;
+    err = sCompareKeys(pubCtx, pubCtx1, true); CKERR;
+  
+    OPTESTLogDebug("\t  Clone Private\n");
+    err = S4Key_Copy(pubCtx1, &copiedCtx);
+    err = sCompareKeys(pubCtx1,copiedCtx, true); CKERR;
+    S4Key_Free(copiedCtx); copiedCtx = kInvalidS4KeyContextRef;
     
-
 done:
     if(data)
         XFREE(data);
@@ -1481,10 +1493,20 @@ done:
         XFREE(importPubCtx);
         
     }
+    
+    if(S4KeyContextRefIsValid(copiedCtx))
+    {
+        S4Key_Free(copiedCtx);
+    }
 
     if(S4KeyContextRefIsValid(pubCtx))
     {
         S4Key_Free(pubCtx);
+    }
+    
+    if(S4KeyContextRefIsValid(pubCtx1))
+    {
+        S4Key_Free(pubCtx1);
     }
     
     if(S4KeyContextRefIsValid(passKeyCtx))
@@ -1492,7 +1514,7 @@ done:
         S4Key_Free(passKeyCtx);
     }
 
-    OPTESTLogVerbose("\n");
+    OPTESTLogDebug("\n");
     return err;
 }
 
@@ -1501,9 +1523,7 @@ static S4Err  sTestPublicKeys()
 {
     S4Err     err = kS4Err_NoErr;
     
-    
     OPTESTLogInfo("\nTesting Public Key API\n");
-    
     
     err = sRunPublicKeyTest(kCipher_Algorithm_ECC384);  CKERR;
     err = sRunPublicKeyTest(kCipher_Algorithm_ECC414);  CKERR;
@@ -1523,15 +1543,12 @@ S4Err  TestKeys()
     
     asprintf(&exported_keys,"[" );
 
-    err = sTestPublicKeys(); CKERR;
-    goto done;
-    
-    
     err = sTestSymmetricKeys(); CKERR;
     err = sTestTBCKeys(); CKERR;
     err = sTestECC_TBCKeys(); CKERR;
     err = sTestECC_SymmetricKeys(); CKERR;
     err = sTest_SharedSymTBCKeys(); CKERR;
+    err = sTestPublicKeys(); CKERR;
     
 
     OPTESTLogInfo("\nTesting decoding of exported key array\n");

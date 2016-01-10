@@ -145,11 +145,10 @@ typedef struct S4KeyPublic_Encrypted_
 
 typedef struct S4KeyPublic_
 {
-    Cipher_Algorithm       cipherAlgor;            /*  kCipher_Algorithm_ECC384, kCipher_Algorithm_ECC414 */
-    bool                   isPrivate;
+    Cipher_Algorithm    cipherAlgor;            /*  kCipher_Algorithm_ECC384, kCipher_Algorithm_ECC414 */
+    bool                isPrivate;
     
     uint8_t             keyID[kS4Key_KeyIDBytes];
-    
     uint8_t             keyHash[kS4KeyPublic_Encrypted_HashBytes];
 
     uint8_t             pubKey[256];
@@ -289,7 +288,7 @@ S4Err S4Key_DecryptFromPubKey( S4KeyContextRef      encodedCtx,
 
 S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
                              S4KeyContextRef       passKeyCtx,
-                             S4KeyContextRef       *symCtx);
+                             S4KeyContextRef       *outKeyCtx);
 
 
 #endif /* s4Keys_h */

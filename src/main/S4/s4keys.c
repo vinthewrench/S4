@@ -847,18 +847,24 @@ static S4Err sCalculateECCData(S4KeyContextRef  ctx)
     size_t          len = 0;
     size_t          pubKeyLen = 0;
    
-     if(ECC_isPrivate(ctx->pub.ecc))
+    if(ECC_isPrivate(ctx->pub.ecc))
     {
         ctx->pub.privKey = XMALLOC(kS4KeyPublic_MAX_PrivKeyLen);
         err =  ECC_Export( ctx->pub.ecc, true, ctx->pub.privKey, kS4KeyPublic_MAX_PrivKeyLen, &len);CKERR;
         ctx->pub.privKeyLen  = (uint8_t)(len & 0xff);
+        ctx->pub.isPrivate = 1;
+    }
+    else
+    {
+        ctx->pub.isPrivate = 0;
+        ctx->pub.privKeyLen = 0;
+        ctx->pub.privKey = NULL;
     }
     
     err =  ECC_Export_ANSI_X963( ctx->pub.ecc, ctx->pub.pubKey, sizeof(ctx->pub.pubKey), &pubKeyLen);CKERR;
     ctx->pub.pubKeyLen = pubKeyLen;
     
     err = ECC_PubKeyHash(ctx->pub.ecc, ctx->pub.keyID, kS4Key_KeyIDBytes, NULL);CKERR;
-    
     
 done:
     return err;
@@ -960,6 +966,39 @@ void S4Key_Free(S4KeyContextRef ctx)
     }
 }
 
+
+static S4Err sClonePubKey(S4KeyContext *src, S4KeyContext *dest )
+{
+    S4Err               err = kS4Err_NoErr;
+  
+    uint8_t         keyData[256];
+    size_t          keyDataLen = 0;
+    
+    dest->magic = kS4KeyContextMagic;
+    dest->type = kS4KeyType_PublicKey;
+    dest->pub.cipherAlgor = src->pub.cipherAlgor;
+  
+    err = ECC_Init(&dest->pub.ecc);
+    
+    if(ECC_isPrivate(src->pub.ecc))
+    {
+        err =  ECC_Export(src->pub.ecc, true, keyData, sizeof(keyData), &keyDataLen);CKERR;
+        err = ECC_Import(dest->pub.ecc, keyData, keyDataLen);CKERR;
+    }
+    else
+    {
+        err = ECC_Export_ANSI_X963(src->pub.ecc, keyData, sizeof(keyData), &keyDataLen);CKERR;
+        err = ECC_Import_ANSI_X963(dest->pub.ecc, keyData, keyDataLen);CKERR;
+     }
+    
+    err = sCalculateECCData(dest); CKERR;
+  
+done:
+    
+    ZERO(keyData, sizeof(keyData));
+    return err;
+}
+
 S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut)
 {
     S4Err               err = kS4Err_NoErr;
@@ -970,6 +1009,8 @@ S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut)
     
     
     keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+    ZERO(keyCTX, sizeof(sizeof (S4KeyContext)));
+    
     keyCTX->magic = kS4KeyContextMagic;
     keyCTX->type = ctx->type;
     
@@ -982,6 +1023,7 @@ S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut)
         case kS4KeyType_Tweekable:
             keyCTX->tbc = ctx->tbc;
             break;
+            
 
         case kS4KeyType_PBKDF2:
             keyCTX->pbkdf2 = ctx->pbkdf2;
@@ -997,6 +1039,10 @@ S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut)
 
         case kS4KeyType_Share:
             keyCTX->share = ctx->share;
+            break;
+   
+        case kS4KeyType_PublicKey:
+            err = sClonePubKey(ctx, keyCTX); CKERR;
             break;
             
         default:
@@ -1325,7 +1371,8 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
     
  
     uint8_t             keyHash[kS4KeyPBKDF2_HashBytes] = {0};
-
+    uint8_t             keyID[kS4Key_KeyIDBytes] = {0};
+    
     size_t              keyBytes = 0;
     void*               keyToEncrypt = NULL;
  
@@ -1485,7 +1532,6 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
             
         case kS4KeyType_PublicKey:
             {
-                uint8_t             keyID[kS4Key_KeyIDBytes];
                 size_t              keyIDLen = 0;
                 
                 err = ECC_PubKeyHash(ctx->pub.ecc, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
@@ -1507,12 +1553,12 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
     {
         uint8_t *CT = NULL;
         size_t CTLen = 0;
-        uint8_t iv[128] = {0};
         
         stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_PrivKey, strlen(kS4KeyProp_PrivKey)) ; CKYJAL;
         tempLen = sizeof(tempBuf);
 
-        err =  CBC_EncryptPAD (encyptAlgor,unlockingKey, iv, keyToEncrypt, keyBytes, &CT, &CTLen); CKERR;
+    // the private key is CBC encrypted to the unlocking key, we pad and use the keyID as the IV.
+        err =  CBC_EncryptPAD (encyptAlgor,unlockingKey, keyID, keyToEncrypt, keyBytes, &CT, &CTLen); CKERR;
         base64_encode(CT, CTLen, tempBuf, &tempLen);
         XFREE(CT);
     }
@@ -1864,6 +1910,7 @@ enum S4Key_JSON_Type_
     S4Key_JSON_Type_SHAREINDEX,
     
     S4Key_JSON_Type_PUBKEY,
+    S4Key_JSON_Type_PRIVKEY,
     
     S4Key_JSON_Type_PROPERTY,
     
@@ -2410,13 +2457,29 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         size_t dataLen = sizeof(buf);
         
         if( (base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
-          && (dataLen <+ sizeof(buf)) )
+          && (dataLen <= sizeof(buf)) )
         {
               COPY(buf, keyP->pub.pubKey, dataLen);
             keyP->pub.pubKeyLen = dataLen;
             keyP->pub.isPrivate = 0;
                valid = 1;
         }
+    }
+    else if(jctx->jType[jctx->level] == S4Key_JSON_Type_PRIVKEY)
+    {
+        uint8_t     buf[256];
+        size_t dataLen = sizeof(buf);
+        
+        if( (base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
+           && (dataLen <= sizeof(buf)) )
+        {
+            if(keyP->type == kS4KeyType_SymmetricEncrypted)
+            {
+                COPY(buf, keyP->symKeyEncoded.encrypted, dataLen);
+                keyP->symKeyEncoded.encryptedLen = dataLen;
+                valid = 1;
+            }
+         }
     }
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_KEYID)
     {
@@ -2711,6 +2774,11 @@ static int sParse_map_key(void * ctx, const unsigned char * stringVal, size_t st
     else  if(CMP2(stringVal, stringLen,kS4KeyProp_PubKey, strlen(kS4KeyProp_PubKey)))
     {
         jctx->jType[jctx->level] = S4Key_JSON_Type_PUBKEY;
+        valid = 1;
+    }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_PrivKey, strlen(kS4KeyProp_PrivKey)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_PRIVKEY;
         valid = 1;
     }
     else
@@ -3147,7 +3215,7 @@ done:
 
 S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
                               S4KeyContextRef       passKeyCtx,
-                              S4KeyContextRef       *symCtx)
+                              S4KeyContextRef       *outKeyCtx)
 {
     S4Err               err = kS4Err_NoErr;
     S4KeyContext*       keyCTX = NULL;
@@ -3158,13 +3226,15 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
     uint8_t             decrypted_key[128] = {0};
     size_t              decryptedLen = 0;
     
-    uint8_t*            unlockingKey    = NULL;
+    uint8_t*            decrypted_privKey = NULL;
+    size_t              decrypted_privKeyLen = 0;
     
+    uint8_t*            unlockingKey    = NULL;
     uint8_t             keyHash[kS4KeyPublic_Encrypted_HashBytes] = {0};
     
     validateS4KeyContext(encodedCtx);
     validateS4KeyContext(passKeyCtx);
-    ValidateParam(symCtx);
+    ValidateParam(outKeyCtx);
     
     ValidateParam(encodedCtx->type == kS4KeyType_SymmetricEncrypted);
     
@@ -3179,6 +3249,11 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
     else  if(encodedCtx->symKeyEncoded.keyAlgorithmType == kS4KeyType_Tweekable)
     {
         decryptedLen = sGetKeyLength(kS4KeyType_Tweekable, encodedCtx->symKeyEncoded.cipherAlgor);
+        keyToDecrypt = encodedCtx->symKeyEncoded.encrypted;
+        encyptAlgor = encodedCtx->symKeyEncoded.encryptingAlgor;
+    }
+    else  if(encodedCtx->symKeyEncoded.keyAlgorithmType == kS4KeyType_PublicKey)
+    {
         keyToDecrypt = encodedCtx->symKeyEncoded.encrypted;
         encyptAlgor = encodedCtx->symKeyEncoded.encryptingAlgor;
     }
@@ -3210,7 +3285,11 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
         err =  ECB_Decrypt(encyptAlgor, unlockingKey, keyToDecrypt, decryptedLen, decrypted_key); CKERR;
         
         COPY(decrypted_key, keyCTX->sym.symKey, decryptedLen);
-        
+      
+        // check integrity of decypted value against the MAC
+        err = sKEY_HASH(decrypted_key, decryptedLen, keyCTX->type,  keyCTX->sym.symAlgor,
+                        keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
+
     }
     else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Tweekable)
     {
@@ -3221,23 +3300,46 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
         err =  ECB_Decrypt(encyptAlgor, unlockingKey, keyToDecrypt, decryptedLen, decrypted_key); CKERR;
         
         Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, decryptedLen >>2);   /* bytes to words */
+  
+        // check integrity of decypted value against the MAC
+        err = sKEY_HASH(decrypted_key, decryptedLen, keyCTX->type,  keyCTX->sym.symAlgor,
+                        keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
     }
-    
-    // check integrity of decypted value against the MAC
-    err = sKEY_HASH(decrypted_key, decryptedLen, keyCTX->type,  keyCTX->sym.symAlgor,
-                    keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
+    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_PublicKey)
+    {
+        
+        keyCTX->type  = kS4KeyType_PublicKey;
+        keyCTX->pub.cipherAlgor = encodedCtx->symKeyEncoded.cipherAlgor;
+        
+        // the private key is CBC encrypted to the unlocking key, we pad and use the keyID as the IV.
+        err =  CBC_DecryptPAD (encyptAlgor,unlockingKey,
+                               encodedCtx->symKeyEncoded.keyID,
+                               encodedCtx->symKeyEncoded.encrypted, encodedCtx->symKeyEncoded.encryptedLen,
+                               &decrypted_privKey, &decrypted_privKeyLen); CKERR;
+      
+        err = ECC_Init(&keyCTX->pub.ecc);
+        err = ECC_Import(keyCTX->pub.ecc, decrypted_privKey, decrypted_privKeyLen); CKERR;
+        err = sCalculateECCData(keyCTX);
+        
+        // check integrity of decypted value against the MAC
+        err = sKEY_HASH(decrypted_privKey, decrypted_privKeyLen, keyCTX->type,  keyCTX->pub.cipherAlgor,
+                        keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
+
+    }
     
     ASSERTERR( CMP(keyHash, encodedCtx->symKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
               kS4Err_BadIntegrity)
     
-    
-    
-    *symCtx = keyCTX;
-    
-    
+    *outKeyCtx = keyCTX;
     
 done:
-    
+   
+    if(IsntNull(decrypted_privKey))
+    {
+        ZERO(decrypted_privKey, decrypted_privKeyLen);
+        XFREE(decrypted_privKey);
+    }
+        
     if(IsS4Err(err))
     {
         if(IsntNull(keyCTX))
