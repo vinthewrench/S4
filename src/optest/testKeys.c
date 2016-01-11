@@ -548,6 +548,8 @@ static S4Err sRunSharedECCImportExportKAT(  cipherKATvector *kat)
     S4Err               err = kS4Err_NoErr;
     ECC_ContextRef      eccPub = kInvalidECC_ContextRef;
     ECC_ContextRef      eccPriv = kInvalidECC_ContextRef;
+    S4KeyContextRef     pubCtx =  kInvalidS4KeyContextRef;
+    S4KeyContextRef     privCtx=  kInvalidS4KeyContextRef;
     
     
     SHARES_ContextRef   ctx  			= kInvalidSHARES_ContextRef;
@@ -619,10 +621,14 @@ static S4Err sRunSharedECCImportExportKAT(  cipherKATvector *kat)
     err = ECC_Init(&eccPub);
     err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
     err = ECC_PubKeyHash(eccPub, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
+    err = S4Key_Import_ECC_Context(eccPub, &pubCtx); CKERR;
+    eccPub = kInvalidECC_ContextRef;
     
     err = ECC_Init(&eccPriv);
     err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
-    
+    err = S4Key_Import_ECC_Context(eccPriv, &privCtx); CKERR;
+    eccPriv = kInvalidECC_ContextRef;
+   
     OPTESTLogVerbose("\t%-14s ", name);
     OPTESTLogVerbose("%6s", "Split");
     
@@ -638,7 +644,7 @@ static S4Err sRunSharedECCImportExportKAT(  cipherKATvector *kat)
         
         err = SHARES_GetShareInfo(ctx, i, &shares[i], &shareLen); CKERR;
         err = S4Key_NewShare( shares[i], &shareCtx[i]); CKERR;
-        err = S4Key_SerializeToPubKey(shareCtx[i], eccPub, &shareData[i], NULL); CKERR;
+        err = S4Key_SerializeToS4Key(shareCtx[i], pubCtx, &shareData[i], NULL); CKERR;
         
         OPTESTLogDebug("\n------\n%s",shareData[i]);
         
@@ -663,8 +669,8 @@ static S4Err sRunSharedECCImportExportKAT(  cipherKATvector *kat)
         err = compareResults( keyID, keyID1, keyIDLen,
                              kResultFormat_Byte, "Pub KeyID"); CKERR;
         
-        err = S4Key_DecryptFromPubKey(encodedCtx[0], eccPriv, &decodedCtx); CKERR;
-        
+        err = S4Key_DecryptFromS4Key(encodedCtx[0], privCtx, &decodedCtx); CKERR;
+
         err = sCompareKeys(decodedCtx, shareCtx[i], false); CKERR;
         
         recoveredShares[i] = XMALLOC(sizeof(SHARES_ShareInfo)); CKNULL(recoveredShares[i]);
@@ -704,7 +710,15 @@ static S4Err sRunSharedECCImportExportKAT(  cipherKATvector *kat)
         ECC_Free(eccPriv);
         eccPriv = kInvalidECC_ContextRef;
     }
-    
+    if(pubCtx)
+    {
+        S4Key_Free(pubCtx);
+    }
+    if(privCtx)
+    {
+        S4Key_Free(privCtx);
+    }
+
     
     for(i = 0; i < kNumShares; i++)
     {
@@ -1046,7 +1060,9 @@ static S4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     S4Err     err = kS4Err_NoErr;
     ECC_ContextRef eccPub = kInvalidECC_ContextRef;
     ECC_ContextRef eccPriv = kInvalidECC_ContextRef;
-    
+    S4KeyContextRef pubCtx =  kInvalidS4KeyContextRef;
+    S4KeyContextRef privCtx=  kInvalidS4KeyContextRef;
+  
     S4KeyContextRef keyCtx =  kInvalidS4KeyContextRef;
     S4KeyContextRef keyCtx1=  kInvalidS4KeyContextRef;
     S4KeyContextRef *encodedCtx =  NULL;
@@ -1108,16 +1124,20 @@ static S4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     err = ECC_Init(&eccPub);
     err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
     err = ECC_PubKeyHash(eccPub, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
+    err = S4Key_Import_ECC_Context(eccPub, &pubCtx); CKERR;
+    eccPub = kInvalidECC_ContextRef;
 
     err = ECC_Init(&eccPriv);
     err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
+    err = S4Key_Import_ECC_Context(eccPriv, &privCtx); CKERR;
+    eccPriv = kInvalidECC_ContextRef;
 
     OPTESTLogVerbose("\t%-14s ", name);
     OPTESTLogVerbose("%8s", "Export");
 
     err = S4Key_NewSymmetric(kat->algor, kat->key, &keyCtx  ); CKERR;
     
-    err = S4Key_SerializeToPubKey(keyCtx, eccPub, &data, &dataLen); CKERR;
+    err = S4Key_SerializeToS4Key(keyCtx, pubCtx, &data, &dataLen); CKERR;
     
     OPTESTLogDebug("\n------\n%s------\n",data);
     
@@ -1130,8 +1150,8 @@ static S4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
                          kResultFormat_Byte, "Pub KeyID"); CKERR;
     
     OPTESTLogVerbose("%8s", "Verify");
-    err = S4Key_DecryptFromPubKey(encodedCtx[0], eccPriv, &keyCtx1); CKERR;
-    
+    err = S4Key_DecryptFromS4Key(encodedCtx[0], privCtx, &keyCtx1); CKERR;
+   
     err = sCompareKeys(keyCtx, keyCtx1, false ); CKERR;
 
     if(data)
@@ -1154,6 +1174,15 @@ done:
         eccPriv = kInvalidECC_ContextRef;
     }
     
+    if(pubCtx)
+    {
+        S4Key_Free(pubCtx);
+    }
+    if(privCtx)
+    {
+        S4Key_Free(privCtx);
+    }
+
     if(keyCtx)
     {
         S4Key_Free(keyCtx);
@@ -1232,6 +1261,8 @@ static S4Err sRunTBC_ECCImportExportKAT(  cipherKATvector *kat)
     S4Err     err = kS4Err_NoErr;
     ECC_ContextRef eccPub = kInvalidECC_ContextRef;
     ECC_ContextRef eccPriv = kInvalidECC_ContextRef;
+    S4KeyContextRef pubCtx =  kInvalidS4KeyContextRef;
+    S4KeyContextRef privCtx=  kInvalidS4KeyContextRef;
     
     S4KeyContextRef keyCtx =  kInvalidS4KeyContextRef;
     S4KeyContextRef keyCtx1=  kInvalidS4KeyContextRef;
@@ -1295,16 +1326,20 @@ static S4Err sRunTBC_ECCImportExportKAT(  cipherKATvector *kat)
     err = ECC_Init(&eccPub);
     err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
     err = ECC_PubKeyHash(eccPub, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
-
+    err = S4Key_Import_ECC_Context(eccPub, &pubCtx); CKERR;
+    eccPub = kInvalidECC_ContextRef;
+    
     err = ECC_Init(&eccPriv);
     err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
+    err = S4Key_Import_ECC_Context(eccPriv, &privCtx); CKERR;
+    eccPriv = kInvalidECC_ContextRef;
     
     OPTESTLogVerbose("\t%-14s ", name);
     OPTESTLogVerbose("%8s", "Export");
     
     err = S4Key_NewTBC(kat->algor, kat->key, &keyCtx  ); CKERR;
-   
-    err = S4Key_SerializeToPubKey(keyCtx, eccPub, &data, &dataLen); CKERR;
+    
+    err = S4Key_SerializeToS4Key(keyCtx, pubCtx, &data, &dataLen); CKERR;
     
     OPTESTLogDebug("\n------\n%s------\n",data);
     
@@ -1317,8 +1352,8 @@ static S4Err sRunTBC_ECCImportExportKAT(  cipherKATvector *kat)
                          kResultFormat_Byte, "Pub KeyID"); CKERR;
     
     OPTESTLogVerbose("%8s", "Verify");
-    err = S4Key_DecryptFromPubKey(encodedCtx[0], eccPriv, &keyCtx1); CKERR;
-    
+    err = S4Key_DecryptFromS4Key(encodedCtx[0], privCtx, &keyCtx1); CKERR;
+
     err = sCompareKeys(keyCtx, keyCtx1, false); CKERR;
 
     if(data)
@@ -1340,7 +1375,17 @@ done:
         ECC_Free(eccPriv);
         eccPriv = kInvalidECC_ContextRef;
     }
+   
     
+    if(pubCtx)
+    {
+        S4Key_Free(pubCtx);
+    }
+    if(privCtx)
+    {
+        S4Key_Free(privCtx);
+    }
+
     if(keyCtx)
     {
         S4Key_Free(keyCtx);
@@ -1423,10 +1468,15 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     S4KeyContextRef pubCtx1     =  kInvalidS4KeyContextRef;
     S4KeyContextRef passKeyCtx  =  kInvalidS4KeyContextRef;
     S4KeyContextRef copiedCtx   =  kInvalidS4KeyContextRef;
+ 
+    S4KeyContextRef symKeyCtx   =  kInvalidS4KeyContextRef;
     
+    ECC_ContextRef  ecc         = kInvalidECC_ContextRef;
     char* name = NULL;
     char**       keyIDStr = NULL;
-   
+  
+    uint8_t             keyID[kS4Key_KeyIDBytes]  = {0};
+    uint8_t             keyID1[kS4Key_KeyIDBytes] = {0};
     
     uint8_t     unlockingKey[32];
     uint8_t     *data = NULL;
@@ -1434,6 +1484,15 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     
     S4KeyContextRef     *importCtx = NULL;
     S4KeyContextRef     *importPubCtx =  NULL;
+   
+    
+    uint8_t K3[] = {
+        0x00, 0x01, 0x02, 0x03, 0x05, 0x06, 0x07, 0x08,
+        0x0A, 0x0B, 0x0C, 0x0D, 0x0F, 0x10, 0x11, 0x12,
+        0x14, 0x15, 0x16, 0x17, 0x19, 0x1A, 0x1B, 0x1C,
+        0x1E, 0x1F, 0x20, 0x21, 0x23, 0x24, 0x25, 0x26
+    };
+    
     
      size_t      keyCount = 0;
     
@@ -1455,7 +1514,22 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
     XFREE(data); data = NULL;
     err = sCompareKeys(pubCtx, importPubCtx[0], true); CKERR;
-   
+    
+    // check the key itself
+    err = S4Key_Clone_ECC_Context(importPubCtx[0], &ecc);
+    ASSERTERR(!ECC_isPrivate(ecc),  kS4Err_SelfTestFailed);
+    err = ECC_PubKeyHash(ecc, keyID, kS4Key_KeyIDBytes, NULL);CKERR;
+    err = S4Key_GetProperty(importPubCtx[0], kS4KeyProp_KeyID, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
+    err = compareResults( keyID, keyID1, kS4Key_KeyIDBytes, kResultFormat_Byte, "keyID"); CKERR;
+    ECC_Free(ecc); ecc  = kInvalidECC_ContextRef;
+    
+    OPTESTLogDebug("\t  Encrypt to Public Key\n");
+    // encrypt to public key
+    err = S4Key_NewSymmetric(kCipher_Algorithm_2FISH256, K3, &symKeyCtx  ); CKERR;
+    err = S4Key_SerializeToS4Key(symKeyCtx, importPubCtx[0], &data, &dataLen); CKERR;
+    OPTESTLogDebug("------\n%s------\n",data);
+    XFREE(data); data = NULL;
+    
     OPTESTLogDebug("\t  Clone Public Key\n");
     err = S4Key_Copy(importPubCtx[0], &copiedCtx);
     err = sCompareKeys(importPubCtx[0],copiedCtx, true); CKERR;
@@ -1474,16 +1548,28 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
  
     err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &pubCtx1); CKERR;
     err = sCompareKeys(pubCtx, pubCtx1, true); CKERR;
-  
+    
+    // check the ecc key itself
+    err = S4Key_Clone_ECC_Context(pubCtx1, &ecc);
+    ASSERTERR(ECC_isPrivate(ecc),  kS4Err_SelfTestFailed);
+    err = ECC_PubKeyHash(ecc, keyID, kS4Key_KeyIDBytes, NULL);CKERR;
+    err = S4Key_GetProperty(pubCtx1, kS4KeyProp_KeyID, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
+    err = compareResults( keyID, keyID1, kS4Key_KeyIDBytes, kResultFormat_Byte, "keyID"); CKERR;
+    ECC_Free(ecc); ecc  = kInvalidECC_ContextRef;
+   
     OPTESTLogDebug("\t  Clone Private\n");
     err = S4Key_Copy(pubCtx1, &copiedCtx);
     err = sCompareKeys(pubCtx1,copiedCtx, true); CKERR;
     S4Key_Free(copiedCtx); copiedCtx = kInvalidS4KeyContextRef;
     
+    
 done:
     if(data)
         XFREE(data);
-
+    
+    if(ecc)
+    ECC_Free(ecc);
+  
     if(importPubCtx)
     {
         if(S4KeyContextRefIsValid(importPubCtx[0]))
@@ -1491,7 +1577,6 @@ done:
             S4Key_Free(importPubCtx[0]);
         }
         XFREE(importPubCtx);
-        
     }
     
     if(S4KeyContextRefIsValid(copiedCtx))
@@ -1513,7 +1598,8 @@ done:
     {
         S4Key_Free(passKeyCtx);
     }
-
+   
+   
     OPTESTLogDebug("\n");
     return err;
 }

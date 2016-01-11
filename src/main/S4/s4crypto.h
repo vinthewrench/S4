@@ -312,6 +312,8 @@ S4Err ECC_Import_Info( void *in, size_t inlen,
 
 S4Err ECC_CurveName( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen);
 
+S4Err  ECC_CipherAlgorithm( ECC_ContextRef  ctx, Cipher_Algorithm* algorith);
+
 S4Err ECC_Import(ECC_ContextRef  ctx,   void *in, size_t inlen );
 
 S4Err ECC_Import_ANSI_X963(ECC_ContextRef  ctx,   void *in, size_t inlen );

@@ -96,6 +96,7 @@ done:
     
 }
 
+
 bool ECC_isPrivate(ECC_ContextRef  ctx )
 {
     bool isPrivate = false;
@@ -350,6 +351,29 @@ S4Err ECC_KeySize( ECC_ContextRef  ctx, size_t * bits)
     
     return (err);
 }
+
+S4Err  ECC_CipherAlgorithm( ECC_ContextRef  ctx, Cipher_Algorithm* algOut)
+{
+    S4Err  err = kS4Err_NoErr;
+    
+    validateECCContext(ctx);
+    ValidateParam(ctx->isInited);
+  
+    Cipher_Algorithm algorith =  kCipher_Algorithm_Invalid;
+      char* curveName =  ctx->key.dp->name;
+    
+    if( strcmp(curveName, "ECC-384" ) == 0)
+        algorith = kCipher_Algorithm_ECC384;
+    
+    else if( strcmp(curveName, "Curve41417" ) == 0)
+        algorith = kCipher_Algorithm_ECC414;
+    
+    if(algOut)
+        *algOut = algorith;
+    
+    return (err);
+}
+
 
 S4Err ECC_CurveName( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen)
 {

@@ -218,7 +218,11 @@ S4Err S4Key_NewShare(    SHARES_ShareInfo   *share,
 S4Err S4Key_NewPublicKey(Cipher_Algorithm       algorithm,
                          S4KeyContextRef    *ctx);
 
+S4Err S4Key_Import_ECC_Context(ECC_ContextRef ecc, S4KeyContextRef*pubKeyCtx);
+
 void S4Key_Free(S4KeyContextRef ctx);
+
+S4Err S4Key_Clone_ECC_Context(S4KeyContextRef pubKeyCtx,  ECC_ContextRef *ecc);
 
 
 S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut);
@@ -236,19 +240,16 @@ S4Err SCKeyGetAllocatedProperty( S4KeyContextRef ctx,
                                 S4KeyPropertyType *outPropType, void **outData, size_t *datSize);
 
 
+/*
+ using S4Key_SerializeToS4Key with public passkey is  limited to TBC keys <= 512 bits
+   since ECC is limited to SHA-512
+ */
+
 S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
                              S4KeyContextRef  passKeyCtx,
                              uint8_t          **outData,
                              size_t           *outSize);
 
-/*
- S4Key_SerializeToPubKey is limited to TBC keys <= 512 bits since ECC is limited to SHA-512
- */
-
-S4Err S4Key_SerializeToPubKey(S4KeyContextRef       ctx,
-                                  ECC_ContextRef    ecc,
-                                  uint8_t          **outData,
-                                  size_t           *outSize);
 
 S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
                                   const uint8_t    *passphrase,
@@ -281,10 +282,6 @@ S4Err S4Key_DecryptFromPassPhrase(   S4KeyContextRef  passCtx,
                                  const uint8_t     *passphrase,
                                  size_t             passphraseLen,
                                  S4KeyContextRef       *symCtx);
-
-S4Err S4Key_DecryptFromPubKey( S4KeyContextRef      encodedCtx,
-                                ECC_ContextRef      eccPriv,
-                                S4KeyContextRef     *symCtx);
 
 S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
                              S4KeyContextRef       passKeyCtx,

@@ -272,6 +272,121 @@ done:
 }
 
 
+int sGetKeyLength(S4KeyType keyType, int32_t algorithm)
+{
+    int          keylen = 0;
+    
+    switch(keyType)
+    {
+        case kS4KeyType_Symmetric:
+            
+            switch(algorithm)
+        {
+            case kCipher_Algorithm_AES128:
+                keylen = 16;
+                break;
+                
+            case kCipher_Algorithm_AES192:
+                keylen = 24;
+                break;
+                
+            case kCipher_Algorithm_AES256:
+                keylen = 32;
+                break;
+                
+            case kCipher_Algorithm_2FISH256:
+                keylen = 32;
+                break;
+                
+            default:;
+        }
+            
+            break;
+            
+        case kS4KeyType_Tweekable:
+            switch(algorithm)
+        {
+            case kCipher_Algorithm_3FISH256:
+                keylen = 32;
+                break;
+                
+            case kCipher_Algorithm_3FISH512:
+                keylen = 64;
+                break;
+                
+            case kCipher_Algorithm_3FISH1024:
+                keylen = 128;
+                break;
+                
+            default:;
+        }
+            break;
+            
+        default:;
+    }
+    
+    
+    return keylen;
+    
+}
+ 
+static yajl_gen_status sGenPropStrings(S4KeyContextRef ctx, yajl_gen g)
+
+{
+    static const char *kRfc339Format = "%Y-%m-%dT%H:%M:%SZ";
+    
+    
+    S4Err           err = kS4Err_NoErr;
+    yajl_gen_status     stat = yajl_gen_status_ok;
+    
+    S4KeyProperty *prop = ctx->propList;
+    while(prop)
+    {
+        stat = yajl_gen_string(g, prop->prop, strlen((char *)(prop->prop))) ; CKYJAL;
+        switch(prop->type)
+        {
+            case S4KeyPropertyType_UTF8String:
+                stat = yajl_gen_string(g, prop->value, prop->valueLen) ; CKYJAL;
+                
+                break;
+                
+            case S4KeyPropertyType_Binary:
+            {
+                size_t propLen =  prop->valueLen*4;
+                uint8_t     *propBuf =  XMALLOC(propLen);
+                
+                base64_encode(prop->value, prop->valueLen, propBuf, &propLen);
+                stat = yajl_gen_string(g, propBuf, (size_t)propLen) ; CKYJAL;
+                XFREE(propBuf);
+            }
+                break;
+                
+            case S4KeyPropertyType_Time:
+            {
+                uint8_t     tempBuf[32];
+                size_t      tempLen;
+                time_t      gTime;
+                struct      tm *nowtm;
+                
+                COPY(prop->value, &gTime, sizeof(gTime));
+                nowtm = gmtime(&gTime);
+                tempLen = strftime((char *)tempBuf, sizeof(tempBuf), kRfc339Format, nowtm);
+                stat = yajl_gen_string(g, tempBuf, tempLen) ; CKYJAL;
+            }
+                break;
+                
+            default:
+                yajl_gen_string(g, (uint8_t *)"NULL", 4) ;
+                break;
+        }
+        
+        prop = prop->next;
+    }
+    
+done:
+    return err;
+}
+
 
 #ifdef __clang__
 #pragma mark - Key property management.
@@ -686,6 +801,347 @@ S4Err SCKeyGetAllocatedProperty( S4KeyContextRef ctx,
 
 
 #ifdef __clang__
+#pragma mark - Public Key wrapper.
+#endif
+
+S4Err S4Key_Clone_ECC_Context(S4KeyContextRef pubKeyCtx,  ECC_ContextRef *eccOut)
+{
+    S4Err           err = kS4Err_NoErr;
+    ECC_ContextRef  ecc = kInvalidECC_ContextRef;
+    uint8_t         keyData[256];
+    size_t          keyDataLen = 0;
+    
+    validateS4KeyContext(pubKeyCtx);
+    ValidateParam(pubKeyCtx->type == kS4KeyType_PublicKey);
+    ValidateParam(pubKeyCtx->pub.cipherAlgor == kCipher_Algorithm_ECC384
+                  ||pubKeyCtx->pub.cipherAlgor == kCipher_Algorithm_ECC414 )
+    ValidateParam(eccOut);
+    
+    err = ECC_Init(&ecc);
+    
+    if(ECC_isPrivate(pubKeyCtx->pub.ecc))
+    {
+        err =  ECC_Export(pubKeyCtx->pub.ecc, true, keyData, sizeof(keyData), &keyDataLen);CKERR;
+        err = ECC_Import(ecc, keyData, keyDataLen);CKERR;
+    }
+    else
+    {
+        err = ECC_Export_ANSI_X963(pubKeyCtx->pub.ecc, keyData, sizeof(keyData), &keyDataLen);CKERR;
+        err = ECC_Import_ANSI_X963(ecc, keyData, keyDataLen);CKERR;
+    }
+    
+    if(eccOut) *eccOut = ecc;
+    
+done:
+    
+    if(IsS4Err(err))
+    {
+        if(ECC_ContextRefIsValid(ecc))
+        {
+            ECC_Free(ecc);
+        }
+    }
+    
+    ZERO(keyData, sizeof(keyData));
+    
+    return err;
+    
+};
+
+
+
+static S4Err sDecryptFromPubKey( S4KeyContextRef      encodedCtx,
+                                      ECC_ContextRef    eccPriv,
+                                      S4KeyContextRef       *symCtx)
+{
+    S4Err           err = kS4Err_NoErr;
+    S4KeyContext*   keyCTX = NULL;
+    
+    int                 encyptAlgor = kCipher_Algorithm_Invalid;
+    size_t              keyBytes = 0;
+    
+    uint8_t             decrypted_key[128] = {0};
+    size_t              decryptedLen = 0;
+    
+    uint8_t             keyHash[kS4KeyPublic_Encrypted_HashBytes] = {0};
+    
+    validateS4KeyContext(encodedCtx);
+    validateECCContext(eccPriv);
+    ValidateParam(symCtx);
+    
+    ValidateParam(encodedCtx->type == kS4KeyType_PublicEncrypted);
+    
+    ValidateParam (ECC_isPrivate(eccPriv));
+    
+    if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Symmetric)
+    {
+        keyBytes = sGetKeyLength(kS4KeyType_Symmetric, encodedCtx->publicKeyEncoded.cipherAlgor);
+        encyptAlgor = encodedCtx->publicKeyEncoded.cipherAlgor;
+        
+    }
+    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Tweekable)
+    {
+        keyBytes = sGetKeyLength(kS4KeyType_Tweekable, encodedCtx->publicKeyEncoded.cipherAlgor);
+        encyptAlgor = encodedCtx->publicKeyEncoded.cipherAlgor;
+    }
+    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Share)
+    {
+        encyptAlgor = kCipher_Algorithm_SharedKey;
+    }
+    
+    
+    keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+    ZERO(keyCTX, sizeof(S4KeyContext));
+    
+    keyCTX->magic = kS4KeyContextMagic;
+    
+    if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Symmetric)
+    {
+        keyCTX->type  = kS4KeyType_Symmetric;
+        keyCTX->sym.symAlgor = encodedCtx->publicKeyEncoded.cipherAlgor;
+        keyCTX->sym.keylen = keyBytes;
+        
+        err = ECC_Decrypt(eccPriv,
+                          encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
+                          decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
+        
+        ASSERTERR(decryptedLen == keyBytes, kS4Err_CorruptData );
+        
+        COPY(decrypted_key, keyCTX->sym.symKey, decryptedLen);
+        
+    }
+    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Tweekable)
+    {
+        keyCTX->type  = kS4KeyType_Tweekable;
+        keyCTX->tbc.tbcAlgor = encodedCtx->publicKeyEncoded.cipherAlgor;
+        keyCTX->tbc.keybits = keyBytes << 3;
+        
+        err = ECC_Decrypt(eccPriv,
+                          encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
+                          decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
+        
+        ASSERTERR(decryptedLen == keyBytes , kS4Err_CorruptData );
+        
+        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
+    }
+    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Share)
+    {
+        keyCTX->type  = kS4KeyType_Share;
+        keyCTX->share.threshold = encodedCtx->publicKeyEncoded.threshold;
+        keyCTX->share.xCoordinate = encodedCtx->publicKeyEncoded.xCoordinate;
+        COPY(encodedCtx->publicKeyEncoded.shareHash, keyCTX->share.shareHash,  kS4ShareInfo_HashBytes);
+        
+        err = ECC_Decrypt(eccPriv,
+                          encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
+                          decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
+        
+        // is the Share to big?
+        ASSERTERR(decryptedLen <= 64 , kS4Err_CorruptData );
+        
+        // we dont have a way to determine the expected length of a split key.
+        keyBytes =  decryptedLen;
+        keyCTX->share.shareSecretLen = decryptedLen;
+        COPY(decrypted_key, keyCTX->share.shareSecret, decryptedLen);
+    }
+    
+    // check integrity of decypted value against the MAC
+    err = sKEY_HASH(decrypted_key, keyBytes, keyCTX->type,  encyptAlgor,
+                    keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
+    
+    ASSERTERR( CMP(keyHash, encodedCtx->publicKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
+              kS4Err_BadIntegrity)
+    
+    
+    
+    *symCtx = keyCTX;
+    
+    
+    
+done:
+    
+    if(IsS4Err(err))
+    {
+        if(IsntNull(keyCTX))
+        {
+            XFREE(keyCTX);
+        }
+    }
+    
+    ZERO(decrypted_key, sizeof(decrypted_key));
+    
+    return err;
+    
+}
+
+
+static S4Err sSerializeToPubKey(S4KeyContextRef   ctx,
+                              ECC_ContextRef    eccPub,
+                              uint8_t          **outData,
+                              size_t           *outSize)
+{
+    S4Err           err = kS4Err_NoErr;
+    yajl_gen_status     stat = yajl_gen_status_ok;
+    
+    uint8_t             *yajlBuf = NULL;
+    size_t              yajlLen = 0;
+    yajl_gen            g = NULL;
+    
+    uint8_t             tempBuf[1024];
+    size_t              tempLen;
+    uint8_t             *outBuf = NULL;
+    
+    char                curveName[32]  = {0};
+    
+    uint8_t             keyID[kS4Key_KeyIDBytes];
+    size_t              keyIDLen = 0;
+    
+    uint8_t             keyHash[kS4KeyPublic_Encrypted_HashBytes];
+    int                 keyAlgorithm = 0;
+    
+    uint8_t            encrypted[256] = {0};       // typical 199 bytes
+    size_t              encryptedLen = 0;
+    
+    size_t              keyBytes = 0;
+    void*               keyToEncrypt = NULL;
+    
+    char*              keySuiteString = "Invalid";
+    
+    yajl_alloc_funcs allocFuncs = {
+        yajlMalloc,
+        yajlRealloc,
+        yajlFree,
+        (void *) NULL
+    };
+    
+    
+    validateS4KeyContext(ctx);
+    validateECCContext(eccPub);
+    ValidateParam(outData);
+    
+    switch (ctx->type)
+    {
+        case kS4KeyType_Symmetric:
+            keyBytes = ctx->sym.keylen ;
+            keyToEncrypt = ctx->sym.symKey;
+            keyAlgorithm = ctx->sym.symAlgor;
+            keySuiteString = cipher_algor_table(ctx->sym.symAlgor);
+            break;
+            
+        case kS4KeyType_Tweekable:
+            keyBytes = ctx->tbc.keybits >> 3 ;
+            keyToEncrypt = ctx->tbc.key;
+            keyAlgorithm = ctx->tbc.tbcAlgor;
+            keySuiteString = cipher_algor_table(ctx->tbc.tbcAlgor);
+            break;
+            
+        case kS4KeyType_Share:
+            keyBytes = (int)ctx->share.shareSecretLen ;
+            keyToEncrypt = ctx->share.shareSecret;
+            keyAlgorithm = kCipher_Algorithm_SharedKey;
+            keySuiteString = cipher_algor_table(kCipher_Algorithm_SharedKey);
+            break;
+            
+        default:
+            break;
+    }
+    
+    /* limit ECC encryption to <= 512 bits of data */
+    //    ValidateParam(keyBytes <= (512 >>3));
+    
+    err = sKEY_HASH(keyToEncrypt, keyBytes, ctx->type,
+                    keyAlgorithm, keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
+    
+    err = ECC_CurveName(eccPub, curveName, sizeof(curveName), NULL); CKERR;
+    err = ECC_PubKeyHash(eccPub, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
+    
+    err = ECC_Encrypt(eccPub, keyToEncrypt, keyBytes,  encrypted, sizeof(encrypted), &encryptedLen);CKERR;
+    
+    g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
+    
+#if DEBUG
+    yajl_gen_config(g, yajl_gen_beautify, 1);
+#else
+    yajl_gen_config(g, yajl_gen_beautify, 0);
+    
+#endif
+    yajl_gen_config(g, yajl_gen_validate_utf8, 1);
+    stat = yajl_gen_map_open(g);
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SCKeyVersion, strlen(kS4KeyProp_SCKeyVersion)) ; CKYJAL;
+    sprintf((char *)tempBuf, "%d", kS4KeyProtocolVersion);
+    stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Encoding, strlen(kS4KeyProp_Encoding)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)curveName, strlen(curveName)) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_KeyID, strlen(kS4KeyProp_KeyID)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(keyID, keyIDLen, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_KeySuite, strlen(kS4KeyProp_KeySuite)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)keySuiteString, strlen(keySuiteString)) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Mac, strlen(kS4KeyProp_Mac)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(keyHash, kS4KeyPublic_Encrypted_HashBytes, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    
+    switch (ctx->type)
+    {
+        case kS4KeyType_Symmetric:
+        case kS4KeyType_Tweekable:
+            break;
+            
+        case kS4KeyType_Share:
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareIndex, strlen(kS4KeyProp_ShareIndex)) ; CKYJAL;
+            sprintf((char *)tempBuf, "%d", ctx->share.xCoordinate);
+            stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareThreshold, strlen(kS4KeyProp_ShareThreshold)) ; CKYJAL;
+            sprintf((char *)tempBuf, "%d", ctx->share.threshold);
+            stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareHash, strlen(kS4KeyProp_ShareHash)) ; CKYJAL;
+            tempLen = sizeof(tempBuf);
+            base64_encode(ctx->share.shareHash, kS4ShareInfo_HashBytes, tempBuf, &tempLen);
+            stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+            break;
+            
+        default:
+            break;
+    }
+    
+    
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_EncryptedKey, strlen(kS4KeyProp_EncryptedKey)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(encrypted, encryptedLen, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    err = sGenPropStrings(ctx, g); CKERR;
+    
+    stat = yajl_gen_map_close(g); CKYJAL;
+    stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
+    
+    outBuf = XMALLOC(yajlLen+1); CKNULL(outBuf);
+    memcpy(outBuf, yajlBuf, yajlLen);
+    outBuf[yajlLen] = 0;
+    
+    *outData = outBuf;
+    if(outSize)
+        *outSize = yajlLen;
+    
+done:
+    if(IsntNull(g))
+        yajl_gen_free(g);
+    
+    return err;
+    
+}
+
+#ifdef __clang__
 #pragma mark - create Key.
 #endif
 
@@ -871,11 +1327,48 @@ done:
     
 }
 
+
+S4Err S4Key_Import_ECC_Context(ECC_ContextRef ecc, S4KeyContextRef*ctxOut)
+{
+    S4Err err = kS4Err_NoErr;
+    
+    ValidateParam(ECC_ContextRefIsValid(ecc));
+    ValidateParam(ctxOut);
+    
+    S4KeyContext*       keyCTX  = NULL;
+    Cipher_Algorithm    algorithm = kCipher_Algorithm_Invalid;
+    
+    err = ECC_CipherAlgorithm(ecc, &algorithm); CKERR;
+    
+    keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+    keyCTX->magic = kS4KeyContextMagic;
+    keyCTX->type  = kS4KeyType_PublicKey;
+    keyCTX->propList = NULL;
+    keyCTX->pub.ecc = ecc;
+    keyCTX->pub.cipherAlgor = algorithm;
+    err = sCalculateECCData(keyCTX); CKERR;
+   
+    *ctxOut = keyCTX;
+    
+done:
+    if(IsS4Err(err))
+    {
+        if(keyCTX)
+        {
+            memset(keyCTX, sizeof (S4KeyContext), 0);
+            XFREE(keyCTX);
+        }
+    }
+    return err;
+    
+}
+
 S4Err S4Key_NewPublicKey(Cipher_Algorithm       algorithm,
                       S4KeyContextRef    *ctxOut)
 {
     S4Err               err = kS4Err_NoErr;
-    S4KeyContext*    keyCTX  = NULL;
+    S4KeyContext*       keyCTX  = NULL;
+    ECC_ContextRef      ecc = kInvalidECC_ContextRef;
     
     ValidateParam(ctxOut);
     int             keybits  = 0;
@@ -894,18 +1387,9 @@ S4Err S4Key_NewPublicKey(Cipher_Algorithm       algorithm,
             RETERR(kS4Err_BadCipherNumber);
     }
     
-    
-    keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
-    keyCTX->magic = kS4KeyContextMagic;
-    keyCTX->type  = kS4KeyType_PublicKey;
-    keyCTX->propList = NULL;
-    keyCTX->pub.cipherAlgor = algorithm;
-   
-    err = ECC_Init(&keyCTX->pub.ecc);
-    err = ECC_Generate(keyCTX->pub.ecc, keybits); CKERR;
-    err = sCalculateECCData(keyCTX); CKERR;
-  
-    keyCTX->pub.isPrivate   = true;
+    err = ECC_Init(&ecc);
+    err = ECC_Generate(ecc, keybits); CKERR;
+    err = S4Key_Import_ECC_Context(ecc, &keyCTX); CKERR;
     
     *ctxOut = keyCTX;
     
@@ -1072,63 +1556,6 @@ done:
 #endif
 
 
-
-static yajl_gen_status sGenPropStrings(S4KeyContextRef ctx, yajl_gen g)
-
-{
-    static const char *kRfc339Format = "%Y-%m-%dT%H:%M:%SZ";
-    
-
-    S4Err           err = kS4Err_NoErr;
-    yajl_gen_status     stat = yajl_gen_status_ok;
-    
-    S4KeyProperty *prop = ctx->propList;
-    while(prop)
-    {
-        stat = yajl_gen_string(g, prop->prop, strlen((char *)(prop->prop))) ; CKYJAL;
-        switch(prop->type)
-        {
-            case S4KeyPropertyType_UTF8String:
-                stat = yajl_gen_string(g, prop->value, prop->valueLen) ; CKYJAL;
-                
-                break;
-                
-            case S4KeyPropertyType_Binary:
-            {
-                size_t propLen =  prop->valueLen*4;
-                uint8_t     *propBuf =  XMALLOC(propLen);
- 
-                base64_encode(prop->value, prop->valueLen, propBuf, &propLen);
-                stat = yajl_gen_string(g, propBuf, (size_t)propLen) ; CKYJAL;
-                XFREE(propBuf);
-            }
-                break;
-                
-            case S4KeyPropertyType_Time:
-            {
-                uint8_t     tempBuf[32];
-                size_t      tempLen;
-                time_t      gTime;
-                struct      tm *nowtm;
-                
-                COPY(prop->value, &gTime, sizeof(gTime));
-                nowtm = gmtime(&gTime);
-                tempLen = strftime((char *)tempBuf, sizeof(tempBuf), kRfc339Format, nowtm);
-                stat = yajl_gen_string(g, tempBuf, tempLen) ; CKYJAL;
-            }
-                break;
-                
-            default:
-                yajl_gen_string(g, (uint8_t *)"NULL", 4) ;
-                break;
-        }
-        
-        prop = prop->next;
-    }
-    
-done:
-    return err;
-}
 
 /*
 
@@ -1426,6 +1853,11 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
            
             break;
             
+        case kS4KeyType_PublicKey:
+            
+            return sSerializeToPubKey(ctx, passKeyCtx->pub.ecc, outData, outSize);
+             break;
+            
         default:
             RETERR(kS4Err_FeatureNotAvailable);
             break;
@@ -1595,173 +2027,6 @@ done:
     
     return err;
     
-}
-
-S4Err S4Key_SerializeToPubKey(S4KeyContextRef   ctx,
-                              ECC_ContextRef    eccPub,
-                              uint8_t          **outData,
-                              size_t           *outSize)
-{
-    S4Err           err = kS4Err_NoErr;
-    yajl_gen_status     stat = yajl_gen_status_ok;
-    
-    uint8_t             *yajlBuf = NULL;
-    size_t              yajlLen = 0;
-    yajl_gen            g = NULL;
-    
-    uint8_t             tempBuf[1024];
-    size_t              tempLen;
-    uint8_t             *outBuf = NULL;
-  
-    char                curveName[32]  = {0};
-  
-    uint8_t             keyID[kS4Key_KeyIDBytes];
-    size_t              keyIDLen = 0;
-  
-    uint8_t             keyHash[kS4KeyPublic_Encrypted_HashBytes];
-    int                 keyAlgorithm = 0;
-    
-     uint8_t            encrypted[256] = {0};       // typical 199 bytes
-    size_t              encryptedLen = 0;
-    
-    size_t              keyBytes = 0;
-    void*               keyToEncrypt = NULL;
-    
-     char*              keySuiteString = "Invalid";
-    
-    yajl_alloc_funcs allocFuncs = {
-        yajlMalloc,
-        yajlRealloc,
-        yajlFree,
-        (void *) NULL
-    };
-    
-    
-    validateS4KeyContext(ctx);
-    validateECCContext(eccPub);
-    ValidateParam(outData);
-    
-    switch (ctx->type)
-    {
-        case kS4KeyType_Symmetric:
-            keyBytes = ctx->sym.keylen ;
-            keyToEncrypt = ctx->sym.symKey;
-            keyAlgorithm = ctx->sym.symAlgor;
-            keySuiteString = cipher_algor_table(ctx->sym.symAlgor);
-             break;
-            
-        case kS4KeyType_Tweekable:
-            keyBytes = ctx->tbc.keybits >> 3 ;
-            keyToEncrypt = ctx->tbc.key;
-            keyAlgorithm = ctx->tbc.tbcAlgor;
-            keySuiteString = cipher_algor_table(ctx->tbc.tbcAlgor);
-            break;
-  
-        case kS4KeyType_Share:
-            keyBytes = (int)ctx->share.shareSecretLen ;
-            keyToEncrypt = ctx->share.shareSecret;
-            keyAlgorithm = kCipher_Algorithm_SharedKey;
-            keySuiteString = cipher_algor_table(kCipher_Algorithm_SharedKey);
-            break;
-
-        default:
-            break;
-    }
-    
-    /* limit ECC encryption to <= 512 bits of data */
-//    ValidateParam(keyBytes <= (512 >>3));
-    
-    err = sKEY_HASH(keyToEncrypt, keyBytes, ctx->type,
-                    keyAlgorithm, keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
-    
-    err = ECC_CurveName(eccPub, curveName, sizeof(curveName), NULL); CKERR;
-    err = ECC_PubKeyHash(eccPub, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
-    
-    err = ECC_Encrypt(eccPub, keyToEncrypt, keyBytes,  encrypted, sizeof(encrypted), &encryptedLen);CKERR;
-    
-    g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
-    
-#if DEBUG
-    yajl_gen_config(g, yajl_gen_beautify, 1);
-#else
-    yajl_gen_config(g, yajl_gen_beautify, 0);
-    
-#endif
-    yajl_gen_config(g, yajl_gen_validate_utf8, 1);
-    stat = yajl_gen_map_open(g);
-    
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SCKeyVersion, strlen(kS4KeyProp_SCKeyVersion)) ; CKYJAL;
-    sprintf((char *)tempBuf, "%d", kS4KeyProtocolVersion);
-    stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
-    
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Encoding, strlen(kS4KeyProp_Encoding)) ; CKYJAL;
-    stat = yajl_gen_string(g, (uint8_t *)curveName, strlen(curveName)) ; CKYJAL;
- 
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_KeyID, strlen(kS4KeyProp_KeyID)) ; CKYJAL;
-    tempLen = sizeof(tempBuf);
-    base64_encode(keyID, keyIDLen, tempBuf, &tempLen);
-    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
-    
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_KeySuite, strlen(kS4KeyProp_KeySuite)) ; CKYJAL;
-    stat = yajl_gen_string(g, (uint8_t *)keySuiteString, strlen(keySuiteString)) ; CKYJAL;
-    
-   stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Mac, strlen(kS4KeyProp_Mac)) ; CKYJAL;
-    tempLen = sizeof(tempBuf);
-    base64_encode(keyHash, kS4KeyPublic_Encrypted_HashBytes, tempBuf, &tempLen);
-    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
-    
- 
-    switch (ctx->type)
-    {
-        case kS4KeyType_Symmetric:
-        case kS4KeyType_Tweekable:
-             break;
-            
-        case kS4KeyType_Share:
-             stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareIndex, strlen(kS4KeyProp_ShareIndex)) ; CKYJAL;
-            sprintf((char *)tempBuf, "%d", ctx->share.xCoordinate);
-            stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
-          
-            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareThreshold, strlen(kS4KeyProp_ShareThreshold)) ; CKYJAL;
-            sprintf((char *)tempBuf, "%d", ctx->share.threshold);
-            stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
-
-            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareHash, strlen(kS4KeyProp_ShareHash)) ; CKYJAL;
-            tempLen = sizeof(tempBuf);
-            base64_encode(ctx->share.shareHash, kS4ShareInfo_HashBytes, tempBuf, &tempLen);
-            stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
-            break;
-            
-        default:
-            break;
-    }
- 
-    
-    
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_EncryptedKey, strlen(kS4KeyProp_EncryptedKey)) ; CKYJAL;
-    tempLen = sizeof(tempBuf);
-    base64_encode(encrypted, encryptedLen, tempBuf, &tempLen);
-    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
-    
-    err = sGenPropStrings(ctx, g); CKERR;
-    
-    stat = yajl_gen_map_close(g); CKYJAL;
-    stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
-    
-    outBuf = XMALLOC(yajlLen+1); CKNULL(outBuf);
-    memcpy(outBuf, yajlBuf, yajlLen);
-    outBuf[yajlLen] = 0;
-    
-    *outData = outBuf;
-    if(outSize)
-        *outSize = yajlLen;
-    
-done:
-    if(IsntNull(g))
-        yajl_gen_free(g);
-    
-    return err;
-
 }
 
 
@@ -2093,66 +2358,6 @@ static S4Err sParseKeySuiteString(const unsigned char * stringVal,  size_t strin
     
     return err;
 }
-
-
-int sGetKeyLength(S4KeyType keyType, int32_t algorithm)
-{
-    int          keylen = 0;
-    
-    switch(keyType)
-    {
-        case kS4KeyType_Symmetric:
-            
-            switch(algorithm)
-            {
-                case kCipher_Algorithm_AES128:
-                    keylen = 16;
-                    break;
-                    
-                case kCipher_Algorithm_AES192:
-                    keylen = 24;
-                    break;
- 
-                case kCipher_Algorithm_AES256:
-                    keylen = 32;
-                    break;
-                    
-                case kCipher_Algorithm_2FISH256:
-                    keylen = 32;
-                    break;
-                    
-                default:;
-            }
-
-            break;
- 
-        case kS4KeyType_Tweekable:
-            switch(algorithm)
-        {
-            case kCipher_Algorithm_3FISH256:
-                keylen = 32;
-                break;
-                
-            case kCipher_Algorithm_3FISH512:
-                keylen = 64;
-                break;
-                
-            case kCipher_Algorithm_3FISH1024:
-                keylen = 128;
-                break;
-                
-            default:;
-        }
-            break;
-            
-        default:;
-      }
-    
-    
-    return keylen;
-    
-}
-
 
 
 static int sParse_start_map(void * ctx)
@@ -3089,130 +3294,6 @@ done:
 
 }
 
-S4Err S4Key_DecryptFromPubKey( S4KeyContextRef      encodedCtx,
-                                    ECC_ContextRef    eccPriv,
-                                    S4KeyContextRef       *symCtx)
-{
-    S4Err           err = kS4Err_NoErr;
-    S4KeyContext*   keyCTX = NULL;
-  
-    int                 encyptAlgor = kCipher_Algorithm_Invalid;
-    size_t              keyBytes = 0;
-   
-    uint8_t             decrypted_key[128] = {0};
-    size_t              decryptedLen = 0;
-    
-    uint8_t             keyHash[kS4KeyPublic_Encrypted_HashBytes] = {0};
-    
-    validateS4KeyContext(encodedCtx);
-    validateECCContext(eccPriv);
-    ValidateParam(symCtx);
-    
-    ValidateParam(encodedCtx->type == kS4KeyType_PublicEncrypted);
-   
-    ValidateParam (ECC_isPrivate(eccPriv));
-    
-    if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Symmetric)
-    {
-        keyBytes = sGetKeyLength(kS4KeyType_Symmetric, encodedCtx->publicKeyEncoded.cipherAlgor);
-        encyptAlgor = encodedCtx->publicKeyEncoded.cipherAlgor;
-        
-    }
-    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Tweekable)
-    {
-        keyBytes = sGetKeyLength(kS4KeyType_Tweekable, encodedCtx->publicKeyEncoded.cipherAlgor);
-        encyptAlgor = encodedCtx->publicKeyEncoded.cipherAlgor;
-    }
-    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Share)
-    {
-        encyptAlgor = kCipher_Algorithm_SharedKey;
-    }
-
-    
-    keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
-    ZERO(keyCTX, sizeof(S4KeyContext));
-    
-    keyCTX->magic = kS4KeyContextMagic;
-    
-    if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Symmetric)
-    {
-        keyCTX->type  = kS4KeyType_Symmetric;
-        keyCTX->sym.symAlgor = encodedCtx->publicKeyEncoded.cipherAlgor;
-        keyCTX->sym.keylen = keyBytes;
-        
-        err = ECC_Decrypt(eccPriv,
-                          encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
-                          decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
-        
-        ASSERTERR(decryptedLen == keyBytes, kS4Err_CorruptData );
-        
-        COPY(decrypted_key, keyCTX->sym.symKey, decryptedLen);
-        
-    }
-    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Tweekable)
-    {
-        keyCTX->type  = kS4KeyType_Tweekable;
-        keyCTX->tbc.tbcAlgor = encodedCtx->publicKeyEncoded.cipherAlgor;
-        keyCTX->tbc.keybits = keyBytes << 3;
-
-        err = ECC_Decrypt(eccPriv,
-                          encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
-                          decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
-        
-        ASSERTERR(decryptedLen == keyBytes , kS4Err_CorruptData );
-        
-        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
-    }
-    else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Share)
-    {
-        keyCTX->type  = kS4KeyType_Share;
-        keyCTX->share.threshold = encodedCtx->publicKeyEncoded.threshold;
-        keyCTX->share.xCoordinate = encodedCtx->publicKeyEncoded.xCoordinate;
-        COPY(encodedCtx->publicKeyEncoded.shareHash, keyCTX->share.shareHash,  kS4ShareInfo_HashBytes);
-        
-        err = ECC_Decrypt(eccPriv,
-                          encodedCtx->publicKeyEncoded.encrypted, encodedCtx->publicKeyEncoded.encryptedLen,
-                          decrypted_key, sizeof(decrypted_key), &decryptedLen  );CKERR;
-       
-        // is the Share to big?
-        ASSERTERR(decryptedLen <= 64 , kS4Err_CorruptData );
-        
-        // we dont have a way to determine the expected length of a split key.
-        keyBytes =  decryptedLen;
-        keyCTX->share.shareSecretLen = decryptedLen;
-        COPY(decrypted_key, keyCTX->share.shareSecret, decryptedLen);
-     }
-
-    // check integrity of decypted value against the MAC
-    err = sKEY_HASH(decrypted_key, keyBytes, keyCTX->type,  encyptAlgor,
-                    keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
-    
-    ASSERTERR( CMP(keyHash, encodedCtx->publicKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
-              kS4Err_BadIntegrity)
-
-   
-
-    *symCtx = keyCTX;
- 
-
-    
-done:
-    
-    if(IsS4Err(err))
-    {
-        if(IsntNull(keyCTX))
-        {
-            XFREE(keyCTX);
-        }
-    }
-    
-    ZERO(decrypted_key, sizeof(decrypted_key));
- 
-    return err;
-
-}
-
-
 S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
                               S4KeyContextRef       passKeyCtx,
                               S4KeyContextRef       *outKeyCtx)
@@ -3235,9 +3316,13 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
     validateS4KeyContext(encodedCtx);
     validateS4KeyContext(passKeyCtx);
     ValidateParam(outKeyCtx);
+     
+    if(encodedCtx->type == kS4KeyType_PublicEncrypted )
+    {
+        return sDecryptFromPubKey(encodedCtx, passKeyCtx->pub.ecc, outKeyCtx);
+    }
     
     ValidateParam(encodedCtx->type == kS4KeyType_SymmetricEncrypted);
-    
     
     if(encodedCtx->symKeyEncoded.keyAlgorithmType == kS4KeyType_Symmetric)
     {
@@ -3557,10 +3642,5 @@ done:
     return err;
     
 }
-
-#ifdef __clang__
-#pragma mark - Public Key wrapper.
-#endif
-
 
 
