@@ -6,8 +6,23 @@
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#include "s4Internal.h"
 
+#include <ctype.h>
+
+#ifndef __USE_BSD
+#define __USE_BSD
+#include <time.h>
+#undef __USE_BSD
+#endif
+
+
+#if defined(ANDROID)
+#include "timegm.c"
+#endif
+
+
+
+#include "s4Internal.h"
 
 #include <yajl_parse.h>
 #include <yajl_gen.h>

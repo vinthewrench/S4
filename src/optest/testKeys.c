@@ -1473,7 +1473,7 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     
     ECC_ContextRef  ecc         = kInvalidECC_ContextRef;
     char* name = NULL;
-    char**       keyIDStr = NULL;
+    char* keyIDStr = NULL;
   
     uint8_t             keyID[kS4Key_KeyIDBytes]  = {0};
     uint8_t             keyID1[kS4Key_KeyIDBytes] = {0};
