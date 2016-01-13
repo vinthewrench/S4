@@ -86,7 +86,11 @@ enum HASH_Algorithm_
     kHASH_Algorithm_SKEIN512        = 8,
     kHASH_Algorithm_SKEIN1024       = 9,
     kHASH_Algorithm_SHA512_256      = 10,
- 
+
+#if _USES_XXHASH_
+    kHASH_Algorithm_xxHash32        = 20,
+    kHASH_Algorithm_xxHash64        = 21,
+#endif
     
     kHASH_Algorithm_Invalid           =  kEnumMaxValue,
     

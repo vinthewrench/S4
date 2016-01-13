@@ -307,6 +307,13 @@ char *hash_algor_table(HASH_Algorithm algor)
         case kHASH_Algorithm_SKEIN256:		return (("SKEIN-256"));
         case kHASH_Algorithm_SKEIN512:		return (("SKEIN-512"));
         case kHASH_Algorithm_SKEIN1024:		return (("SKEIN-1024"));
+
+        
+#if _USES_XXHASH_
+        case kHASH_Algorithm_xxHash32:		return (("xxHash-32"));
+        case kHASH_Algorithm_xxHash64:		return (("xxHash-64"));
+#endif
+        
         default:				return (("Invalid"));
     }
 }

@@ -92,6 +92,7 @@ S4Err TestHash()
         int                 algor;
         char				*name;
         char				*msg;
+        int					msgLen;
         int					passes;
         uint8_t*               kat;
         size_t              kat_len;
@@ -100,10 +101,11 @@ S4Err TestHash()
     katvector kat_vector_array[] =
     {
         
-        {
+       {
             kHASH_Algorithm_SHA1,
             "Short",
             "abc",
+            3,
             1,
             (uint8_t*)"\xA9\x99\x3E\x36\x47\x06\x81\x6A\xBA\x3E\x25\x71\x78\x50\xC2\x6C"
             "\x9C\xD0\xD8\x9D",
@@ -113,6 +115,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA1,
             "Multi",
             "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+            56,
             1,
             (uint8_t*)"\x84\x98\x3E\x44\x1C\x3B\xD2\x6E\xBA\xAE\x4A\xA1\xF9\x51\x29\xE5"
             "\xE5\x46\x70\xF1",
@@ -122,6 +125,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA1,
             "Long",
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
             15625,
             (uint8_t*)"\x34\xAA\x97\x3C\xD4\xC4\xDA\xA4\xF6\x1E\xEB\x2B\xDB\xAD\x27\x31"
             "\x65\x34\x01\x6F",
@@ -132,6 +136,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA224,
             "Short",
             "abc",
+            3,
             1,
             (uint8_t*)"\x23\x09\x7d\x22\x34\x05\xd8\x22\x86\x42\xa4\x77\xbd\xa2\x55\xb3"
             "\x2a\xad\xbc\xe4\xbd\xa0\xb3\xf7\xe3\x6c\x9d\xa7",
@@ -142,6 +147,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA224,
             "Multi",
             "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+            56,
             1,
             (uint8_t*)"\x75\x38\x8b\x16\x51\x27\x76\xcc\x5d\xba\x5d\xa1\xfd\x89\x01\x50"
             "\xb0\xc6\x45\x5c\xb4\xf5\x8b\x19\x52\x52\x25\x25",
@@ -151,6 +157,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA224,
             "Long",
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
             15625,
             (uint8_t*)"\x20\x79\x46\x55\x98\x0c\x91\xd8\xbb\xb4\xc1\xea\x97\x61\x8a\x4b"
             "\xf0\x3f\x42\x58\x19\x48\xb2\xee\x4e\xe7\xad\x67",
@@ -161,6 +168,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA256,
             "Short",
             "abc",
+            3,
             1,
             (uint8_t*)"\xBA\x78\x16\xBF\x8F\x01\xCF\xEA\x41\x41\x40\xDE\x5D\xAE\x22\x23"
             "\xB0\x03\x61\xA3\x96\x17\x7A\x9C\xB4\x10\xFF\x61\xF2\x00\x15\xAD",
@@ -171,6 +179,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA256,
             "Multi",
             "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
+            56,
             1,
             (uint8_t*)"\x24\x8D\x6A\x61\xD2\x06\x38\xB8\xE5\xC0\x26\x93\x0C\x3E\x60\x39"
             "\xA3\x3C\xE4\x59\x64\xFF\x21\x67\xF6\xEC\xED\xD4\x19\xDB\x06\xC1",
@@ -180,6 +189,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA256,
             "Long",
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
             15625,
             (uint8_t*)"\xCD\xC7\x6E\x5C\x99\x14\xFB\x92\x81\xA1\xC7\xE2\x84\xD7\x3E\x67"
             "\xF1\x80\x9A\x48\xA4\x97\x20\x0E\x04\x6D\x39\xCC\xC7\x11\x2C\xD0",
@@ -189,6 +199,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA384,
             "Short",
             "abc",
+            3,
             1,
             (uint8_t*)"\xCB\x00\x75\x3F\x45\xA3\x5E\x8B\xB5\xA0\x3D\x69\x9A\xC6\x50\x07"
             "\x27\x2C\x32\xAB\x0E\xDE\xD1\x63\x1A\x8B\x60\x5A\x43\xFF\x5B\xED"
@@ -200,6 +211,7 @@ S4Err TestHash()
             "Multi",
             "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
             "hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
+            112,
             1,
             (uint8_t*)"\x09\x33\x0C\x33\xF7\x11\x47\xE8\x3D\x19\x2F\xC7\x82\xCD\x1B\x47"
             "\x53\x11\x1B\x17\x3B\x3B\x05\xD2\x2F\xA0\x80\x86\xE3\xB0\xF7\x12"
@@ -210,6 +222,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA384,
             "Long",
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
             15625,
             (uint8_t*)"\x9D\x0E\x18\x09\x71\x64\x74\xCB\x08\x6E\x83\x4E\x31\x0A\x4A\x1C"
             "\xED\x14\x9E\x9C\x00\xF2\x48\x52\x79\x72\xCE\xC5\x70\x4C\x2A\x5B"
@@ -220,6 +233,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA512,
             "Short",
             "abc",
+            3,
             1,
             (uint8_t*)"\xDD\xAF\x35\xA1\x93\x61\x7A\xBA\xCC\x41\x73\x49\xAE\x20\x41\x31"
             "\x12\xE6\xFA\x4E\x89\xA9\x7E\xA2\x0A\x9E\xEE\xE6\x4B\x55\xD3\x9A"
@@ -232,6 +246,7 @@ S4Err TestHash()
             "Multi",
             "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
             "hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
+            112,
             1,
             (uint8_t*)"\x8E\x95\x9B\x75\xDA\xE3\x13\xDA\x8C\xF4\xF7\x28\x14\xFC\x14\x3F"
             "\x8F\x77\x79\xC6\xEB\x9F\x7F\xA1\x72\x99\xAE\xAD\xB6\x88\x90\x18"
@@ -244,6 +259,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA512,
             "Long",
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
             15625,
             (uint8_t*)"\xE7\x18\x48\x3D\x0C\xE7\x69\x64\x4E\x2E\x42\xC7\xBC\x15\xB4\x63"
             "\x8E\x1F\x98\xB1\x3B\x20\x44\x28\x56\x32\xA8\x03\xAF\xA9\x73\xEB"
@@ -257,6 +273,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA512_256,
             "Short",
             "abc",
+            3,
             1,
             (uint8_t*)
             "\x53\x04\x8e\x26\x81\x94\x1e\xf9"
@@ -270,6 +287,7 @@ S4Err TestHash()
             "Multi",
             "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn"
             "hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
+            112,
             1,
             (uint8_t*)
             "\x39\x28\xe1\x84\xfb\x86\x90\xf8"
@@ -283,6 +301,7 @@ S4Err TestHash()
             kHASH_Algorithm_SHA512_256,
             "Long",
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
             15625,
             (uint8_t*)
             "\x9A\x59\xA0\x52\x93\x01\x87\xA9\x70\x38\xCA\xE6\x92\xF3\x07\x08"
@@ -297,6 +316,7 @@ S4Err TestHash()
             (char*)
             "\xFF\xFE\xFD\xFC\xFB\xFA\xF9\xF8\xF7\xF6\xF5\xF4\xF3\xF2\xF1\xF0"
             "\xEF\xEE\xED\xEC\xEB\xEA\xE9\xE8\xE7\xE6\xE5\xE4\xE3\xE2\xE1\xE0",
+            32,
             1,
             (uint8_t*)
             "\x8D\x0F\xA4\xEF\x77\x7F\xD7\x59\xDF\xD4\x04\x4E\x6F\x6A\x5A\xC3"
@@ -315,6 +335,7 @@ S4Err TestHash()
             "\xAF\xAE\xAD\xAC\xAB\xAA\xA9\xA8\xA7\xA6\xA5\xA4\xA3\xA2\xA1\xA0"
             "\x9F\x9E\x9D\x9C\x9B\x9A\x99\x98\x97\x96\x95\x94\x93\x92\x91\x90"
             "\x8F\x8E\x8D\x8C\x8B\x8A\x89\x88\x87\x86\x85\x84\x83\x82\x81\x80",
+            128,
             1,
             (uint8_t*)
             "\x18\x0D\xE1\x06\xA7\x04\x01\xBA\x38\xF2\x59\x7C\x25\xCB\xEF\xC7"
@@ -326,6 +347,7 @@ S4Err TestHash()
             kHASH_Algorithm_SKEIN256,
             "Long",
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
             15625,
             (uint8_t*)
             "\x57\x0C\x70\x90\x1E\x31\x99\x4C\x1F\x7B\x96\x0F\x3F\xBD\xCF\x8D"
@@ -338,6 +360,7 @@ S4Err TestHash()
             (char*)
             "\xFF\xFE\xFD\xFC\xFB\xFA\xF9\xF8\xF7\xF6\xF5\xF4\xF3\xF2\xF1\xF0"
             "\xEF\xEE\xED\xEC\xEB\xEA\xE9\xE8\xE7\xE6\xE5\xE4\xE3\xE2\xE1\xE0",
+            32,
             1,
             (uint8_t*)
             "\x0B\x7F\xD0\x53\xAE\x63\x5E\xE8\xE5\x19\x64\x6E\xB4\x1E\xA0\xCF"
@@ -357,6 +380,7 @@ S4Err TestHash()
             "\xAF\xAE\xAD\xAC\xAB\xAA\xA9\xA8\xA7\xA6\xA5\xA4\xA3\xA2\xA1\xA0"
             "\x9F\x9E\x9D\x9C\x9B\x9A\x99\x98\x97\x96\x95\x94\x93\x92\x91\x90"
             "\x8F\x8E\x8D\x8C\x8B\x8A\x89\x88\x87\x86\x85\x84\x83\x82\x81\x80",
+            128,
             1,
             (uint8_t*)
             "\x91\xCC\xA5\x10\xC2\x63\xC4\xDD\xD0\x10\x53\x0A\x33\x07\x33\x09"
@@ -369,6 +393,7 @@ S4Err TestHash()
             kHASH_Algorithm_SKEIN512,
             "Long",
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
             15625,
             (uint8_t*)
             "\xC9\xD4\x1B\x77\xB7\x7B\x77\xE9\x54\x28\x41\x85\xAF\x68\x2A\x5A"
@@ -383,6 +408,7 @@ S4Err TestHash()
             (char*)
             "\xFF\xFE\xFD\xFC\xFB\xFA\xF9\xF8\xF7\xF6\xF5\xF4\xF3\xF2\xF1\xF0"
             "\xEF\xEE\xED\xEC\xEB\xEA\xE9\xE8\xE7\xE6\xE5\xE4\xE3\xE2\xE1\xE0",
+            32,
             1,
             (uint8_t*)
             "\xD9\xF3\x81\xEA\xAD\xA5\x7D\x8F\x40\x7A\x01\xD8\x76\xE6\xB3\xC2"
@@ -406,6 +432,7 @@ S4Err TestHash()
             "\xAF\xAE\xAD\xAC\xAB\xAA\xA9\xA8\xA7\xA6\xA5\xA4\xA3\xA2\xA1\xA0"
             "\x9F\x9E\x9D\x9C\x9B\x9A\x99\x98\x97\x96\x95\x94\x93\x92\x91\x90"
             "\x8F\x8E\x8D\x8C\x8B\x8A\x89\x88\x87\x86\x85\x84\x83\x82\x81\x80",
+            128,
             1,
             (uint8_t*)
             "\x1F\x3E\x02\xC4\x6F\xB8\x0A\x3F\xCD\x2D\xFB\xBC\x7C\x17\x38\x00"
@@ -422,6 +449,7 @@ S4Err TestHash()
             kHASH_Algorithm_SKEIN1024,
             "Long",
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
             15625,
             (uint8_t*)
             "\x6C\xB2\x95\x4A\xED\xDE\xDC\x50\x67\x00\x8D\xB1\x94\x53\x33\xBD"
@@ -435,8 +463,100 @@ S4Err TestHash()
             128
         },
         
+#if _USES_XXHASH_
         
+        /* these vectors come from  xxhsum.c  at https://github.com/Cyan4973/xxHash
+         and  expect that HASH_Init sets up the XXH32_reset with a seed value of  2654435761U
+        */
+        {
+            kHASH_Algorithm_xxHash32,
+            "TV 1",
+            "\x9e\xff\x1f\x4b\x5e\x53\x2f\xdd"
+            "\xb5\x54\x4d\x2a\x95\x2b",
+            14,
+            1,
+            (uint8_t*)"\x1D\x95\x81\x44 ",
+            4
+        },
+        {
+            kHASH_Algorithm_xxHash32,
+            "TV2",
+            "\x9e\xff\x1f\x4b\x5e\x53\x2f\xdd"
+            "\xb5\x54\x4d\x2a\x95\x2b\x57\xae"
+            "\x5d\xba\x74\xe9\xd3\xa6\x4c\x98"
+            "\x30\x60\xc0\x80\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00",
+            101,
+            1,
+            (uint8_t*)"\xE2\xC8\x8E\x49",
+            4
+        },
+        {
+            kHASH_Algorithm_xxHash32,
+            "Long",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
+            15625,
+            (uint8_t*)"\xB0\x05\x40\x62",
+            4
+        },
+        
+        
+        {
+            kHASH_Algorithm_xxHash64,
+            "TV 1",
+            "\x9e\xff\x1f\x4b\x5e\x53\x2f\xdd"
+            "\xb5\x54\x4d\x2a\x95\x2b",
+            14,
+            1,
+            (uint8_t*)"\xCB\xC9\xFC\x5E\x58\x11\x96\x5B",
+            8
+        },
+        {
+            kHASH_Algorithm_xxHash64,
+            "TV2",
+            "\x9e\xff\x1f\x4b\x5e\x53\x2f\xdd"
+            "\xb5\x54\x4d\x2a\x95\x2b\x57\xae"
+            "\x5d\xba\x74\xe9\xd3\xa6\x4c\x98"
+            "\x30\x60\xc0\x80\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00\x00\x00\x00"
+            "\x00\x00\x00\x00\x00",
+            101,
+            1,
+            (uint8_t*)"\x21\x1E\x6F\x30\x39\x59\xA6\xCA",
+            8
+        },
+        {
+            kHASH_Algorithm_xxHash64,
+            "Long",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            64,
+            15625,
+            (uint8_t*)"\xF7\x9F\x68\x55\x16\x1C\xD9\x73",
+            8
+        },
+
+#endif
+        
+
     };
+    
+    
     
     OPTESTLogInfo("\nTesting Secure Hash Algorithms:\n");
     
@@ -444,7 +564,7 @@ S4Err TestHash()
     for (i = 0; i < sizeof(kat_vector_array)/ sizeof(katvector) ; i++)
     {
         katvector* kat = &kat_vector_array[i];
-        unsigned long length = strlen( (const char *) kat->msg) *  kat->passes ;
+        unsigned long length = kat_vector_array[i].msgLen *  kat->passes ;
         
         if(last_algor != kat->algor)
         {
@@ -456,10 +576,10 @@ S4Err TestHash()
 
         OPTESTLogInfo("%6lu%s",  length > 999?length/1000:length, length > 999?"K":"");
         
-        err = TestHashKAT(kat_vector_array[i].algor,
+         err = TestHashKAT(kat_vector_array[i].algor,
                           kat_vector_array[i].name,
                           (uint8_t*) kat_vector_array[i].msg,
-                          strlen( (const char *) kat_vector_array[i].msg), 
+                          kat_vector_array[i].msgLen,
                           kat_vector_array[i].passes,
                           kat_vector_array[i].kat,
                           kat_vector_array[i].kat_len);  CKERR;

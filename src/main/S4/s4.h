@@ -13,6 +13,8 @@
 #define _USES_COMMON_CRYPTO_ 1
 #endif
 
+ #define _USES_XXHASH_ 1
+
 #include "s4pubtypes.h"
 #include "s4crypto.h"
 #include "s4keys.h"

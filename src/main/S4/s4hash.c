@@ -8,6 +8,10 @@
 
 #include "s4Internal.h"
 
+#if _USES_XXHASH_
+#include "xxhash.h"
+#endif
+
 #ifdef __clang__
 #pragma mark - Hash
 #endif
@@ -33,6 +37,11 @@ struct HASH_Context
         CC_SHA1_CTX             ccSHA1_state;
         CC_SHA256_CTX           ccSHA256_state;
         CC_SHA512_CTX           ccSHA512_state;
+#endif
+
+#if _USES_XXHASH_
+        XXH32_stateBody_t       xxHash32_state;
+        XXH64_stateBody_t       xxHash64_state;
 #endif
         
     }state;
@@ -94,16 +103,10 @@ done:
 S4Err HASH_Export(HASH_ContextRef ctx, void *outData, size_t bufSize, size_t *datSize)
 {
     S4Err        err = kS4Err_NoErr;
-    const struct    ltc_hash_descriptor* desc = NULL;
     
     validateHASHContext(ctx);
     ValidateParam(outData);
     ValidateParam(datSize);
-    
-    desc = sDescriptorForHash(ctx->algor);
-    
-    if(IsNull(desc))
-        RETERR( kS4Err_BadHashNumber);
     
     if(sizeof(HASH_Context) > bufSize)
         RETERR( kS4Err_BufferTooSmall);
@@ -117,6 +120,7 @@ done:
     return err;
     
 }
+
 
 #if  _USES_COMMON_CRYPTO_
 
@@ -227,6 +231,41 @@ int sCCHashFinalSHA512(void *ctx, unsigned char *out)
 
 #endif
 
+#if _USES_XXHASH_
+
+int xxHashUpdate32(void *ctx, const unsigned char *in, unsigned long inlen)
+{
+    
+    return  (XXH32_update( ctx, in, inlen) == XXH_OK) ? CRYPT_OK :CRYPT_ERROR;
+    
+}
+
+int xxHashFinal32(void *ctx, unsigned char *out)
+{
+    uint32_t digest = XXH32_digest(ctx);
+    
+    COPY(&digest, out, sizeof(digest));
+    
+    return CRYPT_OK;
+}
+
+int xxHashUpdate64(void *ctx, const unsigned char *in, unsigned long inlen)
+{
+    
+    return  (XXH64_update( ctx, in, inlen) == XXH_OK) ? CRYPT_OK :CRYPT_ERROR;
+    
+}
+
+int xxHashFinal64(void *ctx, unsigned char *out)
+{
+    uint64_t digest = XXH64_digest(ctx);
+    
+    COPY(&digest, out, sizeof(digest));
+    
+    return CRYPT_OK;
+}
+
+#endif
 
 S4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
 {
@@ -242,6 +281,27 @@ S4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
     hashCTX->magic = kHASH_ContextMagic;
     hashCTX->algor = algorithm;
     
+#if _USES_XXHASH_
+    if(hashCTX->algor == kHASH_Algorithm_xxHash32)
+    {
+        hashCTX->hashsize = 4;
+        hashCTX->process    = (void*) xxHashUpdate32;
+        hashCTX->done       = (void*) xxHashFinal32;
+
+        XXH32_reset((XXH32_state_t*)&hashCTX->state.xxHash32_state, 2654435761U);
+    }
+    else if(hashCTX->algor == kHASH_Algorithm_xxHash64)
+    {
+        hashCTX->hashsize = 8;
+        hashCTX->process    = (void*) xxHashUpdate64;
+        hashCTX->done       = (void*) xxHashFinal64;
+        
+        XXH64_reset((XXH64_state_t*)&hashCTX->state.xxHash64_state, 2654435761U);
+    }
+    else
+
+#endif
+    {
 #if _USES_COMMON_CRYPTO_
     
     switch(algorithm)
@@ -331,6 +391,7 @@ S4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
     CKERR;
     
 #endif
+    }
     
     *ctx = hashCTX;
     
@@ -359,18 +420,6 @@ S4Err HASH_Update(HASH_ContextRef ctx, const void *data, size_t dataLength)
     
     if(ctx->process)
         err = (ctx->process)(&ctx->state,  data, dataLength );
-    //
-    //
-    //    desc = sDescriptorForHash(ctx->algor);
-    //
-    //    if(IsNull(desc))
-    //        RETERR( kS4Err_BadHashNumber);
-    //
-    //    if(desc->process)
-    //        err = (desc->process)(&ctx->state.tc_state,data,  dataLength );
-    //    CKERR;
-    //
-    //done:
     
     return err;
     
@@ -387,19 +436,7 @@ S4Err HASH_Final(HASH_ContextRef  ctx, void *hashOut)
     
     if(ctx->done)
         err = (ctx->done)(&ctx->state, hashOut );
-    //
-    //
-    //    desc = sDescriptorForHash(ctx->algor);
-    //
-    //    if(IsNull(desc))
-    //        RETERR( kS4Err_BadHashNumber);
-    //
-    //    if(desc->done)
-    //        err = (desc->done)(&ctx->state.tc_state, hashOut );
-    //    CKERR;
-    //
-    //done:
-    //
+
     return err;
 }
 
@@ -407,6 +444,7 @@ void HASH_Free(HASH_ContextRef  ctx)
 {
     if(sHASH_ContextIsValid(ctx))
     {
+        
         ZERO(ctx, sizeof(HASH_Context));
         XFREE(ctx);
     }

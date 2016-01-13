@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2E07CCF11C46BCB500824A3A /* xxhash.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E07CCEE1C46BCB500824A3A /* xxhash.c */; };
+		2E07CCF21C46BCB500824A3A /* xxhash.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E07CCEE1C46BCB500824A3A /* xxhash.c */; };
+		2E07CCF31C46BCB500824A3A /* xxhash.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E07CCEF1C46BCB500824A3A /* xxhash.h */; };
 		2E0E1E531BEC168D00E1E845 /* s4internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E0E1E521BEC168D00E1E845 /* s4internal.h */; };
 		2E0E1E551BEC16E300E1E845 /* s4hash.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1E541BEC16E300E1E845 /* s4hash.c */; };
 		2E0E1E571BEC17F300E1E845 /* s4mac.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1E561BEC17F300E1E845 /* s4mac.c */; };
@@ -849,6 +852,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2E07CCEE1C46BCB500824A3A /* xxhash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = xxhash.c; path = libs/xxHash/xxhash.c; sourceTree = SOURCE_ROOT; };
+		2E07CCEF1C46BCB500824A3A /* xxhash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = xxhash.h; path = libs/xxHash/xxhash.h; sourceTree = SOURCE_ROOT; };
+		2E07CCF01C46BCB500824A3A /* xxhsum.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = xxhsum.c; path = libs/xxHash/xxhsum.c; sourceTree = SOURCE_ROOT; };
 		2E0E1E521BEC168D00E1E845 /* s4internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = s4internal.h; path = src/main/S4/s4internal.h; sourceTree = SOURCE_ROOT; };
 		2E0E1E541BEC16E300E1E845 /* s4hash.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = s4hash.c; path = src/main/S4/s4hash.c; sourceTree = SOURCE_ROOT; };
 		2E0E1E561BEC17F300E1E845 /* s4mac.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = s4mac.c; path = src/main/S4/s4mac.c; sourceTree = SOURCE_ROOT; };
@@ -1301,9 +1307,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2E07CCED1C46BC9D00824A3A /* xxHash */ = {
+			isa = PBXGroup;
+			children = (
+				2E07CCEE1C46BCB500824A3A /* xxhash.c */,
+				2E07CCEF1C46BCB500824A3A /* xxhash.h */,
+				2E07CCF01C46BCB500824A3A /* xxhsum.c */,
+			);
+			name = xxHash;
+			sourceTree = "<group>";
+		};
 		2E0E1FE91BF2648800E1E845 /* submodules */ = {
 			isa = PBXGroup;
 			children = (
+				2E07CCED1C46BC9D00824A3A /* xxHash */,
 				2E0E1FEA1BF2649800E1E845 /* yajl */,
 			);
 			name = submodules;
@@ -2227,6 +2244,7 @@
 				2EAA66321BE7D74F00A0375B /* s4pubtypes.h in Headers */,
 				2E0E1FFF1BF264BC00E1E845 /* yajl_buf.h in Headers */,
 				2E0E1E531BEC168D00E1E845 /* s4internal.h in Headers */,
+				2E07CCF31C46BCB500824A3A /* xxhash.h in Headers */,
 				2EAA69481BE7EBB000A0375B /* tomcrypt_cipher.h in Headers */,
 				2E0E1FFC1BF264BC00E1E845 /* yajl_alloc.h in Headers */,
 				2EAA694C1BE7EBB000A0375B /* tomcrypt_macros.h in Headers */,
@@ -2751,6 +2769,7 @@
 				2E0E1F8E1BF1102F00E1E845 /* ecb_done.c in Sources */,
 				2E0E1F8F1BF1102F00E1E845 /* ecc_ansi_x963_import.c in Sources */,
 				2E0E1F901BF1102F00E1E845 /* bn_mp_expt_d.c in Sources */,
+				2E07CCF21C46BCB500824A3A /* xxhash.c in Sources */,
 				2E0E1F911BF1102F00E1E845 /* threefish512Block.c in Sources */,
 				2E0E1F921BF1102F00E1E845 /* bn_s_mp_mul_digs.c in Sources */,
 				2E0E1F931BF1102F00E1E845 /* hmac_memory.c in Sources */,
@@ -3119,6 +3138,7 @@
 				2EAA69B41BE7EBB000A0375B /* ecb_done.c in Sources */,
 				2EAA6A0C1BE7EBB000A0375B /* ecc_ansi_x963_import.c in Sources */,
 				2EAA66F01BE7E7F400A0375B /* bn_mp_expt_d.c in Sources */,
+				2E07CCF11C46BCB500824A3A /* xxhash.c in Sources */,
 				2EAA6A531BE7EC1900A0375B /* threefish512Block.c in Sources */,
 				2EAA67441BE7E7F400A0375B /* bn_s_mp_mul_digs.c in Sources */,
 				2EAA695C1BE7EBB000A0375B /* hmac_memory.c in Sources */,
@@ -3231,12 +3251,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				S4_BASE = ./;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				HEADER_SEARCH_PATHS = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = S4;
+				S4_BASE = ./;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SYMROOT = "$(S4_BASE)/build/ios";
@@ -3247,12 +3267,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				S4_BASE = ./;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				HEADER_SEARCH_PATHS = "$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/";
 				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = S4;
+				S4_BASE = ./;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SYMROOT = "$(S4_BASE)/build/ios";
@@ -3263,13 +3283,13 @@
 		2E0E1FD11BF111D400E1E845 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				S4_BASE = ./;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = S4Tests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "fourth-a.com.S4-ios-Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				S4_BASE = ./;
 				SDKROOT = iphoneos;
 				SYMROOT = "$(S4_BASE)/build/ios";
 			};
@@ -3278,13 +3298,13 @@
 		2E0E1FD21BF111D400E1E845 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				S4_BASE = ./;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = S4Tests/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "fourth-a.com.S4-ios-Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				S4_BASE = ./;
 				SDKROOT = iphoneos;
 				SYMROOT = "$(S4_BASE)/build/ios";
 				VALIDATE_PRODUCT = YES;
@@ -3382,7 +3402,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				S4_BASE = ./;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -3403,6 +3422,7 @@
 				PRODUCT_MODULE_NAME = S4;
 				PRODUCT_NAME = S4;
 				PROVISIONING_PROFILE = "";
+				S4_BASE = ./;
 				SKIP_INSTALL = YES;
 				SYMROOT = "$(S4_BASE)/build/osx";
 			};
@@ -3412,7 +3432,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = YES;
-				S4_BASE = ./;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -3433,6 +3452,7 @@
 				PRODUCT_MODULE_NAME = S4;
 				PRODUCT_NAME = S4;
 				PROVISIONING_PROFILE = "";
+				S4_BASE = ./;
 				SKIP_INSTALL = YES;
 				SYMROOT = "$(S4_BASE)/build/osx";
 			};
@@ -3441,7 +3461,6 @@
 		2EAA66261BE7D36E00A0375B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				S4_BASE = ./;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "";
 				COMBINE_HIDPI_IMAGES = YES;
@@ -3450,6 +3469,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.4th-a.S4Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				S4_BASE = ./;
 				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Debug;
@@ -3457,7 +3477,6 @@
 		2EAA66271BE7D36E00A0375B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				S4_BASE = ./;
 				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "";
 				COMBINE_HIDPI_IMAGES = YES;
@@ -3466,6 +3485,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.4th-a.S4Tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				S4_BASE = ./;
 				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Release;
@@ -3473,10 +3493,10 @@
 		2EAA66461BE7DB5900A0375B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				S4_BASE = .;
 				CODE_SIGN_IDENTITY = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				S4_BASE = .;
 				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Debug;
@@ -3484,10 +3504,10 @@
 		2EAA66471BE7DB5900A0375B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				S4_BASE = .;
 				CODE_SIGN_IDENTITY = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				S4_BASE = .;
 				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Release;
