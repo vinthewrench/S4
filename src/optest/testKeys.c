@@ -71,6 +71,12 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1, bool i
             err = compareResults( keyHash1, keyHash1, kS4KeyPBKDF2_HashBytes,
                                  kResultFormat_Byte, "KeyHash"); CKERR;
             
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeyID, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeyID, NULL, &keyID2, sizeof(keyID2), NULL ); CKERR;
+            
+            err = compareResults( keyID1, keyID2, kS4Key_KeyIDBytes,
+                                 kResultFormat_Byte, "keyID"); CKERR;
+
              break;
             
         case kS4KeyType_Tweekable:
@@ -91,6 +97,12 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1, bool i
             err = compareResults( keyHash1, keyHash1, kS4KeyPBKDF2_HashBytes,
                                  kResultFormat_Byte, "KeyHash"); CKERR;
             
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeyID, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_KeyID, NULL, &keyID2, sizeof(keyID2), NULL ); CKERR;
+            
+            err = compareResults( keyID1, keyID2, kS4Key_KeyIDBytes,
+                                 kResultFormat_Byte, "keyID"); CKERR;
+
             break;
     
         case kS4KeyType_Share:

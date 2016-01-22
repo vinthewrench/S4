@@ -546,14 +546,14 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                         break;
                         
                     case kS4KeyType_Tweekable:
-                         actualLength = ctx->tbc.keybits >> 3 ;
-                         break;
+                        actualLength = ctx->tbc.keybits >> 3 ;
+                        break;
                         
                     case kS4KeyType_PublicEncrypted:
                     case kS4KeyType_PBKDF2:
                     default:
                         RETERR(kS4Err_BadParams);
-                 }
+                }
             }
             else if(STRCMP2(propName, kS4KeyProp_KeyID))
             {
@@ -561,11 +561,19 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                     case kS4KeyType_PublicEncrypted:
                         actualLength = sizeof(ctx->publicKeyEncoded.keyID);
                         break;
-  
+                        
                     case kS4KeyType_PublicKey:
                         actualLength = sizeof(ctx->pub.keyID);
                         break;
- 
+                        
+                    case kS4KeyType_Symmetric:
+                        actualLength = kS4Key_KeyIDBytes;
+                        break;
+                        
+                    case kS4KeyType_Tweekable:
+                        actualLength = kS4Key_KeyIDBytes;
+                        break;
+                        
                     default:
                         RETERR(kS4Err_BadParams);
                 }
@@ -580,38 +588,47 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                         actualLength = kS4KeyPublic_Encrypted_HashBytes;
                         break;
                         
-//                     case kS4KeyType_PublicEncrypted:
-//                        actualLength = sizeof(ctx->publicKeyEncoded.keyID);
-//                        break;
+                        //                     case kS4KeyType_PublicEncrypted:
+                        //                        actualLength = sizeof(ctx->publicKeyEncoded.keyID);
+                        //                        break;
                         
                     default:
                         RETERR(kS4Err_BadParams);
                 }
             }
-           else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
+            else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
             {
                 switch (ctx->type) {
                     case kS4KeyType_PublicEncrypted:
-                         actualLength = (((sizeof(ctx->publicKeyEncoded.keyID) + 2) / 3) * 4) + 1;
-                          break;
-                    
+                        actualLength = (((sizeof(ctx->publicKeyEncoded.keyID) + 2) / 3) * 4) + 1;
+                        break;
+                        
                     case kS4KeyType_PublicKey:
                         actualLength = (((sizeof(ctx->pub.keyID) + 2) / 3) * 4) + 1;
-                          break;
+                        break;
+                        
+                        
+                    case kS4KeyType_Symmetric:
+                        actualLength =  (((kS4Key_KeyIDBytes + 2) / 3) * 4) + 1; ;
+                        break;
+                        
+                    case kS4KeyType_Tweekable:
+                        actualLength =  (((kS4Key_KeyIDBytes + 2) / 3) * 4) + 1; ;
+                        break;
                         
                     default:
                         RETERR(kS4Err_BadParams);
                 }
             }
- 
+            
             
             else
                 found = false;
             
             break;
-
+            
         }
-     }
+    }
     
     if(!found)
     {
@@ -650,7 +667,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
     {
         switch (ctx->type) {
             case kS4KeyType_Symmetric:
-                 COPY(&ctx->sym.symAlgor , buffer, actualLength);
+                COPY(&ctx->sym.symAlgor , buffer, actualLength);
                 break;
                 
             case kS4KeyType_Tweekable:
@@ -677,7 +694,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 
             case kS4KeyType_Tweekable:
                 COPY(&ctx->tbc.key , buffer, actualLength);
-                 break;
+                break;
                 
             case kS4KeyType_PublicEncrypted:
             case kS4KeyType_PBKDF2:
@@ -689,12 +706,25 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
     {
         switch (ctx->type) {
             case kS4KeyType_PublicEncrypted:
-              
+                
                 COPY(&ctx->publicKeyEncoded.keyID , buffer, actualLength);
-               break;
+                break;
                 
             case kS4KeyType_PublicKey:
                 COPY(&ctx->pub.keyID , buffer, actualLength);
+                break;
+                
+            case kS4KeyType_Symmetric:
+                // calculate a keyID for the sym key
+                err =  sKEY_HASH(ctx->sym.symKey,  ctx->sym.keylen, ctx->type,
+                                 ctx->sym.symAlgor,  buffer, actualLength );
+                
+                break;
+                
+            case kS4KeyType_Tweekable:
+                // calculate a keyID for the TBC key
+                err =  sKEY_HASH((uint8_t*)ctx->tbc.key,  ctx->tbc.keybits >> 3, ctx->type,
+                                 ctx->tbc.tbcAlgor,  buffer, actualLength );
                 break;
                 
             default:
@@ -704,7 +734,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
     else if(STRCMP2(propName, kS4KeyProp_Mac))
     {
         uint8_t     keyHash[kS4KeyPBKDF2_HashBytes] = {0};
-
+        
         switch (ctx->type) {
             case kS4KeyType_Symmetric:
                 err =  sKEY_HASH(ctx->sym.symKey, ctx->tbc.keybits >> 3, ctx->type,
@@ -712,9 +742,9 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 
                 COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
                 break;
-             
+                
             case kS4KeyType_Tweekable:
-                  err =  sKEY_HASH((uint8_t*)ctx->tbc.key, ctx->sym.keylen, ctx->type,
+                err =  sKEY_HASH((uint8_t*)ctx->tbc.key, ctx->sym.keylen, ctx->type,
                                  ctx->tbc.tbcAlgor, keyHash, kS4KeyPublic_Encrypted_HashBytes );
                 
                 COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
@@ -728,15 +758,15 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 
                 COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
                 break;
-//                
-//            case kS4KeyType_PublicEncrypted:
-//                  break;
+                //
+                //            case kS4KeyType_PublicEncrypted:
+                //                  break;
                 
             default:
                 RETERR(kS4Err_BadParams);
         }
     }
-
+    
     else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
     {
         switch (ctx->type) {
@@ -744,7 +774,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 err = base64_encode(ctx->publicKeyEncoded.keyID, sizeof(ctx->publicKeyEncoded.keyID), buffer, &actualLength); CKERR;
                 actualLength++;
                 buffer[actualLength]= '\0';
-              break;
+                break;
                 
             case kS4KeyType_PublicKey:
                 err = base64_encode(ctx->pub.keyID, sizeof(ctx->pub.keyID), buffer, &actualLength); CKERR;
@@ -752,18 +782,47 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 buffer[actualLength]= '\0';
                 break;
                 
+                
+                
+            case kS4KeyType_Symmetric:
+                {
+                    uint8_t keyID[kS4Key_KeyIDBytes];
+                    
+                    err =  sKEY_HASH(ctx->sym.symKey,  ctx->sym.keylen, ctx->type,
+                                     ctx->sym.symAlgor,  keyID, kS4Key_KeyIDBytes );
+                    
+                    err = base64_encode(keyID, kS4Key_KeyIDBytes , buffer, &actualLength); CKERR;
+                    actualLength++;
+                    buffer[actualLength]= '\0';
+                }
+                break;
+                
+            case kS4KeyType_Tweekable:
+            {
+                uint8_t keyID[kS4Key_KeyIDBytes];
+                
+                err =  sKEY_HASH((uint8_t*)ctx->tbc.key,  ctx->tbc.keybits >> 3, ctx->type,
+                                 ctx->tbc.tbcAlgor,  keyID, kS4Key_KeyIDBytes );
+
+                err = base64_encode(keyID, kS4Key_KeyIDBytes , buffer, &actualLength); CKERR;
+                actualLength++;
+                buffer[actualLength]= '\0';
+            }
+                break;
+           
+                
             default:
                 RETERR(kS4Err_BadParams);
         }
     }
-
+    
     
     else if(otherProp)
     {
         COPY(otherProp->value,  buffer, actualLength);
         propType = otherProp->type;
     }
-
+    
     
     if(outPropType)
         *outPropType = propType;
@@ -774,7 +833,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
     
 done:
     return err;
-
+    
     
 }
 
