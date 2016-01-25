@@ -55,6 +55,9 @@ extern char *const kS4KeyProp_KeyID;
 extern char *const kS4KeyProp_KeyIDString;
 extern char *const kS4KeyProp_Mac;      // Key HASH (kS4KeyPublic_Encrypted_HashBytes)
 
+extern char *const kS4KeyProp_StartDate;
+extern char *const kS4KeyProp_ExpireDate;
+
 typedef struct S4KeyProperty  S4KeyProperty;
 
 struct S4KeyProperty

@@ -11,9 +11,9 @@
 #include "optest.h"
 #include <time.h>
 
-static char *const kS4KeyProp_Time   = "testTime";
 
 static char *const kS4KeyProp_TestPassCodeID   = "passcodeID";
+static char *const kS4KeyProp_Owner    = "owner-id";
 
 typedef struct  {
     char*               comment;
@@ -181,7 +181,7 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1, bool i
         size_t      data1Len = 0;
         
         err = SCKeyGetAllocatedProperty(keyCtx, (const char*) prop->prop, &type1, &data1, &data1Len); CKERR;
-        err = SCKeyGetAllocatedProperty(keyCtx, (const char*) prop->prop, &type2, &data2, &data2Len); CKERR;
+        err = SCKeyGetAllocatedProperty(keyCtx1, (const char*) prop->prop, &type2, &data2, &data2Len); CKERR;
         
         ASSERTERR(type1 == type2,  kS4Err_SelfTestFailed);
         
@@ -222,7 +222,7 @@ static S4Err sRunCipherPBKDF2ImportExportKAT(  cipherKATvector *kat)
     err = S4Key_NewSymmetric(kat->algor, kat->key, &keyCtx  ); CKERR;
     
     err = S4Key_SetProperty(keyCtx,kS4KeyProp_TestPassCodeID,S4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
-    err = S4Key_SetProperty(keyCtx, kS4KeyProp_Time, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
+    err = S4Key_SetProperty(keyCtx, kS4KeyProp_StartDate, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
   
     err = S4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen((char*)kat->passPhrase), &data, &dataLen); CKERR;
     
@@ -304,7 +304,7 @@ static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     err = S4Key_NewSymmetric(kat->algor, kat->key, &keyCtx  ); CKERR;
     
     err = S4Key_SetProperty(keyCtx,kS4KeyProp_TestPassCodeID,S4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
-    err = S4Key_SetProperty(keyCtx, kS4KeyProp_Time, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
+    err = S4Key_SetProperty(keyCtx, kS4KeyProp_StartDate, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
     
     err = S4Key_SerializeToS4Key(keyCtx, passKeyCtx, &data, &dataLen); CKERR;
     
@@ -874,7 +874,7 @@ static S4Err sRunTBCImportExportKAT(  cipherKATvector *kat)
     err = S4Key_NewTBC(kat->algor, kat->key, &keyCtx  ); CKERR;
     
     err = S4Key_SetProperty(keyCtx,kS4KeyProp_TestPassCodeID,S4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
-    err = S4Key_SetProperty(keyCtx, kS4KeyProp_Time, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
+    err = S4Key_SetProperty(keyCtx, kS4KeyProp_StartDate, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
     
     err = S4Key_SerializeToS4Key(keyCtx, passKeyCtx, &data, &dataLen); CKERR;
     
@@ -953,8 +953,8 @@ static S4Err sRunTBCPBKDF2ImportExportKAT(  cipherKATvector *kat)
     
     err = S4Key_NewTBC(kat->algor, kat->key, &keyCtx  ); CKERR;
     
-    err = S4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen((char*)kat->passPhrase), &data, &dataLen); CKERR;
     err = S4Key_SetProperty(keyCtx,kS4KeyProp_TestPassCodeID,S4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
+    err = S4Key_SerializeToPassPhrase(keyCtx, kat->passPhrase, strlen((char*)kat->passPhrase), &data, &dataLen); CKERR;
     
     OPTESTLogDebug("\n------\n%s------\n",data);
 
@@ -1493,7 +1493,8 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     uint8_t     unlockingKey[32];
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
-    
+    time_t          testDate  = time(NULL) ;
+  
     S4KeyContextRef     *importCtx = NULL;
     S4KeyContextRef     *importPubCtx =  NULL;
    
@@ -1513,7 +1514,11 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     OPTESTLogVerbose("\t%-8s\n", name);
     
     OPTESTLogDebug("\t  Create ");
-     err = S4Key_NewPublicKey(keyAlgorithm, &pubCtx); CKERR;
+    err = S4Key_NewPublicKey(keyAlgorithm, &pubCtx); CKERR;
+    err = S4Key_SetProperty(pubCtx, kS4KeyProp_StartDate, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
+    err = S4Key_SetProperty(pubCtx, kS4KeyProp_Owner, S4KeyPropertyType_UTF8String ,  "PhucLong", 8 ); CKERR;
+
+    
     
     err = SCKeyGetAllocatedProperty(pubCtx, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
     OPTESTLogDebug("KeyID: %s\n",  keyIDStr);

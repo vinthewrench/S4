@@ -106,6 +106,8 @@ _kS4KeyProp_KeyData
 _kS4KeyProp_KeyID
 _kS4KeyProp_KeyIDString
 _kS4KeyProp_Mac
+_kS4KeyProp_StartDate
+_kS4KeyProp_ExpireDate
 
 _S4Key_SerializeToShares
 

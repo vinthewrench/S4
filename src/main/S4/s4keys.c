@@ -96,12 +96,17 @@ static void * yajlRealloc(void * ctx, void * ptr, size_t sz)
 #define K_PROP_KEYID            "keyID"
 #define K_PROP_KEYIDSTR         "keyID-String"
 
+#define K_PROP_STARTDATE        "start-date"
+#define K_PROP_EXPIREDATE        "expire-date"
+
 char *const kS4KeyProp_KeyType          = K_KEYTYPE;
 char *const kS4KeyProp_KeySuite         = K_KEYSUITE;
 char *const kS4KeyProp_KeyData          = K_KEYDATA;
 char *const kS4KeyProp_KeyID            = K_PROP_KEYID;
 char *const kS4KeyProp_KeyIDString      = K_PROP_KEYIDSTR;
 char *const kS4KeyProp_Mac               = K_PROP_MAC;
+char *const kS4KeyProp_StartDate            = K_PROP_STARTDATE;
+char *const kS4KeyProp_ExpireDate           = K_PROP_EXPIREDATE;
 
 static char *const kS4KeyProp_SCKeyVersion      = K_PROP_VERSION;
 static char *const kS4KeyProp_Encoding          = K_PROP_ENCODING;
@@ -129,6 +134,7 @@ static char *const kS4KeyProp_ShareIDs        = K_SHAREIDS;
 
 static char *const kS4KeyProp_PubKey            = K_PUBKEY;
 static char *const kS4KeyProp_PrivKey           = K_PRIVKEY;
+
 
 typedef struct S4KeyPropertyInfo  S4KeyPropertyInfo;
 
@@ -159,6 +165,9 @@ static S4KeyPropertyInfo sPropertyTable[] = {
     { K_INDEX,                  S4KeyPropertyType_Numeric,  true},
     { K_THRESHLOLD,              S4KeyPropertyType_Numeric,  true},
 
+    { K_PROP_EXPIREDATE,        S4KeyPropertyType_Time,     false},
+    { K_PROP_STARTDATE,         S4KeyPropertyType_Time,     false},
+    
     { NULL,                     S4KeyPropertyType_Invalid,  true},
 };
 
@@ -3348,8 +3357,8 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
         COPY(decrypted_key, keyCTX->share.shareSecret, keyBytes);
     }
 
-    
-
+    sCloneProperties(passCtx, keyCTX);
+ 
     *symCtx = keyCTX;
     
 done:
@@ -3489,6 +3498,8 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
     ASSERTERR( CMP(keyHash, encodedCtx->symKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
               kS4Err_BadIntegrity)
     
+    sCloneProperties(encodedCtx, keyCTX);
+
     *outKeyCtx = keyCTX;
     
 done:
