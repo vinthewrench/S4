@@ -73,6 +73,12 @@ uint8_t S4_Load8( uint8_t **ptr )
     return (retval);
 }
 
+uint8_t* S4_GetBuffPtr( uint8_t **ptr )
+{
+    uint8_t *bptr = *ptr;
+    return (bptr);
+}
+
 void S4_StoreArray( void *val, size_t len,  uint8_t **ptr )
 {
     uint8_t *bptr =  *ptr;
@@ -131,3 +137,11 @@ void S4_Store8( uint8_t val, uint8_t **ptr )
     *bptr++ = (uint8_t)val;
     *ptr =  bptr;
 }
+
+void S4_SkipBytes( uint8_t count, uint8_t **ptr )
+{
+    uint8_t *bptr = *ptr;
+    bptr += count;
+    *ptr =  bptr;
+}
+

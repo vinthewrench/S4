@@ -35,5 +35,9 @@ void S4_Store16( uint16_t val, uint8_t **ptr );
 
 void S4_Store8( uint8_t val, uint8_t **ptr );
 
+void S4_SkipBytes( uint8_t count, uint8_t **ptr );
+
+uint8_t* S4_GetBuffPtr( uint8_t **ptr );
+
 
 #endif /* s4BufferUtilities_h */

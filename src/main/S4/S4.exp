@@ -77,6 +77,8 @@ _S4_Store64
 _S4_Store32
 _S4_Store16
 _S4_Store8
+_S4_SkipBytes
+_S4_GetBuffPtr
 
 _SHARES_Init
 _SHARES_Free
