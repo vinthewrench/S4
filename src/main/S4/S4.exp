@@ -84,6 +84,7 @@ _SHARES_GetShareInfo
 _SHARES_CombineShareInfo
 _SHARES_GetShareHash
 
+_S4Key_NewKey
 _S4Key_NewSymmetric
 _S4Key_NewTBC
 _S4Key_NewShare

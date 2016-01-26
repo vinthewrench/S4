@@ -281,7 +281,6 @@ static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     S4KeyContextRef keyCtx1 =  kInvalidS4KeyContextRef;
     
     S4KeyContextRef  *importCtx = NULL;
-    uint8_t         unlockingKey[32];
     size_t      keyCount = 0;
     
     char* name = NULL;
@@ -296,11 +295,8 @@ static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     OPTESTLogVerbose("\t%-14s ", name);
     OPTESTLogVerbose("%8s", "Export");
     
-    // create a random  unlocking key
-    err = RNG_GetBytes(unlockingKey, sizeof(unlockingKey)); CKERR;
+    err = S4Key_NewKey(kCipher_Algorithm_2FISH256, &passKeyCtx); CKERR;
     
-    err = S4Key_NewSymmetric(kCipher_Algorithm_2FISH256, unlockingKey, &passKeyCtx  ); CKERR;
-  
     err = S4Key_NewSymmetric(kat->algor, kat->key, &keyCtx  ); CKERR;
     
     err = S4Key_SetProperty(keyCtx,kS4KeyProp_TestPassCodeID,S4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;

@@ -1228,6 +1228,105 @@ done:
 #pragma mark - create Key.
 #endif
 
+S4Err S4Key_NewKey(Cipher_Algorithm       algorithm,
+                   S4KeyContextRef    *ctxOut)
+{
+    S4Err   err = kS4Err_NoErr;
+    S4KeyContext*    keyCTX  = NULL;
+    
+    int     keyBytes  = 0;
+    uint8_t *keyData = NULL;
+  
+    ValidateParam(ctxOut);
+    
+    switch(algorithm)
+    {
+            case kCipher_Algorithm_AES128:
+                keyBytes = 128 >> 3;
+                break;
+                
+            case kCipher_Algorithm_AES192:
+                keyBytes = 192 >> 3;
+                break;
+                
+            case kCipher_Algorithm_AES256:
+                keyBytes = 256 >> 3;
+                break;
+                
+            case kCipher_Algorithm_2FISH256:
+                keyBytes = 256 >> 3;
+                break;
+                
+            case kCipher_Algorithm_3FISH256:
+                keyBytes =  256 >> 3;
+                break;
+                
+            case kCipher_Algorithm_3FISH512:
+                keyBytes = 512 >> 3;
+                break;
+                
+            case kCipher_Algorithm_3FISH1024:
+                keyBytes = 1024 >> 3;
+                break;
+            
+        default: ;
+    }
+   
+    if(keyBytes)
+    {
+        keyData = (uint8_t*)XMALLOC(keyBytes);
+        err = RNG_GetBytes(keyData, keyBytes);
+    }
+    
+    switch(algorithm)
+    {
+        case kCipher_Algorithm_AES128:
+        case kCipher_Algorithm_AES192:
+        case kCipher_Algorithm_AES256:
+        case kCipher_Algorithm_2FISH256:
+           
+            err = S4Key_NewSymmetric(algorithm, keyData, &keyCTX);
+            break;
+            
+        case kCipher_Algorithm_3FISH256:
+        case kCipher_Algorithm_3FISH512:
+        case kCipher_Algorithm_3FISH1024:
+   
+            err = S4Key_NewTBC(algorithm, keyData, &keyCTX);
+            break;
+        
+        case kCipher_Algorithm_ECC384:
+        case kCipher_Algorithm_ECC414:
+            err= S4Key_NewPublicKey(algorithm, &keyCTX);
+            break;
+            
+        default:
+            RETERR(kS4Err_BadCipherNumber);
+    }
+    
+    
+    *ctxOut = keyCTX;
+    
+done:
+    
+    if(keyData && keyBytes)
+    {
+        ZERO(keyData, keyBytes);
+        XFREE(keyData);
+    }
+    
+    if(IsS4Err(err))
+    {
+        if(keyCTX)
+        {
+            memset(keyCTX, sizeof (S4KeyContext), 0);
+            XFREE(keyCTX);
+        }
+    }
+    
+    return err;
+}
+
 S4Err S4Key_NewSymmetric(Cipher_Algorithm       algorithm,
                              const void             *key,
                              S4KeyContextRef    *ctxOut)

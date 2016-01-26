@@ -207,6 +207,9 @@ struct S4KeyContext
 };
 
 
+S4Err S4Key_NewKey(Cipher_Algorithm       algorithm,
+                         S4KeyContextRef    *ctx);
+
 S4Err S4Key_NewSymmetric(Cipher_Algorithm       algorithm,
                          const void             *key,
                          S4KeyContextRef    *ctx);
