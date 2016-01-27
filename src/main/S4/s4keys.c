@@ -2980,19 +2980,19 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
             keyP->publicKeyEncoded.keysize = 414;
             valid = 1;
         }
-        if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_SYM_2FISH256, strlen(kS4KeyProp_Encoding_SYM_2FISH256)))
+        else if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_SYM_2FISH256, strlen(kS4KeyProp_Encoding_SYM_2FISH256)))
         {
             keyP->type = kS4KeyType_SymmetricEncrypted;
             keyP->symKeyEncoded.encryptingAlgor = kCipher_Algorithm_2FISH256;
             valid = 1;
         }
-        if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_SYM_AES128, strlen(kS4KeyProp_Encoding_SYM_AES128)))
+        else if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_SYM_AES128, strlen(kS4KeyProp_Encoding_SYM_AES128)))
         {
             keyP->type = kS4KeyType_SymmetricEncrypted;
             keyP->symKeyEncoded.encryptingAlgor = kCipher_Algorithm_AES128;
             valid = 1;
         }
-        if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_SYM_AES256, strlen(kS4KeyProp_Encoding_SYM_AES256)))
+        else if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_SYM_AES256, strlen(kS4KeyProp_Encoding_SYM_AES256)))
         {
             keyP->type = kS4KeyType_SymmetricEncrypted;
             keyP->symKeyEncoded.encryptingAlgor = kCipher_Algorithm_AES256;
