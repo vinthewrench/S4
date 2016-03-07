@@ -103,10 +103,7 @@ S4Err  testZbase32()
    
     int i;
     
-
-    OPTESTLogInfo("\n\tzbase32\n");
- 
-    for (i = 0; i < sizeof(kat_vector_array)/ sizeof(katvector) ; i++)
+     for (i = 0; i < sizeof(kat_vector_array)/ sizeof(katvector) ; i++)
     {
         katvector* kat = &kat_vector_array[i];
         
@@ -119,7 +116,7 @@ S4Err  testZbase32()
         
         bin_to_chars((uint8_t*)kat->base2, kat->bits, 24, (char*)binString);
         
-        OPTESTLogInfo("\t\t%4lu %2d %-30s %-32s\n",  kat->bits, INT_CEIL(kat->bits, 8), binString,  kat->zbase32);
+        OPTESTLogVerbose("\t\t%4lu %2d %-30s %-32s\n",  kat->bits, INT_CEIL(kat->bits, 8), binString,  kat->zbase32);
         
         len = zbase32_encode((uint8_t*)encoded, (uint8_t*)kat->base2, kat->bits);
      
@@ -142,8 +139,7 @@ S4Err  TestUtilties()
 {
     S4Err     err = kS4Err_NoErr;
     
-    
-    OPTESTLogInfo("\nTesting S4 Utilities\n");
+    OPTESTLogInfo("\nTesting z-base-32 Encoding\n");
     
     err = testZbase32();
     
