@@ -120,3 +120,5 @@ _S4Key_Clone_ECC_Context
 _S4Key_Import_ECC_Context
 _ECC_CipherAlgorithm
 
+_zbase32_decode
+_zbase32_encode

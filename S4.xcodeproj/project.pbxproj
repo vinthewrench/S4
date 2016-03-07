@@ -407,6 +407,11 @@
 		2E0E20221BF2696600E1E845 /* yajl_common.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20121BF264CB00E1E845 /* yajl_common.h */; };
 		2E0E20231BF2696600E1E845 /* yajl_gen.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20131BF264CB00E1E845 /* yajl_gen.h */; };
 		2E0E20241BF2696600E1E845 /* yajl_parse.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20141BF264CB00E1E845 /* yajl_parse.h */; };
+		2EA8F3751C8E098B007433BB /* testUtilties.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8F36F1C8E0796007433BB /* testUtilties.c */; };
+		2EA8F3761C8E098C007433BB /* testUtilties.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8F36F1C8E0796007433BB /* testUtilties.c */; };
+		2EA8F3771C8E098E007433BB /* testUtilties.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8F36F1C8E0796007433BB /* testUtilties.c */; };
+		2EA8F37A1C8E3BFA007433BB /* zbase32.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8F3781C8E3BFA007433BB /* zbase32.c */; };
+		2EA8F37B1C8E3BFA007433BB /* zbase32.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8F3781C8E3BFA007433BB /* zbase32.c */; };
 		2EAA66191BE7D36E00A0375B /* S4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* S4.framework */; };
 		2EAA661E1BE7D36E00A0375B /* S4Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA661D1BE7D36E00A0375B /* S4Tests.m */; };
 		2EAA662D1BE7D57800A0375B /* s4.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA662B1BE7D57800A0375B /* s4.c */; };
@@ -887,6 +892,8 @@
 		2E0E20131BF264CB00E1E845 /* yajl_gen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yajl_gen.h; path = libs/yajl/src/api/yajl_gen.h; sourceTree = SOURCE_ROOT; };
 		2E0E20141BF264CB00E1E845 /* yajl_parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yajl_parse.h; path = libs/yajl/src/api/yajl_parse.h; sourceTree = SOURCE_ROOT; };
 		2E0E20151BF264CB00E1E845 /* yajl_tree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yajl_tree.h; path = libs/yajl/src/api/yajl_tree.h; sourceTree = SOURCE_ROOT; };
+		2EA8F36F1C8E0796007433BB /* testUtilties.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testUtilties.c; path = src/optest/testUtilties.c; sourceTree = SOURCE_ROOT; };
+		2EA8F3781C8E3BFA007433BB /* zbase32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zbase32.c; path = src/main/S4/zbase32.c; sourceTree = SOURCE_ROOT; };
 		2EAA660E1BE7D36E00A0375B /* S4.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = S4.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2EAA66181BE7D36E00A0375B /* S4-osx Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "S4-osx Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2EAA661D1BE7D36E00A0375B /* S4Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = S4Tests.m; sourceTree = "<group>"; };
@@ -1406,6 +1413,7 @@
 				2E0E1E5E1BEC199800E1E845 /* s4pbkdf2.c */,
 				2E0E1E601BEC1A4A00E1E845 /* s4share.c */,
 				2E0E1E5A1BEC190400E1E845 /* s4tbc.c */,
+				2EA8F3781C8E3BFA007433BB /* zbase32.c */,
 			);
 			name = src;
 			path = S4;
@@ -1446,6 +1454,7 @@
 				2EAA6A5E1BE8198500A0375B /* testECC.c */,
 				2EAA6A611BE81D2B00A0375B /* testP2K.c */,
 				2E0E1FE21BF1373700E1E845 /* testKeys.c */,
+				2EA8F36F1C8E0796007433BB /* testUtilties.c */,
 				2EAA664C1BE7DC6100A0375B /* optest.h */,
 				2EAA66511BE7E27B00A0375B /* optestutilities.c */,
 			);
@@ -2531,6 +2540,7 @@
 				2E0E1EA61BF1102F00E1E845 /* crypt_hash_descriptor.c in Sources */,
 				2E0E1EA71BF1102F00E1E845 /* ecc_make_key.c in Sources */,
 				2E0E1EA81BF1102F00E1E845 /* crypt_ltc_mp_descriptor.c in Sources */,
+				2EA8F37B1C8E3BFA007433BB /* zbase32.c in Sources */,
 				2E0E1EA91BF1102F00E1E845 /* gcm_add_iv.c in Sources */,
 				2E0E1EAA1BF1102F00E1E845 /* s4mac.c in Sources */,
 				2E0E1EAB1BF1102F00E1E845 /* der_encode_short_integer.c in Sources */,
@@ -2837,6 +2847,7 @@
 				2E0E1FDA1BF1133100E1E845 /* testECC.c in Sources */,
 				2E0E1FDB1BF1133100E1E845 /* testP2K.c in Sources */,
 				2E0E1FDC1BF1133100E1E845 /* optest.h in Sources */,
+				2EA8F3771C8E098E007433BB /* testUtilties.c in Sources */,
 				2E0E1FDD1BF1133100E1E845 /* optestutilities.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2900,6 +2911,7 @@
 				2EAA69901BE7EBB000A0375B /* crypt_hash_descriptor.c in Sources */,
 				2EAA6A131BE7EBB000A0375B /* ecc_make_key.c in Sources */,
 				2EAA69921BE7EBB000A0375B /* crypt_ltc_mp_descriptor.c in Sources */,
+				2EA8F37A1C8E3BFA007433BB /* zbase32.c in Sources */,
 				2EAA690C1BE7EBB000A0375B /* gcm_add_iv.c in Sources */,
 				2E0E1E571BEC17F300E1E845 /* s4mac.c in Sources */,
 				2EAA69F61BE7EBB000A0375B /* der_encode_short_integer.c in Sources */,
@@ -3206,6 +3218,7 @@
 				2EAA6A681BE81E8700A0375B /* testP2K.c in Sources */,
 				2EAA6A761BE9963400A0375B /* testTBC.c in Sources */,
 				2EAA6A691BE81E8700A0375B /* optestutilities.c in Sources */,
+				2EA8F3761C8E098C007433BB /* testUtilties.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3223,6 +3236,7 @@
 				2EAA664D1BE7DC6100A0375B /* optest.c in Sources */,
 				2EAA66531BE7E27B00A0375B /* optestutilities.c in Sources */,
 				2EAA6A601BE8198500A0375B /* testECC.c in Sources */,
+				2EA8F3751C8E098B007433BB /* testUtilties.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

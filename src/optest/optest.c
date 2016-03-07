@@ -27,6 +27,7 @@ typedef enum
     kTest_TBC,
     kTest_Share,
     kTest_Keys,
+    kTest_Utilties,
      kTest_All,
 } SDKTest;
 
@@ -37,11 +38,12 @@ static SDKTest sDefaultTests[]  =
     kTest_Hash,
     kTest_Hmac,
     kTest_Ciphers,
-    kTest_TBC,
     kTest_ECC,
     kTest_P2K,
+    kTest_TBC,
     kTest_Share,
     kTest_Keys,
+    kTest_Utilties,
      kTest_Invalid		// null terminated
 };
 
@@ -92,8 +94,9 @@ static TestTable sOpTestTable[] =
     { 0, kArg_TestID,	  NULL,  kTest_P2K,         "P2K",				0,  "Key Derivation (PBKDF2)" },
     { 0, kArg_TestID,	  NULL,  kTest_Share,      "share",             0,  "Secret Sharing / Key Split" },
     { 0, kArg_TestID,	  NULL,  kTest_Keys,       "keys",              0,  "Key Import / Export" },
- 
-    { 0, kArg_TestID,	  NULL,  kTest_Invalid,		 "none",				0,  NULL },
+    { 0, kArg_TestID,	  NULL,  kTest_Utilties,    "utilties",       0,  "S4 Utilties" },
+    
+     { 0, kArg_TestID,	  NULL,  kTest_Invalid,		 "none",				0,  NULL },
     
     /* arguments/modifiers */
     { 0, kArg_Boolean,  &sVerbose_flag,	kTest_Invalid,	"verbose",		'v',  "Enables verbose output" },
@@ -371,6 +374,8 @@ int optest_main(int argc, char **argv)
                     err = TestKeys();
                     break;
                     
+                case kTest_Utilties:
+                    err = TestUtilties();
                 default:;
             }
             CKERR;

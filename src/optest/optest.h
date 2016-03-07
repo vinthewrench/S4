@@ -104,5 +104,5 @@ S4Err TestP2K();
 S4Err TestTBCiphers();
 S4Err TestSecretSharing();
 S4Err TestKeys();
-
+S4Err  TestUtilties();
 #endif /* optest_h */

@@ -177,6 +177,18 @@ done:
 
 
 
+- (void)testUtilities {
+    S4Err err = kS4Err_NoErr;
+    
+    err =TestUtilties();CKERR;
+    
+done:
+    
+    [self CheckError:err];
+}
+
+
+
 - (void)testKeys {
     S4Err err = kS4Err_NoErr;
     

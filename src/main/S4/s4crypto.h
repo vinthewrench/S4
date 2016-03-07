@@ -405,4 +405,36 @@ char* PGPWordOdd(uint8_t in);
 char* PGPWordEven(uint8_t in);
 
 
+#ifdef __clang__
+#pragma mark - zbase32 encoding
+#endif
+
+
+/* Z-base-32 as defined by
+  http://philzimmermann.com/docs/human-oriented-base-32-encoding.txt
+*/
+
+
+/*
+ * Decode bits of encoded using z-base-32 and write the result into
+ * decoded. If 8 is not a factor of bits, pad the output with zero bits
+ * until a full byte is written.
+ *
+ * Returns the number of bytes written, or -1 if a byte that is not the
+ * ASCII representation of a valid z-base-32 character is read.
+ */
+int zbase32_decode(uint8_t *decoded,
+                   const uint8_t *encoded,
+                   unsigned int bits);
+
+/*
+ * Encode bits of input into z-base-32, and write the result into encoded.
+ *
+ * Returns the number of bytes written.
+ */
+int zbase32_encode(uint8_t *encoded,
+                   const uint8_t *input,
+                   unsigned int bits);
+
+
 #endif /* s4crypto_h */
