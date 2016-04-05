@@ -409,7 +409,7 @@ S4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t
      uint8_t         pubKey[256];
     size_t          pubKeyLen = 0;
     
-    u08b_t          hashBuf[16];
+    u08b_t          hashBuf[32];
     size_t          hashBytes = 0;
    
     validateECCContext(ctx);
