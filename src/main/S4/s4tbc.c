@@ -79,7 +79,9 @@ S4Err TBC_Init(Cipher_Algorithm algorithm,
     tbcCTX->algor = algorithm;
     tbcCTX->keybits = keybits;
     
-    Skein_Get64_LSB_First(tbcCTX->key, key, tbcCTX->keybits >>5);   /* bytes to words */
+    memcpy(tbcCTX->key, key, tbcCTX->keybits >> 3);
+    
+//    Skein_Get64_LSB_First(tbcCTX->key, key, tbcCTX->keybits >>5);   /* bytes to words */
     
     threefishSetKey(&tbcCTX->state, tbcCTX->keybits, tbcCTX->key, tweek);
     
@@ -119,7 +121,9 @@ S4Err TBC_SetTweek(TBC_ContextRef ctx,
     
     validateTBCContext(ctx);
     
-    Skein_Get64_LSB_First(tweek, tweekIn, 2);   /* bytes to words */
+    memcpy(tweek, tweekIn, sizeof(tweek));
+    
+ //   Skein_Get64_LSB_First(tweek, tweekIn, 2);   /* bytes to words */
     
     threefishSetKey(&ctx->state, ctx->keybits, ctx->key, tweek);
     

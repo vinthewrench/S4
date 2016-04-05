@@ -753,7 +753,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 break;
                 
             case kS4KeyType_Tweekable:
-                err =  sKEY_HASH((uint8_t*)ctx->tbc.key, ctx->sym.keylen, ctx->type,
+                err =  sKEY_HASH((uint8_t*)ctx->tbc.key, ctx->sym.keylen >> 3, ctx->type,
                                  ctx->tbc.tbcAlgor, keyHash, kS4KeyPublic_Encrypted_HashBytes );
                 
                 COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
@@ -1005,7 +1005,9 @@ static S4Err sDecryptFromPubKey( S4KeyContextRef      encodedCtx,
         
         ASSERTERR(decryptedLen == keyBytes , kS4Err_CorruptData );
         
-        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
+        memcpy(keyCTX->tbc.key, decrypted_key, keyBytes);
+        
+ //       Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
     }
     else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Share)
     {
@@ -1427,7 +1429,9 @@ S4Err S4Key_NewTBC(     Cipher_Algorithm       algorithm,
     keyCTX->tbc.tbcAlgor = algorithm;
     keyCTX->tbc.keybits = keybits;
    
-    Skein_Get64_LSB_First(keyCTX->tbc.key, key, keybits >>5);   /* bits to words */
+    memcpy(keyCTX->tbc.key, key, keybits >> 3);
+    
+ //   Skein_Get64_LSB_First(keyCTX->tbc.key, key, keybits >>5);   /* bits to words */
     
     *ctxOut = keyCTX;
     
@@ -3435,7 +3439,9 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
         err =  ECB_Decrypt(encyptAlgor, unlocking_key, passCtx->pbkdf2.encrypted,
                            keyBytes,  decrypted_key); CKERR;
 
-        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
+        memcpy(keyCTX->tbc.key, decrypted_key, keyBytes);
+        
+  //      Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
       }
     else  if(passCtx->pbkdf2.keyAlgorithmType == kS4KeyType_Share)
     {
@@ -3566,7 +3572,8 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
         
         err =  ECB_Decrypt(encyptAlgor, unlockingKey, keyToDecrypt, decryptedLen, decrypted_key); CKERR;
         
-        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, decryptedLen >>2);   /* bytes to words */
+        memcpy(keyCTX->tbc.key, decrypted_key, decryptedLen);
+//        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, decryptedLen >>2);   /* bytes to words */
   
         // check integrity of decypted value against the MAC
         err = sKEY_HASH(decrypted_key, decryptedLen, keyCTX->type,  keyCTX->sym.symAlgor,
