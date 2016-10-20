@@ -390,10 +390,10 @@
 		2E0E20061BF264BC00E1E845 /* yajl_lex.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF31BF264BC00E1E845 /* yajl_lex.c */; };
 		2E0E20071BF264BC00E1E845 /* yajl_lex.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF31BF264BC00E1E845 /* yajl_lex.c */; };
 		2E0E20081BF264BC00E1E845 /* yajl_lex.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E0E1FF41BF264BC00E1E845 /* yajl_lex.h */; };
-		2E0E20091BF264BC00E1E845 /* yajl_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF51BF264BC00E1E845 /* yajl_parser.c */; };
+		2E0E20091BF264BC00E1E845 /* yajl_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF51BF264BC00E1E845 /* yajl_parser.c */; settings = {COMPILER_FLAGS = "-Wno-shorten-64-to-32"; }; };
 		2E0E200A1BF264BC00E1E845 /* yajl_parser.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF51BF264BC00E1E845 /* yajl_parser.c */; };
 		2E0E200B1BF264BC00E1E845 /* yajl_parser.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E0E1FF61BF264BC00E1E845 /* yajl_parser.h */; };
-		2E0E200C1BF264BC00E1E845 /* yajl_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF71BF264BC00E1E845 /* yajl_tree.c */; };
+		2E0E200C1BF264BC00E1E845 /* yajl_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF71BF264BC00E1E845 /* yajl_tree.c */; settings = {COMPILER_FLAGS = "-Wno-shorten-64-to-32"; }; };
 		2E0E200D1BF264BC00E1E845 /* yajl_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF71BF264BC00E1E845 /* yajl_tree.c */; };
 		2E0E20101BF264BC00E1E845 /* yajl.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF91BF264BC00E1E845 /* yajl.c */; };
 		2E0E20111BF264BC00E1E845 /* yajl.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FF91BF264BC00E1E845 /* yajl.c */; };
