@@ -571,6 +571,10 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                         actualLength = sizeof(ctx->publicKeyEncoded.keyID);
                         break;
                         
+                    case kS4KeyType_SymmetricEncrypted:
+                        actualLength = sizeof(ctx->symKeyEncoded.keyID);
+                        break;
+                        
                     case kS4KeyType_PublicKey:
                         actualLength = sizeof(ctx->pub.keyID);
                         break;
@@ -608,6 +612,11 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
             else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
             {
                 switch (ctx->type) {
+                        
+                    case kS4KeyType_SymmetricEncrypted:
+                        actualLength = (((sizeof(ctx->symKeyEncoded.keyID) + 2) / 3) * 4) + 1;
+                        break;
+                        
                     case kS4KeyType_PublicEncrypted:
                         actualLength = (((sizeof(ctx->publicKeyEncoded.keyID) + 2) / 3) * 4) + 1;
                         break;
@@ -714,8 +723,12 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
     if(STRCMP2(propName, kS4KeyProp_KeyID))
     {
         switch (ctx->type) {
-            case kS4KeyType_PublicEncrypted:
                 
+            case kS4KeyType_SymmetricEncrypted:
+                COPY(&ctx->symKeyEncoded.keyID , buffer, actualLength);
+                break;
+
+            case kS4KeyType_PublicEncrypted:
                 COPY(&ctx->publicKeyEncoded.keyID , buffer, actualLength);
                 break;
                 
@@ -779,6 +792,14 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
     else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
     {
         switch (ctx->type) {
+                
+            case kS4KeyType_SymmetricEncrypted:
+                err = base64_encode(ctx->symKeyEncoded.keyID, sizeof(ctx->symKeyEncoded.keyID), buffer, &actualLength); CKERR;
+                actualLength++;
+                buffer[actualLength]= '\0';
+                break;
+                
+
             case kS4KeyType_PublicEncrypted:
                 err = base64_encode(ctx->publicKeyEncoded.keyID, sizeof(ctx->publicKeyEncoded.keyID), buffer, &actualLength); CKERR;
                 actualLength++;
