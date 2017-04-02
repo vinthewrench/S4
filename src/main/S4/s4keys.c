@@ -22,7 +22,7 @@
 
 
 
-#include "s4Internal.h"
+#include "s4internal.h"
 
 #include <yajl_parse.h>
 #include <yajl_gen.h>

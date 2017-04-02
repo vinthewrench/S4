@@ -7,7 +7,7 @@
 //
 
 
-#include "s4Internal.h"
+#include "s4internal.h"
 
 
 #ifdef __clang__

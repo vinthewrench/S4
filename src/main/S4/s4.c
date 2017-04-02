@@ -6,8 +6,8 @@
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
- #include "s4.h"
-#include "s4Internal.h"
+#include "s4.h"
+#include "s4internal.h"
   
 #ifdef __clang__
 #pragma mark - init

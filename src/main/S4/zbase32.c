@@ -25,7 +25,7 @@
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "s4Internal.h"
+#include "s4internal.h"
 
 static const char *alphabet = "ybndrfg8ejkmcpqxot1uwisza345h769";
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0820"
+   LastUpgradeVersion = "0800"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2EAA660D1BE7D36E00A0375B"
-               BuildableName = "S4.framework"
-               BlueprintName = "S4-osx"
+               BlueprintIdentifier = "2EAA66411BE7DB5900A0375B"
+               BuildableName = "S4-optest"
+               BlueprintName = "S4-optest"
                ReferencedContainer = "container:S4.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,23 +28,13 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2EAA66171BE7D36E00A0375B"
-               BuildableName = "S4-osx Tests.xctest"
-               BlueprintName = "S4-osx Tests"
-               ReferencedContainer = "container:S4.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2EAA660D1BE7D36E00A0375B"
-            BuildableName = "S4.framework"
-            BlueprintName = "S4-osx"
+            BlueprintIdentifier = "2EAA66411BE7DB5900A0375B"
+            BuildableName = "S4-optest"
+            BlueprintName = "S4-optest"
             ReferencedContainer = "container:S4.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -61,15 +51,16 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2EAA660D1BE7D36E00A0375B"
-            BuildableName = "S4.framework"
-            BlueprintName = "S4-osx"
+            BlueprintIdentifier = "2EAA66411BE7DB5900A0375B"
+            BuildableName = "S4-optest"
+            BlueprintName = "S4-optest"
             ReferencedContainer = "container:S4.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -79,15 +70,16 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2EAA660D1BE7D36E00A0375B"
-            BuildableName = "S4.framework"
-            BlueprintName = "S4-osx"
+            BlueprintIdentifier = "2EAA66411BE7DB5900A0375B"
+            BuildableName = "S4-optest"
+            BlueprintName = "S4-optest"
             ReferencedContainer = "container:S4.xcodeproj">
          </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

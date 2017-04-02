@@ -1,13 +1,13 @@
 //
-//  s4Internal.h
+//  s4internal.h
 //  S4
 //
 //  Created by vincent Moscaritolo on 11/5/15.
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#ifndef s4Internal_h
-#define s4Internal_h
+#ifndef s4internal_h
+#define s4internal_h
 
 
 #include <tomcrypt.h>
@@ -16,7 +16,6 @@
 
 
 #include "s4.h"
-#include "s4Internal.h"
 
 #ifdef __APPLE__
 #import "git_version_hash.h"
@@ -49,4 +48,4 @@ bool sECC_ContextIsValid( const ECC_ContextRef  ref);
 #define validateECCContext( s )		\
 ValidateParam( sECC_ContextIsValid( s ) )
 
-#endif /* s4Internal_h */
+#endif /* s4internal_h */
