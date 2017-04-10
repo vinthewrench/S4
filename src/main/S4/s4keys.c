@@ -107,9 +107,10 @@ char *const kS4KeyProp_KeyIDString      = K_PROP_KEYIDSTR;
 char *const kS4KeyProp_Mac               = K_PROP_MAC;
 char *const kS4KeyProp_StartDate            = K_PROP_STARTDATE;
 char *const kS4KeyProp_ExpireDate           = K_PROP_EXPIREDATE;
+char *const kS4KeyProp_EncryptedKey      = K_PROP_ENCRYPTED;
+char *const kS4KeyProp_Encoding          = K_PROP_ENCODING;
 
 static char *const kS4KeyProp_SCKeyVersion      = K_PROP_VERSION;
-static char *const kS4KeyProp_Encoding          = K_PROP_ENCODING;
 
 static char *const kS4KeyProp_Encoding_SYM_AES128    = K_KEYSUITE_AES128;
 static char *const kS4KeyProp_Encoding_SYM_AES256    = K_KEYSUITE_AES256;
@@ -125,7 +126,6 @@ static char *const kS4KeyProp_Encoding_PUBKEY_ECC384   =  "ECC-384";
 static char *const kS4KeyProp_Encoding_PUBKEY_ECC414   =  "Curve41417";
 static char *const kS4KeyProp_Salt              = K_PROP_SALT;
 static char *const kS4KeyProp_Rounds            = K_PROP_ROUNDS;
-static char *const kS4KeyProp_EncryptedKey      = K_PROP_ENCRYPTED;
 
 static char *const kS4KeyProp_ShareIndex      = K_INDEX;
 static char *const kS4KeyProp_ShareThreshold  = K_THRESHLOLD;
@@ -547,6 +547,10 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
             {
                 actualLength =  sizeof(uint32_t);
             }
+            else if(STRCMP2(propName, kS4KeyProp_Encoding))
+            {
+                actualLength =  sizeof(uint32_t);
+            }
             else if(STRCMP2(propName, kS4KeyProp_KeyData))
             {
                 switch (ctx->type) {
@@ -559,6 +563,9 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                         break;
                         
                     case kS4KeyType_PublicEncrypted:
+                        actualLength = ctx->publicKeyEncoded.encryptedLen;
+                         break;
+                        
                     case kS4KeyType_PBKDF2:
                     default:
                         RETERR(kS4Err_BadParams);
@@ -598,6 +605,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                     case kS4KeyType_Symmetric:
                     case kS4KeyType_Tweekable:
                     case kS4KeyType_Share:
+                    case kS4KeyType_PublicEncrypted:
                         actualLength = kS4KeyPublic_Encrypted_HashBytes;
                         break;
                         
@@ -697,10 +705,35 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 break;
                 
             case kS4KeyType_PublicEncrypted:
+                COPY(&ctx->publicKeyEncoded.cipherAlgor , buffer, actualLength);
+                break;
+                
             case kS4KeyType_PBKDF2:
             default:
                 RETERR(kS4Err_BadParams);
                 
+        }
+    }
+    else if(STRCMP2(propName, kS4KeyProp_Encoding))
+    {
+        switch (ctx->type) {
+            case kS4KeyType_PublicEncrypted:
+            {
+                Cipher_Algorithm  algor = kCipher_Algorithm_Invalid;
+                
+                switch(ctx->publicKeyEncoded.keysize)
+                {
+                    case 384: algor = kCipher_Algorithm_ECC384; break;
+                    case 414: algor = kCipher_Algorithm_ECC414 ; break;
+                    default: algor = kCipher_Algorithm_Invalid;
+                }
+                COPY(&algor , buffer, actualLength);
+                
+            }
+                break;
+                
+            default:
+                RETERR(kS4Err_BadParams);
         }
     }
     else if(STRCMP2(propName, kS4KeyProp_KeyData))
@@ -715,12 +748,15 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 break;
                 
             case kS4KeyType_PublicEncrypted:
+                COPY(&ctx->publicKeyEncoded.encrypted , buffer, actualLength);
+                break;
+     
             case kS4KeyType_PBKDF2:
             default:
                 RETERR(kS4Err_BadParams);
         }
     }
-    if(STRCMP2(propName, kS4KeyProp_KeyID))
+    else if(STRCMP2(propName, kS4KeyProp_KeyID))
     {
         switch (ctx->type) {
                 
@@ -783,6 +819,11 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 //
                 //            case kS4KeyType_PublicEncrypted:
                 //                  break;
+                
+                
+            case kS4KeyType_PublicEncrypted:
+                 COPY(ctx->publicKeyEncoded.keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
+                break;
                 
             default:
                 RETERR(kS4Err_BadParams);
