@@ -42,6 +42,8 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1, bool i
     int8_t      key1[128], key2[128];
     size_t      keyLen1, keyLen2;
     
+    time_t          date1,date2;
+    
     uint8_t         keyHash1[kS4KeyPBKDF2_HashBytes] = {0};
     uint8_t         keyHash2[kS4KeyPBKDF2_HashBytes] = {0};
 
@@ -162,6 +164,32 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1, bool i
                 
         };
             break;
+         
+        case kS4KeyType_Signature:
+        {
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_SignedBy, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_SignedBy, NULL, &keyID2, sizeof(keyID2), NULL ); CKERR;
+            
+            err = compareResults( keyID1, keyID2, kS4Key_KeyIDBytes,
+                                 kResultFormat_Byte, "SignedBy"); CKERR;
+            
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_SignedDate, NULL,  &date1, sizeof(time_t),NULL); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_SignedDate, NULL, &date2, sizeof(time_t), NULL); CKERR;
+            ASSERTERR(date1 == date2,  kS4Err_SelfTestFailed);
+  
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_SigExpire, NULL,  &date1, sizeof(time_t),NULL); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_SigExpire, NULL, &date2, sizeof(time_t), NULL); CKERR;
+            ASSERTERR(date1 == date2,  kS4Err_SelfTestFailed);
+            
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_SigID, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1,kS4KeyProp_SigID, NULL, &keyID2, sizeof(keyID2), NULL ); CKERR;
+            
+            err = compareResults( keyID1, keyID2, kS4Key_KeyIDBytes,
+                                 kResultFormat_Byte, "SigID"); CKERR;
+            
+        }
+            
+            break;
             
         default:
             err = kS4Err_UnknownError;
@@ -180,8 +208,8 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1, bool i
         void     *data1 = NULL;
         size_t      data1Len = 0;
         
-        err = SCKeyGetAllocatedProperty(keyCtx, (const char*) prop->prop, &type1, &data1, &data1Len); CKERR;
-        err = SCKeyGetAllocatedProperty(keyCtx1, (const char*) prop->prop, &type2, &data2, &data2Len); CKERR;
+        err = S4Key_GetAllocatedProperty(keyCtx, (const char*) prop->prop, &type1, &data1, &data1Len); CKERR;
+        err = S4Key_GetAllocatedProperty(keyCtx1, (const char*) prop->prop, &type2, &data2, &data2Len); CKERR;
         
         ASSERTERR(type1 == type2,  kS4Err_SelfTestFailed);
         
@@ -1468,16 +1496,97 @@ done:
 
 }
 
+static S4Err sTestKeySigs( S4KeyContextRef pubCtx,
+                          S4KeyContextRef otherKeyCtx)
+{
+    S4Err     err = kS4Err_NoErr;
+
+    S4KeyContextRef     *sigListCtx = NULL;
+    size_t              sigCount = 0;
+ 
+    
+    uint8_t             selfkeyID[kS4Key_KeyIDBytes]  = {0};
+    uint8_t             otherKeyID[kS4Key_KeyIDBytes]  = {0};
+   
+    
+    err = S4Key_GetProperty(pubCtx, kS4KeyProp_KeyID, NULL, &selfkeyID, sizeof(selfkeyID), NULL ); CKERR;
+    err = S4Key_GetProperty(otherKeyCtx, kS4KeyProp_KeyID, NULL, &otherKeyID, sizeof(otherKeyID), NULL ); CKERR;
+    
+    // check sigs
+    err =  S4Key_GetKeySignatures(pubCtx,&sigCount, &sigListCtx); CKERR;
+    ASSERTERR(sigCount == 2,  kS4Err_SelfTestFailed);
+    OPTESTLogDebug("\t  Found %d Key Signatures\n",sigCount );
+
+    
+    for(int i = 0; i <sigCount; i++)
+    {
+        S4KeyContextRef sigCtx = sigListCtx[i];
+        if(sigCtx)
+        {
+            if(sigCtx->type == kS4KeyType_Signature)
+            {
+                OPTESTLogDebug("\t\t  KeyID: " );
+                dumpKeyID(IF_LOG_DEBUG, sigCtx->sig.issuerID);
+                OPTESTLogDebug(" " );
+                dumpTime(IF_LOG_DEBUG, sigCtx->sig.signDate);
+                if(sigCtx->sig.expirationTime)
+                {
+                    OPTESTLogDebug("  Exp: %ld", sigCtx->sig.expirationTime);
+                }
+                
+                // check self sig
+                if(S4Key_CompareKeyID(sigCtx->sig.issuerID, selfkeyID))
+                {
+                    err = S4Key_VerfiyKeySig(pubCtx, pubCtx, sigCtx); CKERR;
+                }
+                
+                // check other sig
+                else if(S4Key_CompareKeyID(sigCtx->sig.issuerID, otherKeyID))
+                {
+                    // check  sig
+                    err = S4Key_VerfiyKeySig(pubCtx, otherKeyCtx, sigCtx); CKERR;
+                }
+                else
+                {
+                    OPTESTLogDebug("\n Found Other Key Sig: \n" );
+                    ASSERTERR(0, kS4Err_SelfTestFailed);
+                }
+                
+                OPTESTLogDebug(" - OK\n" );
+                
+            }
+        }
+    }
+
+    
+done:
+   
+    if(sigListCtx)
+    {
+        for(int i = 0; i <sigCount; i++)
+            if(sigListCtx[i])  S4Key_Free(sigListCtx[i]);
+  
+        XFREE(sigListCtx);
+    }
+    
+    return err;
+
+}
 
 static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
 {
     S4Err     err = kS4Err_NoErr;
     S4KeyContextRef pubCtx      =  kInvalidS4KeyContextRef;
     S4KeyContextRef pubCtx1     =  kInvalidS4KeyContextRef;
+    S4KeyContextRef signPubCtx1     =  kInvalidS4KeyContextRef;
+
     S4KeyContextRef passKeyCtx  =  kInvalidS4KeyContextRef;
     S4KeyContextRef copiedCtx   =  kInvalidS4KeyContextRef;
  
     S4KeyContextRef symKeyCtx   =  kInvalidS4KeyContextRef;
+ 
+    S4KeyContextRef detSigCtx     =  kInvalidS4KeyContextRef;
+    S4KeyContextRef detSigCtx1     =  kInvalidS4KeyContextRef;
     
     ECC_ContextRef  ecc         = kInvalidECC_ContextRef;
     char* name = NULL;
@@ -1491,42 +1600,89 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     size_t      dataLen = 0;
     time_t          testDate  = time(NULL) ;
   
+    uint8_t        SIG[256];
+    size_t         SIGlen = 0;
+
     S4KeyContextRef     *importCtx = NULL;
     S4KeyContextRef     *importPubCtx =  NULL;
-   
     
+    S4KeyPropertyExtendedType   exProp = S4KeyPropertyExtendedType_None;
     uint8_t K3[] = {
         0x00, 0x01, 0x02, 0x03, 0x05, 0x06, 0x07, 0x08,
         0x0A, 0x0B, 0x0C, 0x0D, 0x0F, 0x10, 0x11, 0x12,
         0x14, 0x15, 0x16, 0x17, 0x19, 0x1A, 0x1B, 0x1C,
         0x1E, 0x1F, 0x20, 0x21, 0x23, 0x24, 0x25, 0x26
     };
-    
-    
-     size_t      keyCount = 0;
+
+    size_t      keyCount = 0;
     
     name = cipher_algor_table(keyAlgorithm);
     
     OPTESTLogVerbose("\t%-8s\n", name);
     
+    err = S4Key_NewPublicKey(keyAlgorithm, &signPubCtx1); CKERR;
+    err = S4Key_SetPropertyExtended(signPubCtx1, kS4KeyProp_Owner, S4KeyPropertyType_UTF8String , S4KeyPropertyExtended_Signable,
+                                    "Signing Guy", 11 ); CKERR;
+    
     OPTESTLogDebug("\t  Create ");
     err = S4Key_NewPublicKey(keyAlgorithm, &pubCtx); CKERR;
-    err = S4Key_SetProperty(pubCtx, kS4KeyProp_StartDate, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
-    err = S4Key_SetProperty(pubCtx, kS4KeyProp_Owner, S4KeyPropertyType_UTF8String ,  "PhucLong", 8 ); CKERR;
+    
+    err = S4Key_SetProperty(pubCtx, kS4KeyProp_StartDate, S4KeyPropertyType_Time,
+                                    &testDate, sizeof(time_t)); CKERR;
+    
+    // check that kS4KeyProp_StartDate shows asS4KeyPropertyExtended_Signable
+    err = S4Key_GetExtendedProperty(pubCtx, kS4KeyProp_StartDate, &exProp); CKERR;
+    ASSERTERR(exProp && S4KeyPropertyExtended_Signable == S4KeyPropertyExtended_Signable,  kS4Err_SelfTestFailed);
 
-    
-    
-    err = SCKeyGetAllocatedProperty(pubCtx, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
+    err = S4Key_SetPropertyExtended(pubCtx, kS4KeyProp_Owner, S4KeyPropertyType_UTF8String , S4KeyPropertyExtended_Signable,
+                                    "PhucLong", 8 ); CKERR;
+  
+    err = S4Key_GetExtendedProperty(pubCtx, kS4KeyProp_Owner, &exProp); CKERR;
+    ASSERTERR(exProp && S4KeyPropertyExtended_Signable == S4KeyPropertyExtended_Signable,  kS4Err_SelfTestFailed);
+
+    err = S4Key_GetAllocatedProperty(pubCtx, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
     OPTESTLogDebug("KeyID: %s\n",  keyIDStr);
+
+    OPTESTLogDebug("\t  Low level Public Key Sign / Verify\n");
+    err = S4Key_SignHash(pubCtx, K3,sizeof(K3),SIG, sizeof(SIG), &SIGlen); CKERR;
+  
+    OPTESTLogDebug("\t\tPublic Key Sign - low level (%ld bytes) \n", SIGlen);
+    err = S4Key_VerifyHash(pubCtx,  K3,sizeof(K3), SIG, SIGlen);  CKERR;
+    
+    // self sign key
+    OPTESTLogDebug("\t  self sign key\n");
+    err = S4Key_SignKey(pubCtx, pubCtx, LONG_MAX); CKERR;
+  
+    // Add one more property before siging
+    err = S4Key_SetPropertyExtended(pubCtx, "Other" , S4KeyPropertyType_UTF8String , S4KeyPropertyExtended_Signable,
+                                    "xxxx", 4 ); CKERR;
+    
+    OPTESTLogDebug("\t  additional sign key\n");
+    err = S4Key_SignKey(signPubCtx1, pubCtx, 30 * 60*60*24 ); CKERR;
+   
+     // check cloning
+    err = S4Key_Copy(pubCtx, &copiedCtx);
+    err = sCompareKeys(pubCtx,copiedCtx, true); CKERR;
+    S4Key_Free(copiedCtx); copiedCtx = kInvalidS4KeyContextRef;
     
     OPTESTLogDebug("\t  Import/Export Pub\n");
     err = S4Key_SerializePubKey(pubCtx, &data, &dataLen); CKERR;
-   OPTESTLogDebug("------\n%s------\n",data);
+    OPTESTLogDebug("------\n%s------\n",data);
    
     err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importPubCtx ); CKERR;
     ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
     XFREE(data); data = NULL;
     err = sCompareKeys(pubCtx, importPubCtx[0], true); CKERR;
+    
+    // check in imported properties show as signable
+    err = S4Key_GetExtendedProperty(importPubCtx[0], kS4KeyProp_Owner, &exProp); CKERR;
+    ASSERTERR(exProp && S4KeyPropertyExtended_Signable == S4KeyPropertyExtended_Signable,  kS4Err_SelfTestFailed);
+
+     err = S4Key_GetExtendedProperty(importPubCtx[0], kS4KeyProp_StartDate, &exProp); CKERR;
+     ASSERTERR(exProp && S4KeyPropertyExtended_Signable == S4KeyPropertyExtended_Signable,  kS4Err_SelfTestFailed);
+
+    // check sigs
+    err = sTestKeySigs(importPubCtx[0],signPubCtx1); CKERR;
     
     // check the key itself
     err = S4Key_Clone_ECC_Context(importPubCtx[0], &ecc);
@@ -1558,9 +1714,23 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
    
     err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importCtx ); CKERR;
     ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
- 
+    XFREE(data); data = NULL;
+    
     err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &pubCtx1); CKERR;
+    if(importPubCtx)
+    {
+        if(S4KeyContextRefIsValid(importPubCtx[0]))
+        {
+            S4Key_Free(importPubCtx[0]);
+        }
+        XFREE(importPubCtx);
+        importPubCtx = NULL;
+    }
+    
     err = sCompareKeys(pubCtx, pubCtx1, true); CKERR;
+   
+    // check sigs
+    err = sTestKeySigs(pubCtx1,signPubCtx1);CKERR;
     
     // check the ecc key itself
     err = S4Key_Clone_ECC_Context(pubCtx1, &ecc);
@@ -1569,14 +1739,99 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     err = S4Key_GetProperty(pubCtx1, kS4KeyProp_KeyID, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
     err = compareResults( keyID, keyID1, kS4Key_KeyIDBytes, kResultFormat_Byte, "keyID"); CKERR;
     ECC_Free(ecc); ecc  = kInvalidECC_ContextRef;
-   
+
     OPTESTLogDebug("\t  Clone Private\n");
     err = S4Key_Copy(pubCtx1, &copiedCtx);
     err = sCompareKeys(pubCtx1,copiedCtx, true); CKERR;
     S4Key_Free(copiedCtx); copiedCtx = kInvalidS4KeyContextRef;
+
+    OPTESTLogDebug("\t  Test Detached Sigs\n");
+    err = S4Key_NewSignature(signPubCtx1, K3,sizeof(K3),30 * 60*60*24,  &detSigCtx); CKERR;
+    err = S4Key_SetProperty(detSigCtx, "FileName", S4KeyPropertyType_UTF8String , "foo.bar", 7 ); CKERR;
+
+    uint8_t     certKeyID[kS4Key_KeyIDBytes]  = {0};
     
+    err = S4Key_SignKey(pubCtx, detSigCtx, 300); CKERR;
+    err = S4Key_GetProperty(pubCtx, kS4KeyProp_KeyID, NULL, &certKeyID, sizeof(certKeyID), NULL ); CKERR;
     
-done:
+    err = S4Key_Copy(detSigCtx, &detSigCtx1); CKERR;
+    err = sCompareKeys(detSigCtx, detSigCtx1, true); CKERR;
+    
+    err = S4Key_SerializeSignature(detSigCtx1, &data, &dataLen); CKERR;
+    OPTESTLogDebug("------\n%s------\n",data);
+  
+    err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importCtx ); CKERR;
+    ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
+    XFREE(data); data = NULL;
+    
+    err = sCompareKeys(detSigCtx, importCtx[0], true); CKERR;
+   
+    // check for proper signing key
+
+    err = S4Key_GetProperty(importCtx[0], kS4KeyProp_SignedBy, NULL, &keyID, sizeof(keyID), NULL ); CKERR;
+    err = S4Key_GetProperty(signPubCtx1, kS4KeyProp_KeyID, NULL, &keyID1, sizeof(keyID), NULL ); CKERR;
+    if( S4Key_CompareKeyID(keyID1, keyID))
+    {
+        err = S4Key_VerifySignature(importCtx[0], signPubCtx1, K3,sizeof(K3));CKERR;
+    }
+    else
+    {
+        OPTESTLogDebug("\n Found Other Key Sig: \n" );
+        ASSERTERR(0, kS4Err_SelfTestFailed);
+    }
+    
+    // check sub sigs
+    {
+        S4KeyContextRef     *sigListCtx = NULL;
+        size_t              sigCount = 0;
+        
+        // check sigs
+        err =  S4Key_GetKeySignatures(importCtx[0],&sigCount, &sigListCtx); CKERR;
+        ASSERTERR(sigCount == 1,  kS4Err_SelfTestFailed);
+        OPTESTLogDebug("\t  Found %d Key Signatures\n",sigCount );
+
+        for(int i = 0; i <sigCount; i++)
+        {
+            S4KeyContextRef sigCtx = sigListCtx[i];
+            if(sigCtx)
+            {
+                if(sigCtx->type == kS4KeyType_Signature)
+                {
+                    OPTESTLogDebug("\t\t  KeyID: " );
+                    dumpKeyID(IF_LOG_DEBUG, sigCtx->sig.issuerID);
+                    OPTESTLogDebug(" " );
+                    dumpTime(IF_LOG_DEBUG, sigCtx->sig.signDate);
+                    if(sigCtx->sig.expirationTime)
+                    {
+                        OPTESTLogDebug("  Exp: %ld", sigCtx->sig.expirationTime);
+                    }
+                    
+                    if(S4Key_CompareKeyID(sigCtx->sig.issuerID, certKeyID))
+                    {
+                        // check  sig
+                        err = S4Key_VerfiyKeySig(importCtx[0], pubCtx, sigCtx); CKERR;
+                    }
+                    else
+                    {
+                        OPTESTLogDebug("\n Found Other Key Sig: \n" );
+                        ASSERTERR(0, kS4Err_SelfTestFailed);
+                    }
+                    OPTESTLogDebug(" - OK\n" );
+                    
+                }
+            }
+        }
+        if(sigListCtx)
+        {
+            for(int i = 0; i <sigCount; i++)
+                if(sigListCtx[i])  S4Key_Free(sigListCtx[i]);
+            
+            XFREE(sigListCtx);
+        }
+
+    }
+    
+   done:
     if(data)
         XFREE(data);
     
@@ -1597,6 +1852,16 @@ done:
         S4Key_Free(copiedCtx);
     }
 
+    if(S4KeyContextRefIsValid(detSigCtx))
+    {
+        S4Key_Free(detSigCtx);
+    }
+ 
+    if(S4KeyContextRefIsValid(detSigCtx1))
+    {
+        S4Key_Free(detSigCtx1);
+    }
+
     if(S4KeyContextRefIsValid(pubCtx))
     {
         S4Key_Free(pubCtx);
@@ -1612,6 +1877,10 @@ done:
         S4Key_Free(passKeyCtx);
     }
    
+    if(S4KeyContextRefIsValid(signPubCtx1))
+    {
+        S4Key_Free(signPubCtx1);
+    }
    
     OPTESTLogDebug("\n");
     return err;
@@ -1641,15 +1910,14 @@ S4Err  TestKeys()
     int i;
     
     asprintf(&exported_keys,"[" );
-
+    
     err = sTestSymmetricKeys(); CKERR;
     err = sTestTBCKeys(); CKERR;
     err = sTestECC_TBCKeys(); CKERR;
     err = sTestECC_SymmetricKeys(); CKERR;
     err = sTest_SharedSymTBCKeys(); CKERR;
     err = sTestPublicKeys(); CKERR;
-    
-
+ 
     OPTESTLogInfo("\nTesting decoding of exported key array\n");
     asprintf(&exported_keys,"%s ]", exported_keys );
     err = S4Key_DeserializeKeys((uint8_t*)exported_keys, strlen(exported_keys), &keyCount, &encodedCtx ); CKERR;
@@ -1664,17 +1932,19 @@ S4Err  TestKeys()
             
             S4KeyType   type1;
             char**       keyIDStr = NULL;
+            size_t      datSize = 0;
             
             err = S4Key_GetProperty(keyP, kS4KeyProp_KeyType, NULL, &type1, sizeof(type1), NULL ); CKERR;
-            switch (type1) {
+            switch (type1)
+            {
                 case kS4KeyType_PBKDF2:
-                    err = SCKeyGetAllocatedProperty(keyP, kS4KeyProp_TestPassCodeID, NULL, (void**)&keyIDStr, NULL);
-                    OPTESTLogDebug("\t%2d %10s %s\n", i,  key_type_table(type1), keyIDStr);
+                    err = S4Key_GetAllocatedProperty(keyP, kS4KeyProp_TestPassCodeID, NULL, (void**)&keyIDStr, &datSize);
+                    OPTESTLogDebug("\t%2d %10s %.*s\n", i,  key_type_table(type1), datSize,keyIDStr);
                     break;
                     
                 case kS4KeyType_PublicEncrypted:
-                     err = SCKeyGetAllocatedProperty(keyP, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
-                    OPTESTLogDebug("\t%2d %10s %s\n", i,  key_type_table(type1), keyIDStr);
+                     err = S4Key_GetAllocatedProperty(keyP, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, &datSize); CKERR;
+                    OPTESTLogDebug("\t%2d %10s %.*s\n", i,  key_type_table(type1),datSize, keyIDStr);
                     
                 break;
                     
@@ -1687,6 +1957,8 @@ S4Err  TestKeys()
         }
     }
     
+    OPTESTLogInfo("\n");
+
     
 done:
     

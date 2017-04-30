@@ -425,7 +425,7 @@ S4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t
             break;
             
         case kCipher_Algorithm_ECC414:
-            hashAlgor = kHASH_Algorithm_SKEIN256;
+            hashAlgor = kHASH_Algorithm_SHA256; //kHASH_Algorithm_SKEIN256;
             break;
             
          default:

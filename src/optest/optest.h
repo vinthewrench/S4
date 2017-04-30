@@ -84,6 +84,8 @@ void dumpHex8(int logFlag,  uint8_t* buffer);
 void dumpHex32(int logFlag,  uint8_t* buffer);
 void dumpHex(int logFlag,  uint8_t* buffer, int length, int offset);
 void dumpLong(int logFlag, uint8_t* buffer, int length);
+void dumpKeyID(int logFlag,uint8_t* b );
+void dumpTime(int logFlag, const time_t date );
 
 void dumpByteConst( uint8_t* buffer, size_t length);  // used for creating consts;
 

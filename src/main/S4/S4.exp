@@ -99,9 +99,18 @@ _S4Key_VerifyPassPhrase
 _S4Key_DecryptFromPassPhrase
 _S4Key_DecryptFromS4Key
 
+_S4Key_SignHash
+_S4Key_VerifyHash
+_S4Key_SignKey
+_S4Key_VerfiyKeySig
+_S4Key_GetKeySignatures
+_S4Key_CompareKeyID
+
 _S4Key_SetProperty
+_S4Key_SetPropertyExtended
 _S4Key_GetProperty
-_SCKeyGetAllocatedProperty
+_S4Key_GetAllocatedProperty
+_S4Key_GetExtendedProperty
 
 _kS4KeyProp_KeyType
 _kS4KeyProp_KeySuite
@@ -113,6 +122,12 @@ _kS4KeyProp_StartDate
 _kS4KeyProp_ExpireDate
 _kS4KeyProp_EncryptedKey
 _kS4KeyProp_Encoding
+_kS4KeyProp_Signature
+_kS4KeyProp_SignedBy
+_kS4KeyProp_SignableProperties
+_kS4KeyProp_SignedDate
+_kS4KeyProp_SigExpire
+_kS4KeyProp_SigID
 
 _S4Key_SerializeToShares
 
@@ -124,3 +139,8 @@ _ECC_CipherAlgorithm
 
 _zbase32_decode
 _zbase32_encode
+
+_S4Key_NewSignature
+_S4Key_SerializeSignature
+_S4Key_VerifySignature
+

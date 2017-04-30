@@ -97,7 +97,16 @@ static void * yajlRealloc(void * ctx, void * ptr, size_t sz)
 #define K_PROP_KEYIDSTR         "keyID-String"
 
 #define K_PROP_STARTDATE        "start-date"
-#define K_PROP_EXPIREDATE        "expire-date"
+#define K_PROP_EXPIREDATE       "expire-date"
+#define K_SIGNATURE             "signature"
+#define K_SIGNATURES            "signatures"
+#define K_SIGN_BYID             "issuer"
+#define K_SIGPROPS              "signed-properties"
+#define K_PROP_SIGNED_DATE      "issue-date"
+#define K_PROP_SIGEXPIRE        "sig-expire"
+#define K_SIGNABLE_PROPS        "signable-properties"
+#define K_SIGID                 "sigID"
+
 
 char *const kS4KeyProp_KeyType          = K_KEYTYPE;
 char *const kS4KeyProp_KeySuite         = K_KEYSUITE;
@@ -105,12 +114,22 @@ char *const kS4KeyProp_KeyData          = K_KEYDATA;
 char *const kS4KeyProp_KeyID            = K_PROP_KEYID;
 char *const kS4KeyProp_KeyIDString      = K_PROP_KEYIDSTR;
 char *const kS4KeyProp_Mac               = K_PROP_MAC;
-char *const kS4KeyProp_StartDate            = K_PROP_STARTDATE;
-char *const kS4KeyProp_ExpireDate           = K_PROP_EXPIREDATE;
-char *const kS4KeyProp_EncryptedKey      = K_PROP_ENCRYPTED;
-char *const kS4KeyProp_Encoding          = K_PROP_ENCODING;
+char *const kS4KeyProp_StartDate        = K_PROP_STARTDATE;
+char *const kS4KeyProp_ExpireDate       = K_PROP_EXPIREDATE;
+char *const kS4KeyProp_EncryptedKey     = K_PROP_ENCRYPTED;
+char *const kS4KeyProp_Encoding         = K_PROP_ENCODING;
+char *const kS4KeyProp_SigID            = K_SIGID;
 
-static char *const kS4KeyProp_SCKeyVersion      = K_PROP_VERSION;
+char *const kS4KeyProp_Signature        = K_SIGNATURE;
+char *const kS4KeyProp_SignedBy         = K_SIGN_BYID;
+char *const kS4KeyProp_SignedProperties = K_SIGPROPS;
+char *const kS4KeyProp_SignedDate        = K_PROP_SIGNED_DATE;
+char *const kS4KeyProp_SigExpire         = K_PROP_SIGEXPIRE;
+
+char *const kS4KeyProp_SignableProperties  = K_SIGNABLE_PROPS;
+
+
+static char *const kS4KeyProp_Version      = K_PROP_VERSION;
 
 static char *const kS4KeyProp_Encoding_SYM_AES128    = K_KEYSUITE_AES128;
 static char *const kS4KeyProp_Encoding_SYM_AES256    = K_KEYSUITE_AES256;
@@ -124,6 +143,9 @@ static char *const kS4KeyProp_Encoding_SPLIT_2FISH256  = "Shamir-Twofish-256";
 
 static char *const kS4KeyProp_Encoding_PUBKEY_ECC384   =  "ECC-384";
 static char *const kS4KeyProp_Encoding_PUBKEY_ECC414   =  "Curve41417";
+
+static char *const kS4KeyProp_Encoding_Signature       = "Signature";
+
 static char *const kS4KeyProp_Salt              = K_PROP_SALT;
 static char *const kS4KeyProp_Rounds            = K_PROP_ROUNDS;
 
@@ -135,6 +157,10 @@ static char *const kS4KeyProp_ShareIDs        = K_SHAREIDS;
 static char *const kS4KeyProp_PubKey            = K_PUBKEY;
 static char *const kS4KeyProp_PrivKey           = K_PRIVKEY;
 
+static char *const kS4KeyProp_Signatures    = K_SIGNATURES;
+
+static const char *kRfc339Format = "%Y-%m-%dT%H:%M:%SZ";
+
 
 typedef struct S4KeyPropertyInfo  S4KeyPropertyInfo;
 
@@ -143,34 +169,53 @@ struct S4KeyPropertyInfo
     char      *const name;
     S4KeyPropertyType type;
     bool              readOnly;
+    bool              signable;
 } ;
 
 
 static S4KeyPropertyInfo sPropertyTable[] = {
     
-    { K_PROP_VERSION,           S4KeyPropertyType_Numeric,  true},
-    { K_KEYTYPE,                S4KeyPropertyType_Numeric,  true},
-    { K_KEYSUITE,           S4KeyPropertyType_Numeric,  true},
-    { K_KEYDATA,                S4KeyPropertyType_Binary,  true},
-
-    { K_PROP_ENCODING,          S4KeyPropertyType_UTF8String,  true},
-    { K_PROP_SALT,              S4KeyPropertyType_Binary,  true},
-    { K_PROP_ROUNDS,            S4KeyPropertyType_Numeric,  true},
-    { K_PROP_MAC,               S4KeyPropertyType_Binary,  true},
-    { K_PROP_ENCRYPTED,         S4KeyPropertyType_Binary,  true},
-    { K_PROP_KEYID,             S4KeyPropertyType_Binary,  true},
-    { K_PROP_KEYIDSTR,          S4KeyPropertyType_UTF8String,  true},
-
-    { K_SHAREHASH,              S4KeyPropertyType_Binary,  true},
-    { K_INDEX,                  S4KeyPropertyType_Numeric,  true},
-    { K_THRESHLOLD,              S4KeyPropertyType_Numeric,  true},
-
-    { K_PROP_EXPIREDATE,        S4KeyPropertyType_Time,     false},
-    { K_PROP_STARTDATE,         S4KeyPropertyType_Time,     false},
+    { K_PROP_VERSION,           S4KeyPropertyType_Numeric,  true,  false},
+    { K_KEYTYPE,                S4KeyPropertyType_Numeric,  true,  false},
+    { K_KEYSUITE,               S4KeyPropertyType_Numeric,  true,  true},
+    { K_KEYDATA,                S4KeyPropertyType_Binary,  true,  true},
     
-    { NULL,                     S4KeyPropertyType_Invalid,  true},
+    { K_PROP_ENCODING,          S4KeyPropertyType_UTF8String,  true,  true},
+    { K_PROP_SALT,              S4KeyPropertyType_Binary,  true,  true},
+    { K_PROP_ROUNDS,            S4KeyPropertyType_Numeric,  true,  true},
+    { K_PROP_MAC,               S4KeyPropertyType_Binary,  true,  true},
+    { K_PROP_ENCRYPTED,         S4KeyPropertyType_Binary,  true,  true},
+    { K_PROP_KEYID,             S4KeyPropertyType_Binary,  true,  true},
+    { K_PROP_KEYIDSTR,          S4KeyPropertyType_UTF8String,  true,  true},
+    
+    { K_SHAREHASH,              S4KeyPropertyType_Binary,  true,  true},
+    { K_INDEX,                  S4KeyPropertyType_Numeric,  true,  true},
+    { K_THRESHLOLD,              S4KeyPropertyType_Numeric,  true,  true},
+    
+    
+    { K_SIGN_BYID,              S4KeyPropertyType_Binary,   true,  false},
+    { K_PROP_EXPIREDATE,        S4KeyPropertyType_Time,     false,  true},
+    { K_PROP_STARTDATE,         S4KeyPropertyType_Time,     false,  true},
+    { K_PROP_SIGNED_DATE,       S4KeyPropertyType_Time,     true,  false},
+    { K_PROP_SIGEXPIRE,         S4KeyPropertyType_Time,     true,  false},
+    { K_SIGID,                  S4KeyPropertyType_Binary,  false,  false},
+    
+    { NULL,                     S4KeyPropertyType_Invalid,  true,  true},
 };
 
+
+#ifdef __clang__
+#pragma mark - fwd declare
+#endif
+
+static void sCloneSignatures(S4KeyContext *src, S4KeyContext *dest );
+static char** sDeepStrDup( char** list);
+static S4Err sGetSignablePropertyNames(S4KeyContext *ctx,  char ***namesOut, size_t* countOut );
+static S4Err sCalulateKeyDigest( S4KeyContextRef  keyCtx,
+                                char**            optionalPropNamesList,
+                                time_t            signDate,
+                                long              sigExpireTime,
+                                uint8_t* hashBuf, size_t *hashBytes );
 
 #ifdef __clang__
 #pragma mark - Key utilities.
@@ -188,13 +233,13 @@ static char *cipher_algor_table(Cipher_Algorithm algor)
         case kCipher_Algorithm_3FISH256:    return (K_KEYSUITE_3FISH256);
         case kCipher_Algorithm_3FISH512:    return (K_KEYSUITE_3FISH512);
         case kCipher_Algorithm_3FISH1024:   return (K_KEYSUITE_3FISH1024);
- 
+            
         case kCipher_Algorithm_ECC384:      return (K_KEYSUITE_ECC384);
         case kCipher_Algorithm_ECC414:      return (K_KEYSUITE_ECC414);
             
         case kCipher_Algorithm_SharedKey: 		return (K_KEYSUITE_SPLIT);
             
-  
+            
         default:				return (("Invalid"));
     }
 }
@@ -353,13 +398,10 @@ int sGetKeyLength(S4KeyType keyType, int32_t algorithm)
     return keylen;
     
 }
- 
+
 static yajl_gen_status sGenPropStrings(S4KeyContextRef ctx, yajl_gen g)
 
 {
-    static const char *kRfc339Format = "%Y-%m-%dT%H:%M:%SZ";
-    
-    
     S4Err           err = kS4Err_NoErr;
     yajl_gen_status     stat = yajl_gen_status_ok;
     
@@ -410,6 +452,107 @@ static yajl_gen_status sGenPropStrings(S4KeyContextRef ctx, yajl_gen g)
 done:
     return err;
 }
+static yajl_gen_status sGenSignatureStrings(S4KeyContextRef ctx, yajl_gen g)
+
+{
+    S4Err               err = kS4Err_NoErr;
+    yajl_gen_status     stat = yajl_gen_status_ok;
+    uint8_t             tempBuf[1024];
+    size_t              tempLen;
+
+    S4KeySigItem *sigItem = ctx->sigList;
+    if(sigItem)
+    {
+        stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Signatures, strlen(kS4KeyProp_Signatures)) ; CKYJAL;
+         stat = yajl_gen_array_open(g);
+        while(sigItem)
+        {
+
+            stat = yajl_gen_map_open(g); CKYJAL;
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SigID, strlen(kS4KeyProp_SigID)) ; CKYJAL;
+            tempLen = sizeof(tempBuf);
+            base64_encode(sigItem->sig.sigID, kS4Key_KeyIDBytes, tempBuf, &tempLen);
+            stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Signature, strlen(kS4KeyProp_Signature)) ; CKYJAL;
+            tempLen = sizeof(tempBuf);
+            base64_encode(sigItem->sig.signature, sigItem->sig.signatureLen, tempBuf, &tempLen);
+            stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SignedBy, strlen(kS4KeyProp_SignedBy)) ; CKYJAL;
+            tempLen = sizeof(tempBuf);
+            base64_encode(sigItem->sig.issuerID, kS4Key_KeyIDBytes, tempBuf, &tempLen);
+            stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SignedDate, strlen(kS4KeyProp_SignedDate)) ; CKYJAL;
+            struct tm *nowtm;
+            nowtm = gmtime(&sigItem->sig.signDate);
+            tempLen = strftime((char *)tempBuf, sizeof(tempBuf), kRfc339Format, nowtm);
+            stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+
+            if(sigItem->sig.expirationTime != LONG_MAX)
+            {
+                stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SigExpire, strlen(kS4KeyProp_SigExpire)) ; CKYJAL;
+                stat = yajl_gen_integer(g, sigItem->sig.expirationTime) ; CKYJAL;
+             }
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SignedProperties, strlen(kS4KeyProp_SignedProperties)) ; CKYJAL;
+             stat = yajl_gen_array_open(g);
+            for(char** itemName = sigItem->sig.propNameList ;*itemName; itemName++)
+            {
+                stat = yajl_gen_string(g, (uint8_t *)*itemName, strlen(*itemName)) ; CKYJAL;
+                
+            }
+            stat = yajl_gen_array_close(g);
+            stat = yajl_gen_map_close(g); CKYJAL;
+
+            sigItem = sigItem->next;
+        }
+        stat = yajl_gen_array_close(g);
+   
+    }
+
+done:
+    return err;
+
+}
+
+static yajl_gen_status sGenSignablePropString(S4KeyContextRef ctx, yajl_gen g)
+
+{
+    S4Err               err = kS4Err_NoErr;
+    yajl_gen_status     stat = yajl_gen_status_ok;
+    
+    size_t      propListEntries = 0;
+    char**       propList = NULL;
+    
+    err = sGetSignablePropertyNames(ctx, &propList, &propListEntries); CKERR;
+   
+    if(propListEntries > 0)
+    {
+        stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SignableProperties, strlen(kS4KeyProp_SignableProperties)) ; CKYJAL;
+        stat = yajl_gen_array_open(g);
+        for(size_t i = 0  ; i < propListEntries; i++)
+        {
+            stat = yajl_gen_string(g, (uint8_t *)propList[i], strlen(propList[i])) ; CKYJAL;
+            
+        }
+        stat = yajl_gen_array_close(g);
+  
+    }
+    
+done:
+    
+    for(int i = 0; propList[i]; i++)
+        XFREE(propList[i]);
+    
+    XFREE(propList);
+
+    return err;
+    
+    
+}
 
 
 #ifdef __clang__
@@ -433,7 +576,9 @@ static S4KeyProperty* sFindProperty(S4KeyContext *ctx, const char *propName )
 }
 
 static void sInsertProperty(S4KeyContext *ctx, const char *propName,
-                            S4KeyPropertyType propType, void *data,  size_t  datSize)
+                            S4KeyPropertyType propType,
+                            S4KeyPropertyExtendedType  extendedPropType,
+                            void *data,  size_t  datSize)
 {
     S4KeyProperty* prop = sFindProperty(ctx,propName);
     if(!prop)
@@ -448,9 +593,9 @@ static void sInsertProperty(S4KeyContext *ctx, const char *propName,
     if(prop->value) XFREE(prop->value);
     prop->value = XMALLOC(datSize);
     prop->type = propType;
+    prop->extended = extendedPropType;
     COPY(data, prop->value, datSize );
     prop->valueLen = datSize;
-    
 };
 
 
@@ -465,6 +610,7 @@ static void sCloneProperties(S4KeyContext *src, S4KeyContext *dest )
         ZERO(newProp,sizeof(S4KeyProperty));
         newProp->prop = (uint8_t *)strndup((char *)(sprop->prop), strlen((char *)(sprop->prop)));
         newProp->type = sprop->type;
+        newProp->extended = sprop->extended;
         newProp->value = XMALLOC(sprop->valueLen);
         COPY(sprop->value, newProp->value, sprop->valueLen );
         newProp->valueLen = sprop->valueLen;
@@ -476,10 +622,128 @@ static void sCloneProperties(S4KeyContext *src, S4KeyContext *dest )
 }
 
 
+static int cmpPropNames(const void *p1, const void *p2){
+    return strcasecmp(* (char * const *) p1, * (char * const *) p2);
+}
+
+static S4Err sGetSignablePropertyNames(S4KeyContext *ctx,  char ***namesOut, size_t* countOut )
+{
+    S4Err               err = kS4Err_NoErr;
+ 
+    const size_t alloc_quantum = 8;
+
+    S4KeyProperty* prop = ctx->propList;
+    size_t count = 0;
+    size_t allocCount = alloc_quantum;
+    char** names =  NULL;
+    
+    validateS4KeyContext(ctx);
+
+    names = XMALLOC(allocCount * sizeof(char*) );
+
+    if(prop)
+    {
+        switch (ctx->type)
+        {
+                
+            case kS4KeyType_PublicKey:
+                names[count++] = strdup(kS4KeyProp_KeySuite);
+                names[count++] = strdup(kS4KeyProp_KeyID);
+                names[count++] = strdup(kS4KeyProp_PubKey);
+                break;
+                
+            case kS4KeyType_Signature:
+                names[count++] = strdup(kS4KeyProp_SigID);
+                names[count++] = strdup(kS4KeyProp_SignedBy);
+                names[count++] = strdup(kS4KeyProp_Signature);
+                names[count++] = strdup(kS4KeyProp_SignedDate);
+                names[count++] = strdup(kS4KeyProp_SigExpire);
+                break;
+                
+                // add in more names here for other types of keys.
+            default:
+                names[count++] = strdup(kS4KeyProp_KeySuite);
+                names[count++] = strdup(kS4KeyProp_KeyID);
+                
+                break;
+        }
+    }
+    
+
+//        
+//        // add in built in properites
+//        names[count++] = strdup(kS4KeyProp_KeySuite);
+//        names[count++] = strdup(kS4KeyProp_KeyID);
+//     }
+    
+//    switch (ctx->type)
+//    {
+//        case kS4KeyType_PublicKey:
+//            names[count++] = strdup(kS4KeyProp_PubKey);
+//            break;
+//            
+//        default:
+//    // add in more names here for other types of keys.
+//            break;
+//    }
+
+    while(prop)
+    {
+        if(count > allocCount)
+        {
+            allocCount += alloc_quantum;
+            names =  XREALLOC(names, allocCount * sizeof(char*) );
+        }
+        
+        names[count] = strdup((char*) prop->prop );
+        count++;
+        prop = prop->next;
+    }
+    
+    // put a null termination on list
+    if(count > allocCount)
+    {
+        allocCount += alloc_quantum;
+        names =  XREALLOC(names, allocCount * sizeof(char*) );
+    }
+    names[count] = NULL;
+    
+    if(names)
+    {
+        qsort(names, count, sizeof(char *), cmpPropNames);
+    }
+    
+    if(namesOut)
+    {
+        *namesOut = names;
+    }
+    else
+    {
+        for(int i = 0; i < count; i++)
+            XFREE(names[i]);
+        
+        XFREE(names);
+     }
+    
+    if(countOut) *countOut = count;
+    
+done:
+    return err;
+
+}
+
 
 S4Err S4Key_SetProperty( S4KeyContextRef ctx,
-                          const char *propName, S4KeyPropertyType propType,
-                          void *data,  size_t  datSize)
+                        const char *propName, S4KeyPropertyType propType,
+                        void *data,  size_t  datSize)
+{
+    return S4Key_SetPropertyExtended(ctx, propName,propType, S4KeyPropertyExtendedType_None, data,datSize);
+}
+
+S4Err S4Key_SetPropertyExtended ( S4KeyContextRef ctx,
+                                 const char *propName, S4KeyPropertyType propType,
+                                 S4KeyPropertyExtendedType  extendedPropType,
+                                 void *data,  size_t  datSize)
 {
     
     S4Err               err = kS4Err_NoErr;
@@ -498,13 +762,16 @@ S4Err S4Key_SetProperty( S4KeyContextRef ctx,
             if(propType != propInfo->type)
                 RETERR(kS4Err_BadParams);
             
+            if(propInfo->signable)
+                extendedPropType |= S4KeyPropertyExtended_Signable;
+            
             found = true;
             break;
         }
     }
     
-    if(!found)
-        sInsertProperty(ctx, propName, propType, data, datSize);CKERR;
+    // if you get this far, you can insert a property
+    sInsertProperty(ctx, propName, propType,extendedPropType, data, datSize);CKERR;
     
 done:
     return err;
@@ -514,14 +781,17 @@ done:
 
 
 static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
-                                             const char *propName, S4KeyPropertyType *outPropType,
-                                             void *outData, size_t bufSize, size_t *datSize, bool doAlloc,
-                                             uint8_t** allocBuffer)
+                                       const char *propName,
+                                       S4KeyPropertyType *outPropType,
+                                       S4KeyPropertyExtendedType *outExtendedProp,
+                                       void *outData, size_t bufSize, size_t *datSize, bool doAlloc,
+                                       uint8_t** allocBuffer)
 {
     S4Err               err = kS4Err_NoErr;
     S4KeyPropertyInfo   *propInfo   = NULL;
     S4KeyProperty*      otherProp   = NULL;
     S4KeyPropertyType   propType    = S4KeyPropertyType_Invalid;
+    S4KeyPropertyExtendedType extendedProp =  S4KeyPropertyExtendedType_None;
     bool                found       = false;
     
     size_t          actualLength = 0;
@@ -536,6 +806,9 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
         if(CMP2(propName, strlen(propName), propInfo->name, strlen(propInfo->name)))
         {
             propType = propInfo->type;
+            
+            if(propInfo->signable)
+                extendedProp |= S4KeyPropertyExtended_Signable;
             
             found = true;
             
@@ -564,9 +837,55 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                         
                     case kS4KeyType_PublicEncrypted:
                         actualLength = ctx->publicKeyEncoded.encryptedLen;
-                         break;
+                        break;
                         
                     case kS4KeyType_PBKDF2:
+                    default:
+                        RETERR(kS4Err_BadParams);
+                }
+            }
+            
+            else if(STRCMP2(propName, kS4KeyProp_SigID))
+            {
+                switch (ctx->type) {
+                    case kS4KeyType_Signature:
+                        actualLength = sizeof(ctx->sig.sigID);
+                        break;
+                        
+                    default:
+                        RETERR(kS4Err_BadParams);
+                }
+            }
+            else if(STRCMP2(propName, kS4KeyProp_SignedBy))
+            {
+                switch (ctx->type) {
+                    case kS4KeyType_Signature:
+                        actualLength = sizeof(ctx->sig.issuerID);
+                        break;
+                        
+                    default:
+                        RETERR(kS4Err_BadParams);
+                }
+            }
+   
+            else if(STRCMP2(propName, kS4KeyProp_SignedDate))
+            {
+                switch (ctx->type) {
+                    case kS4KeyType_Signature:
+                        actualLength = sizeof(ctx->sig.signDate);
+                        break;
+                        
+                    default:
+                        RETERR(kS4Err_BadParams);
+                }
+            }
+            else if(STRCMP2(propName, kS4KeyProp_SigExpire))
+            {
+                switch (ctx->type) {
+                    case kS4KeyType_Signature:
+                        actualLength = sizeof(ctx->sig.expirationTime);
+                        break;
+                        
                     default:
                         RETERR(kS4Err_BadParams);
                 }
@@ -586,7 +905,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                         actualLength = sizeof(ctx->pub.keyID);
                         break;
                         
-                    case kS4KeyType_Symmetric:
+                     case kS4KeyType_Symmetric:
                         actualLength = kS4Key_KeyIDBytes;
                         break;
                         
@@ -646,8 +965,6 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                         RETERR(kS4Err_BadParams);
                 }
             }
-            
-            
             else
                 found = false;
             
@@ -663,12 +980,13 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
         {
             actualLength = (unsigned long)(otherProp->valueLen);
             propType = otherProp->type;
+            extendedProp = otherProp->extended;
             found = true;
         }
     }
     
     if(!found)
-        RETERR(kS4Err_BadParams);
+        RETERR(kS4Err_PropertyNotFound);
     
     
     if(!actualLength)
@@ -750,8 +1068,61 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
             case kS4KeyType_PublicEncrypted:
                 COPY(&ctx->publicKeyEncoded.encrypted , buffer, actualLength);
                 break;
-     
+                
             case kS4KeyType_PBKDF2:
+            default:
+                RETERR(kS4Err_BadParams);
+        }
+    }
+    
+    
+    else if(STRCMP2(propName, kS4KeyProp_SigID))
+    {
+        switch (ctx->type) {
+                
+            case kS4KeyType_Signature:
+                COPY(&ctx->sig.sigID , buffer, actualLength);
+                break;
+                
+            default:
+                RETERR(kS4Err_BadParams);
+                
+        }
+    }
+    else if(STRCMP2(propName, kS4KeyProp_SignedBy))
+    {
+        switch (ctx->type) {
+                
+            case kS4KeyType_Signature:
+                COPY(&ctx->sig.issuerID , buffer, actualLength);
+                break;
+
+            default:
+                RETERR(kS4Err_BadParams);
+
+        }
+    }
+    else if(STRCMP2(propName, kS4KeyProp_SignedDate))
+    {
+        switch (ctx->type) {
+            case kS4KeyType_Signature:
+                
+                COPY(&ctx->sig.signDate, buffer, actualLength);
+                break;
+                
+            default:
+                RETERR(kS4Err_BadParams);
+        }
+    }
+
+    else if(STRCMP2(propName, kS4KeyProp_SigExpire))
+   {
+        switch (ctx->type) {
+            case  kS4KeyType_Signature:
+                
+                COPY(&ctx->sig.expirationTime, buffer, actualLength);
+                break;
+                
             default:
                 RETERR(kS4Err_BadParams);
         }
@@ -763,7 +1134,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
             case kS4KeyType_SymmetricEncrypted:
                 COPY(&ctx->symKeyEncoded.keyID , buffer, actualLength);
                 break;
-
+                
             case kS4KeyType_PublicEncrypted:
                 COPY(&ctx->publicKeyEncoded.keyID , buffer, actualLength);
                 break;
@@ -816,13 +1187,9 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 
                 COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
                 break;
-                //
-                //            case kS4KeyType_PublicEncrypted:
-                //                  break;
-                
                 
             case kS4KeyType_PublicEncrypted:
-                 COPY(ctx->publicKeyEncoded.keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
+                COPY(ctx->publicKeyEncoded.keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
                 break;
                 
             default:
@@ -840,7 +1207,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 buffer[actualLength]= '\0';
                 break;
                 
-
+                
             case kS4KeyType_PublicEncrypted:
                 err = base64_encode(ctx->publicKeyEncoded.keyID, sizeof(ctx->publicKeyEncoded.keyID), buffer, &actualLength); CKERR;
                 actualLength++;
@@ -856,16 +1223,16 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 
                 
             case kS4KeyType_Symmetric:
-                {
-                    uint8_t keyID[kS4Key_KeyIDBytes];
-                    
-                    err =  sKEY_HASH(ctx->sym.symKey,  ctx->sym.keylen, ctx->type,
-                                     ctx->sym.symAlgor,  keyID, kS4Key_KeyIDBytes );
-                    
-                    err = base64_encode(keyID, kS4Key_KeyIDBytes , buffer, &actualLength); CKERR;
-                    actualLength++;
-                    buffer[actualLength]= '\0';
-                }
+            {
+                uint8_t keyID[kS4Key_KeyIDBytes];
+                
+                err =  sKEY_HASH(ctx->sym.symKey,  ctx->sym.keylen, ctx->type,
+                                 ctx->sym.symAlgor,  keyID, kS4Key_KeyIDBytes );
+                
+                err = base64_encode(keyID, kS4Key_KeyIDBytes , buffer, &actualLength); CKERR;
+                actualLength++;
+                buffer[actualLength]= '\0';
+            }
                 break;
                 
             case kS4KeyType_Tweekable:
@@ -874,26 +1241,26 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
                 
                 err =  sKEY_HASH((uint8_t*)ctx->tbc.key,  ctx->tbc.keybits >> 3, ctx->type,
                                  ctx->tbc.tbcAlgor,  keyID, kS4Key_KeyIDBytes );
-
+                
                 err = base64_encode(keyID, kS4Key_KeyIDBytes , buffer, &actualLength); CKERR;
                 actualLength++;
                 buffer[actualLength]= '\0';
             }
                 break;
-           
+                
                 
             default:
                 RETERR(kS4Err_BadParams);
         }
     }
-    
-    
     else if(otherProp)
     {
         COPY(otherProp->value,  buffer, actualLength);
         propType = otherProp->type;
     }
     
+    if(outExtendedProp)
+        *outExtendedProp = extendedProp;
     
     if(outPropType)
         *outPropType = propType;
@@ -908,9 +1275,26 @@ done:
     
 }
 
+S4Err S4Key_GetExtendedProperty( S4KeyContextRef ctx,
+                        const char *propName,
+                        S4KeyPropertyExtendedType *outPropType)
+{
+    S4Err               err = kS4Err_NoErr;
+    
+    validateS4KeyContext(ctx);
+    ValidateParam(outPropType);
+
+    err =  s4Key_GetPropertyInternal(ctx, propName, NULL, outPropType, NULL, 0, 0, false, NULL);
+    
+    return err;
+
+}
+
+
+
 S4Err S4Key_GetProperty( S4KeyContextRef ctx,
-                          const char *propName,
-                          S4KeyPropertyType *outPropType, void *outData, size_t bufSize, size_t *datSize)
+                        const char *propName,
+                        S4KeyPropertyType *outPropType, void *outData, size_t bufSize, size_t *datSize)
 {
     S4Err               err = kS4Err_NoErr;
     
@@ -922,23 +1306,23 @@ S4Err S4Key_GetProperty( S4KeyContextRef ctx,
         ZERO( outData, bufSize );
     }
     
-    err =  s4Key_GetPropertyInternal(ctx, propName, outPropType, outData, bufSize, datSize, false, NULL);
+    err =  s4Key_GetPropertyInternal(ctx, propName, outPropType, NULL, outData, bufSize, datSize, false, NULL);
     
     return err;
 }
 
 
 
-S4Err SCKeyGetAllocatedProperty( S4KeyContextRef ctx,
-                                   const char *propName,
-                                   S4KeyPropertyType *outPropType, void **outData, size_t *datSize)
+S4Err S4Key_GetAllocatedProperty( S4KeyContextRef ctx,
+                                const char *propName,
+                                S4KeyPropertyType *outPropType, void **outData, size_t *datSize)
 {
     S4Err               err = kS4Err_NoErr;
-  
+    
     validateS4KeyContext(ctx);
     ValidateParam(outData);
     
-    err =  s4Key_GetPropertyInternal(ctx, propName, outPropType, NULL, 0, datSize, true, (uint8_t**) outData);
+    err =  s4Key_GetPropertyInternal(ctx, propName, outPropType, NULL, NULL, 0, datSize, true, (uint8_t**) outData);
     
     return err;
 }
@@ -996,8 +1380,8 @@ done:
 
 
 static S4Err sDecryptFromPubKey( S4KeyContextRef      encodedCtx,
-                                      ECC_ContextRef    eccPriv,
-                                      S4KeyContextRef       *symCtx)
+                                ECC_ContextRef    eccPriv,
+                                S4KeyContextRef       *symCtx)
 {
     S4Err           err = kS4Err_NoErr;
     S4KeyContext*   keyCTX = NULL;
@@ -1069,7 +1453,7 @@ static S4Err sDecryptFromPubKey( S4KeyContextRef      encodedCtx,
         
         memcpy(keyCTX->tbc.key, decrypted_key, keyBytes);
         
- //       Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
+        //       Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
     }
     else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Share)
     {
@@ -1122,9 +1506,9 @@ done:
 
 
 static S4Err sSerializeToPubKey(S4KeyContextRef   ctx,
-                              ECC_ContextRef    eccPub,
-                              uint8_t          **outData,
-                              size_t           *outSize)
+                                ECC_ContextRef    eccPub,
+                                uint8_t          **outData,
+                                size_t           *outSize)
 {
     S4Err           err = kS4Err_NoErr;
     yajl_gen_status     stat = yajl_gen_status_ok;
@@ -1214,7 +1598,7 @@ static S4Err sSerializeToPubKey(S4KeyContextRef   ctx,
     yajl_gen_config(g, yajl_gen_validate_utf8, 1);
     stat = yajl_gen_map_open(g);
     
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SCKeyVersion, strlen(kS4KeyProp_SCKeyVersion)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Version, strlen(kS4KeyProp_Version)) ; CKYJAL;
     sprintf((char *)tempBuf, "%d", kS4KeyProtocolVersion);
     stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
     
@@ -1268,6 +1652,8 @@ static S4Err sSerializeToPubKey(S4KeyContextRef   ctx,
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
     
     err = sGenPropStrings(ctx, g); CKERR;
+    err = sGenSignablePropString(ctx, g); CKERR;
+    err = sGenSignatureStrings(ctx, g); CKERR;
     
     stat = yajl_gen_map_close(g); CKYJAL;
     stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
@@ -1300,42 +1686,42 @@ S4Err S4Key_NewKey(Cipher_Algorithm       algorithm,
     
     int     keyBytes  = 0;
     uint8_t *keyData = NULL;
-  
+    
     ValidateParam(ctxOut);
     
     switch(algorithm)
     {
-            case kCipher_Algorithm_AES128:
-                keyBytes = 128 >> 3;
-                break;
-                
-            case kCipher_Algorithm_AES192:
-                keyBytes = 192 >> 3;
-                break;
-                
-            case kCipher_Algorithm_AES256:
-                keyBytes = 256 >> 3;
-                break;
-                
-            case kCipher_Algorithm_2FISH256:
-                keyBytes = 256 >> 3;
-                break;
-                
-            case kCipher_Algorithm_3FISH256:
-                keyBytes =  256 >> 3;
-                break;
-                
-            case kCipher_Algorithm_3FISH512:
-                keyBytes = 512 >> 3;
-                break;
-                
-            case kCipher_Algorithm_3FISH1024:
-                keyBytes = 1024 >> 3;
-                break;
+        case kCipher_Algorithm_AES128:
+            keyBytes = 128 >> 3;
+            break;
+            
+        case kCipher_Algorithm_AES192:
+            keyBytes = 192 >> 3;
+            break;
+            
+        case kCipher_Algorithm_AES256:
+            keyBytes = 256 >> 3;
+            break;
+            
+        case kCipher_Algorithm_2FISH256:
+            keyBytes = 256 >> 3;
+            break;
+            
+        case kCipher_Algorithm_3FISH256:
+            keyBytes =  256 >> 3;
+            break;
+            
+        case kCipher_Algorithm_3FISH512:
+            keyBytes = 512 >> 3;
+            break;
+            
+        case kCipher_Algorithm_3FISH1024:
+            keyBytes = 1024 >> 3;
+            break;
             
         default: ;
     }
-   
+    
     if(keyBytes)
     {
         keyData = (uint8_t*)XMALLOC(keyBytes);
@@ -1348,17 +1734,17 @@ S4Err S4Key_NewKey(Cipher_Algorithm       algorithm,
         case kCipher_Algorithm_AES192:
         case kCipher_Algorithm_AES256:
         case kCipher_Algorithm_2FISH256:
-           
+            
             err = S4Key_NewSymmetric(algorithm, keyData, &keyCTX);
             break;
             
         case kCipher_Algorithm_3FISH256:
         case kCipher_Algorithm_3FISH512:
         case kCipher_Algorithm_3FISH1024:
-   
+            
             err = S4Key_NewTBC(algorithm, keyData, &keyCTX);
             break;
-        
+            
         case kCipher_Algorithm_ECC384:
         case kCipher_Algorithm_ECC414:
             err= S4Key_NewPublicKey(algorithm, &keyCTX);
@@ -1392,44 +1778,47 @@ done:
 }
 
 S4Err S4Key_NewSymmetric(Cipher_Algorithm       algorithm,
-                             const void             *key,
-                             S4KeyContextRef    *ctxOut)
+                         const void             *key,
+                         S4KeyContextRef    *ctxOut)
 {
     S4Err               err = kS4Err_NoErr;
     S4KeyContext*    keyCTX  = NULL;
     
     ValidateParam(ctxOut);
-  
+    
     int             keylen  = 0;
     
     switch(algorithm)
     {
         case kCipher_Algorithm_AES128:
             keylen = 128 >> 3;
-             break;
+            break;
             
         case kCipher_Algorithm_AES192:
             keylen = 192 >> 3;
-             break;
- 
+            break;
+            
         case kCipher_Algorithm_AES256:
             keylen = 256 >> 3;
-             break;
+            break;
             
         case kCipher_Algorithm_2FISH256:
             keylen = 256 >> 3;
-             break;
+            break;
             
         default:
             RETERR(kS4Err_BadCipherNumber);
     }
-
+    
     
     keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+    ZERO(keyCTX, sizeof(S4KeyContext));
+
     keyCTX->magic = kS4KeyContextMagic;
     keyCTX->type  = kS4KeyType_Symmetric;
     keyCTX->propList = NULL;
- 
+    keyCTX->sigList = NULL;
+    
     keyCTX->sym.symAlgor = algorithm;
     keyCTX->sym.keylen = keylen;
     
@@ -1448,13 +1837,13 @@ done:
             XFREE(keyCTX);
         }
     }
-     return err;
+    return err;
 }
 
 
 S4Err S4Key_NewTBC(     Cipher_Algorithm       algorithm,
-                             const void     *key,
-                            S4KeyContextRef   *ctxOut)
+                   const void     *key,
+                   S4KeyContextRef   *ctxOut)
 {
     S4Err               err = kS4Err_NoErr;
     S4KeyContext*    keyCTX  = NULL;
@@ -1484,16 +1873,19 @@ S4Err S4Key_NewTBC(     Cipher_Algorithm       algorithm,
     
     
     keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+    ZERO(keyCTX, sizeof(S4KeyContext));
+
     keyCTX->magic = kS4KeyContextMagic;
     keyCTX->type  = kS4KeyType_Tweekable;
     keyCTX->propList = NULL;
-   
+    keyCTX->sigList = NULL;
+    
     keyCTX->tbc.tbcAlgor = algorithm;
     keyCTX->tbc.keybits = keybits;
-   
+    
     memcpy(keyCTX->tbc.key, key, keybits >> 3);
     
- //   Skein_Get64_LSB_First(keyCTX->tbc.key, key, keybits >>5);   /* bits to words */
+    //   Skein_Get64_LSB_First(keyCTX->tbc.key, key, keybits >>5);   /* bits to words */
     
     *ctxOut = keyCTX;
     
@@ -1520,9 +1912,13 @@ S4Err S4Key_NewShare(SHARES_ShareInfo   *share,
     ValidateParam(share->shareSecretLen <= 64);
     
     keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+    ZERO(keyCTX, sizeof(S4KeyContext));
+
     keyCTX->magic = kS4KeyContextMagic;
     keyCTX->type  = kS4KeyType_Share;
     keyCTX->propList = NULL;
+    keyCTX->sigList = NULL;
+
     keyCTX->share.xCoordinate = share->xCoordinate;
     keyCTX->share.threshold   = share->threshold;
     COPY(share->shareHash, keyCTX->share.shareHash, kS4ShareInfo_HashBytes);
@@ -1541,7 +1937,7 @@ done:
         }
     }
     return err;
-
+    
 }
 
 
@@ -1550,7 +1946,7 @@ static S4Err sCalculateECCData(S4KeyContextRef  ctx)
     S4Err               err = kS4Err_NoErr;
     size_t          len = 0;
     size_t          pubKeyLen = 0;
-   
+    
     if(ECC_isPrivate(ctx->pub.ecc))
     {
         ctx->pub.privKey = XMALLOC(kS4KeyPublic_MAX_PrivKeyLen);
@@ -1589,13 +1985,17 @@ S4Err S4Key_Import_ECC_Context(ECC_ContextRef ecc, S4KeyContextRef*ctxOut)
     err = ECC_CipherAlgorithm(ecc, &algorithm); CKERR;
     
     keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+    ZERO(keyCTX, sizeof(S4KeyContext));
+
     keyCTX->magic = kS4KeyContextMagic;
     keyCTX->type  = kS4KeyType_PublicKey;
     keyCTX->propList = NULL;
+    keyCTX->sigList = NULL;
+
     keyCTX->pub.ecc = ecc;
     keyCTX->pub.cipherAlgor = algorithm;
     err = sCalculateECCData(keyCTX); CKERR;
-   
+    
     *ctxOut = keyCTX;
     
 done:
@@ -1612,7 +2012,7 @@ done:
 }
 
 S4Err S4Key_NewPublicKey(Cipher_Algorithm       algorithm,
-                      S4KeyContextRef    *ctxOut)
+                         S4KeyContextRef    *ctxOut)
 {
     S4Err               err = kS4Err_NoErr;
     S4KeyContext*       keyCTX  = NULL;
@@ -1651,7 +2051,7 @@ done:
         }
     }
     return err;
-   
+    
 }
 
 
@@ -1671,20 +2071,55 @@ void S4Key_Free(S4KeyContextRef ctx)
             XFREE(prop);
             prop = nextProp;
         }
+   
+        S4KeySigItem *sig = ctx->sigList;
+        
+        while(sig)
+        {
+            S4KeySigItem *nextSig = sig->next;
+            
+            if(sig->sig.propNameList)
+            {
+                char**   itemName = sig->sig.propNameList;
+                for(;*itemName; itemName++)  XFREE(*itemName);
+                XFREE(sig->sig.propNameList);
+            }
+            
+            if (sig->sig.signature)
+                XFREE(sig->sig.signature);
+            XFREE(sig);
+            sig = nextSig;
+        }
+
         
         switch (ctx->type) {
             case kS4KeyType_PublicKey:
                 
                 if(ECC_ContextRefIsValid(ctx->pub.ecc))
                     ECC_Free(ctx->pub.ecc);
-
+                
                 if(ctx->pub.privKey && ctx->pub.privKeyLen)
                 {
                     ZERO(ctx->pub.privKey ,ctx->pub.privKeyLen);
                     XFREE(ctx->pub.privKey);
                     ctx->pub.privKey = NULL;
                 }
-     
+                
+                break;
+           
+            case kS4KeyType_Signature:
+            {
+                if(ctx->sig.signature)
+                    XFREE(ctx->sig.signature);
+                
+                if(ctx->sig.propNameList)
+                {
+                    char**   itemName = ctx->sig.propNameList;
+                    for(;*itemName; itemName++)  XFREE(*itemName);
+                    XFREE(ctx->sig.propNameList);
+                }
+                
+            }
                 break;
                 
             default:
@@ -1692,7 +2127,7 @@ void S4Key_Free(S4KeyContextRef ctx)
         }
         
         
-
+        
         ZERO(ctx, sizeof(S4KeyContext));
         XFREE(ctx);
     }
@@ -1702,14 +2137,14 @@ void S4Key_Free(S4KeyContextRef ctx)
 static S4Err sClonePubKey(S4KeyContext *src, S4KeyContext *dest )
 {
     S4Err               err = kS4Err_NoErr;
-  
+    
     uint8_t         keyData[256];
     size_t          keyDataLen = 0;
     
     dest->magic = kS4KeyContextMagic;
     dest->type = kS4KeyType_PublicKey;
     dest->pub.cipherAlgor = src->pub.cipherAlgor;
-  
+    
     err = ECC_Init(&dest->pub.ecc);
     
     if(ECC_isPrivate(src->pub.ecc))
@@ -1721,27 +2156,47 @@ static S4Err sClonePubKey(S4KeyContext *src, S4KeyContext *dest )
     {
         err = ECC_Export_ANSI_X963(src->pub.ecc, keyData, sizeof(keyData), &keyDataLen);CKERR;
         err = ECC_Import_ANSI_X963(dest->pub.ecc, keyData, keyDataLen);CKERR;
-     }
+    }
     
     err = sCalculateECCData(dest); CKERR;
-  
+    
 done:
     
     ZERO(keyData, sizeof(keyData));
     return err;
 }
 
+static S4Err sCloneDetachedSig(S4KeyContext *src, S4KeyContext *dest )
+{
+    S4Err               err = kS4Err_NoErr;
+
+    COPY(src->sig.issuerID, dest->sig.issuerID, kS4Key_KeyIDBytes );
+    COPY(src->sig.sigID, dest->sig.sigID, kS4Key_KeyIDBytes );
+    
+    dest->sig.signDate = src->sig.signDate;
+    dest->sig.expirationTime = src->sig.expirationTime;
+    
+    dest->sig.signature = XMALLOC(src->sig.signatureLen);  CKNULL(dest->sig.signature);
+    COPY(src->sig.signature, dest->sig.signature, src->sig.signatureLen );
+    dest->sig.signatureLen = src->sig.signatureLen;
+   
+done:
+    
+     return err;
+
+}
+
 S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut)
 {
     S4Err               err = kS4Err_NoErr;
     S4KeyContext*    keyCTX  = NULL;
-  
+    
     validateS4KeyContext(ctx);
     ValidateParam(ctxOut);
     
     
     keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
-    ZERO(keyCTX, sizeof(sizeof (S4KeyContext)));
+    ZERO(keyCTX,sizeof (S4KeyContext));
     
     keyCTX->magic = kS4KeyContextMagic;
     keyCTX->type = ctx->type;
@@ -1756,7 +2211,7 @@ S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut)
             keyCTX->tbc = ctx->tbc;
             break;
             
-
+            
         case kS4KeyType_PBKDF2:
             keyCTX->pbkdf2 = ctx->pbkdf2;
             break;
@@ -1768,21 +2223,25 @@ S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut)
         case kS4KeyType_SymmetricEncrypted:
             keyCTX->symKeyEncoded = ctx->symKeyEncoded;
             break;
-
+            
         case kS4KeyType_Share:
             keyCTX->share = ctx->share;
             break;
-   
+            
         case kS4KeyType_PublicKey:
             err = sClonePubKey(ctx, keyCTX); CKERR;
+            break;
+            
+        case kS4KeyType_Signature:
+            err = sCloneDetachedSig(ctx, keyCTX); CKERR;
             break;
             
         default:
             break;
     }
-   
-    sCloneProperties(ctx, keyCTX);
     
+    sCloneProperties(ctx, keyCTX);
+    sCloneSignatures(ctx, keyCTX);
     *ctxOut = keyCTX;
     
 done:
@@ -1794,8 +2253,8 @@ done:
             XFREE(keyCTX);
         }
     }
-       return err;
-
+    return err;
+    
 }
 
 
@@ -1806,7 +2265,7 @@ done:
 
 
 /*
-
+ 
  {
  "version": 1,
  "keySuite": "aes256",
@@ -1816,14 +2275,14 @@ done:
  "hash": "KSA9JcWT/i4TvAIC3lYKrQ==",
  "encrypted": "3+lt1R5cYBO7aNxp/WA8xbjieKtblezx3M8siskX40I="
  }
-
+ 
  */
 
 S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
-                               const uint8_t       *passphrase,
-                               size_t           passphraseLen,
-                               uint8_t          **outData,
-                               size_t           *outSize)
+                                  const uint8_t       *passphrase,
+                                  size_t           passphraseLen,
+                                  uint8_t          **outData,
+                                  size_t           *outSize)
 {
     S4Err           err = kS4Err_NoErr;
     yajl_gen_status     stat = yajl_gen_status_ok;
@@ -1831,7 +2290,7 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
     uint8_t             *yajlBuf = NULL;
     size_t              yajlLen = 0;
     yajl_gen            g = NULL;
- 
+    
     uint8_t             tempBuf[1024];
     size_t              tempLen;
     uint8_t             *outBuf = NULL;
@@ -1839,7 +2298,7 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
     uint32_t        rounds;
     uint8_t         keyHash[kS4KeyPBKDF2_HashBytes] = {0};
     uint8_t         salt[kS4KeyPBKDF2_SaltBytes] = {0};
-   
+    
     uint8_t         unlocking_key[32] = {0};
     
     Cipher_Algorithm    encyptAlgor = kCipher_Algorithm_Invalid;
@@ -1857,7 +2316,7 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
         (void *) NULL
     };
     
-
+    
     validateS4KeyContext(ctx);
     ValidateParam(passphrase);
     ValidateParam(outData);
@@ -1870,36 +2329,36 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
             
             switch (ctx->sym.symAlgor) {
                 case kCipher_Algorithm_2FISH256:
-                        encyptAlgor = kCipher_Algorithm_2FISH256;
-                        encodingPropString =  kS4KeyProp_Encoding_PBKDF2_2FISH256;
-                        break;
+                    encyptAlgor = kCipher_Algorithm_2FISH256;
+                    encodingPropString =  kS4KeyProp_Encoding_PBKDF2_2FISH256;
+                    break;
                     
                 case kCipher_Algorithm_AES192:
                     encyptAlgor = kCipher_Algorithm_AES256;
                     encodingPropString =  kS4KeyProp_Encoding_PBKDF2_AES256;
-    
+                    
                     //  pad the end  (treat it like it was 256 bits)
                     ZERO(&ctx->sym.symKey[24], 8);
                     keyBytes = 32;
                     break;
                     
                 default:
-                        encyptAlgor = kCipher_Algorithm_AES256;
-                        encodingPropString =  kS4KeyProp_Encoding_PBKDF2_AES256;
+                    encyptAlgor = kCipher_Algorithm_AES256;
+                    encodingPropString =  kS4KeyProp_Encoding_PBKDF2_AES256;
                     break;
             }
             
             keySuiteString = cipher_algor_table(ctx->sym.symAlgor);
             break;
-   
+            
         case kS4KeyType_Tweekable:
             keyBytes = ctx->tbc.keybits >> 3 ;
             encyptAlgor = kCipher_Algorithm_2FISH256;
             keySuiteString = cipher_algor_table(ctx->tbc.tbcAlgor);
             encodingPropString =  kS4KeyProp_Encoding_PBKDF2_2FISH256;
             keyToEncrypt = ctx->tbc.key;
-
-          break;
+            
+            break;
             
         case kS4KeyType_Share:
             keyBytes = (int)ctx->share.shareSecretLen ;
@@ -1907,12 +2366,12 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
             keySuiteString = cipher_algor_table(kCipher_Algorithm_SharedKey);
             keyToEncrypt = ctx->share.shareSecret;
             encodingPropString =  kS4KeyProp_Encoding_PBKDF2_2FISH256;
-           
+            
             // we only encode block sizes of 16, 32, 48 and 64
             ASSERTERR((keyBytes % 16) == 0, kS4Err_FeatureNotAvailable);
             ASSERTERR(keyBytes <= 64, kS4Err_FeatureNotAvailable);
             
-              break;
+            break;
             
         default:
             break;
@@ -1923,8 +2382,8 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
     
     err = PASS_TO_KEY_SETUP(passphraseLen, keyBytes,
                             salt, sizeof(salt),
-                             &rounds); CKERR;
-
+                            &rounds); CKERR;
+    
     err = PASS_TO_KEY(passphrase, passphraseLen,
                       salt, sizeof(salt), rounds,
                       unlocking_key, sizeof(unlocking_key)); CKERR;
@@ -1933,10 +2392,10 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
                            salt, sizeof(salt),
                            rounds,
                            keyHash, kS4KeyPBKDF2_HashBytes); CKERR;
- 
+    
     err =  ECB_Encrypt(encyptAlgor, unlocking_key, keyToEncrypt, keyBytes, encrypted_key); CKERR;
     
-      g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
+    g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
     
 #if DEBUG
     yajl_gen_config(g, yajl_gen_beautify, 1);
@@ -1947,10 +2406,10 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
     yajl_gen_config(g, yajl_gen_validate_utf8, 1);
     stat = yajl_gen_map_open(g);
     
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SCKeyVersion, strlen(kS4KeyProp_SCKeyVersion)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Version, strlen(kS4KeyProp_Version)) ; CKYJAL;
     sprintf((char *)tempBuf, "%d", kS4KeyProtocolVersion);
     stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
-   
+    
     stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Encoding, strlen(kS4KeyProp_Encoding)) ; CKYJAL;
     stat = yajl_gen_string(g, (uint8_t *)encodingPropString, strlen(encodingPropString)) ; CKYJAL;
     
@@ -2001,12 +2460,14 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
     tempLen = sizeof(tempBuf);
     base64_encode(encrypted_key, keyBytes, tempBuf, &tempLen);
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
- 
+    
     err = sGenPropStrings(ctx, g); CKERR;
+    err = sGenSignablePropString(ctx, g); CKERR;
+    err = sGenSignatureStrings(ctx, g); CKERR;
     
     stat = yajl_gen_map_close(g); CKYJAL;
     stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
-
+    
     
     outBuf = XMALLOC(yajlLen+1); CKNULL(outBuf);
     memcpy(outBuf, yajlBuf, yajlLen);
@@ -2017,12 +2478,12 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
     if(outSize)
         *outSize = yajlLen;
     
- done:
+done:
     if(IsntNull(g))
         yajl_gen_free(g);
     
-     return err;
-   
+    return err;
+    
 }
 
 
@@ -2044,20 +2505,20 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
     size_t              tempLen;
     uint8_t             *outBuf = NULL;
     
- 
+    
     uint8_t             keyHash[kS4KeyPBKDF2_HashBytes] = {0};
     uint8_t             keyID[kS4Key_KeyIDBytes] = {0};
     
     size_t              keyBytes = 0;
     void*               keyToEncrypt = NULL;
- 
+    
     Cipher_Algorithm    keyAlgorithm = kCipher_Algorithm_Invalid;
     
     Cipher_Algorithm    encyptAlgor = kCipher_Algorithm_Invalid;
     void*               unlockingKey    = NULL;
- 
-     char*           keySuiteString = "Invalid";
-     char*           encodingPropString = NULL;
+    
+    char*           keySuiteString = "Invalid";
+    char*           encodingPropString = NULL;
     
     
     yajl_alloc_funcs allocFuncs = {
@@ -2080,11 +2541,11 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
             ASSERTERR(passKeyCtx->sym.symAlgor != kCipher_Algorithm_AES192, kS4Err_FeatureNotAvailable);
             
             switch (passKeyCtx->sym.symAlgor) {
-     
+                    
                 case kCipher_Algorithm_AES128:
                     encodingPropString =  kS4KeyProp_Encoding_SYM_AES128;
                     break;
-  
+                    
                 case kCipher_Algorithm_AES256:
                     encodingPropString =  kS4KeyProp_Encoding_SYM_AES256;
                     break;
@@ -2092,19 +2553,19 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
                 case kCipher_Algorithm_2FISH256:
                     encodingPropString =  kS4KeyProp_Encoding_SYM_2FISH256;
                     break;
- 
+                    
                 default:
                     RETERR(kS4Err_FeatureNotAvailable);
                     
-                      break;
+                    break;
             }
-           
+            
             break;
             
         case kS4KeyType_PublicKey:
             
             return sSerializeToPubKey(ctx, passKeyCtx->pub.ecc, outData, outSize);
-             break;
+            break;
             
         default:
             RETERR(kS4Err_FeatureNotAvailable);
@@ -2119,14 +2580,14 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
             keySuiteString = cipher_algor_table(ctx->sym.symAlgor);
             keyAlgorithm = ctx->sym.symAlgor;
             
-             if (ctx->sym.symAlgor == kCipher_Algorithm_AES192)
-             {
-                 //  pad the end  (treat it like it was 256 bits)
-                 ZERO(&ctx->sym.symKey[24], 8);
-                 keyBytes = 32;
-                 
-             }
-             break;
+            if (ctx->sym.symAlgor == kCipher_Algorithm_AES192)
+            {
+                //  pad the end  (treat it like it was 256 bits)
+                ZERO(&ctx->sym.symKey[24], 8);
+                keyBytes = 32;
+                
+            }
+            break;
             
         case kS4KeyType_Tweekable:
             keyBytes = ctx->tbc.keybits >> 3 ;
@@ -2146,7 +2607,7 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
             ASSERTERR(keyBytes <= 64, kS4Err_FeatureNotAvailable);
             
             break;
-   
+            
         case kS4KeyType_PublicKey:
             ASSERTERR(ctx->pub.isPrivate, kS4Err_FeatureNotAvailable);
             keyBytes = (int)ctx->pub.privKeyLen ;
@@ -2173,7 +2634,7 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
     yajl_gen_config(g, yajl_gen_validate_utf8, 1);
     stat = yajl_gen_map_open(g);
     
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SCKeyVersion, strlen(kS4KeyProp_SCKeyVersion)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Version, strlen(kS4KeyProp_Version)) ; CKYJAL;
     sprintf((char *)tempBuf, "%d", kS4KeyProtocolVersion);
     stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
     
@@ -2187,7 +2648,7 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
     tempLen = sizeof(tempBuf);
     base64_encode(keyHash, kS4KeyPBKDF2_HashBytes, tempBuf, &tempLen);
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
-   
+    
     // calculate the hash
     switch (ctx->type)
     {
@@ -2211,17 +2672,17 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
             break;
             
         case kS4KeyType_PublicKey:
-            {
-                size_t              keyIDLen = 0;
-                
-                err = ECC_PubKeyHash(ctx->pub.ecc, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
-                
-                stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_KeyID, strlen(kS4KeyProp_KeyID)) ; CKYJAL;
-                tempLen = sizeof(tempBuf);
-                base64_encode(keyID, keyIDLen, tempBuf, &tempLen);
-                stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
-            }
-           break;
+        {
+            size_t              keyIDLen = 0;
+            
+            err = ECC_PubKeyHash(ctx->pub.ecc, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
+            
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_KeyID, strlen(kS4KeyProp_KeyID)) ; CKYJAL;
+            tempLen = sizeof(tempBuf);
+            base64_encode(keyID, keyIDLen, tempBuf, &tempLen);
+            stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+        }
+            break;
             
         default:
             break;
@@ -2236,8 +2697,8 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
         
         stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_PrivKey, strlen(kS4KeyProp_PrivKey)) ; CKYJAL;
         tempLen = sizeof(tempBuf);
-
-    // the private key is CBC encrypted to the unlocking key, we pad and use the keyID as the IV.
+        
+        // the private key is CBC encrypted to the unlocking key, we pad and use the keyID as the IV.
         err =  CBC_EncryptPAD (encyptAlgor,unlockingKey, keyID, keyToEncrypt, keyBytes, &CT, &CTLen); CKERR;
         base64_encode(CT, CTLen, tempBuf, &tempLen);
         XFREE(CT);
@@ -2250,11 +2711,13 @@ S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
         uint8_t encrypted_key[128] = {0};
         err =  ECB_Encrypt(encyptAlgor, unlockingKey, keyToEncrypt, keyBytes, encrypted_key); CKERR;
         base64_encode(encrypted_key, keyBytes, tempBuf, &tempLen);
-     }
-
+    }
+    
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
     
     err = sGenPropStrings(ctx, g); CKERR;
+    err = sGenSignablePropString(ctx, g); CKERR;
+    err = sGenSignatureStrings(ctx, g); CKERR;
     
     stat = yajl_gen_map_close(g); CKYJAL;
     stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
@@ -2279,8 +2742,8 @@ done:
 
 
 S4Err S4Key_SerializePubKey(S4KeyContextRef  ctx,
-                             uint8_t          **outData,
-                             size_t           *outSize)
+                            uint8_t          **outData,
+                            size_t           *outSize)
 {
     S4Err           err = kS4Err_NoErr;
     yajl_gen_status     stat = yajl_gen_status_ok;
@@ -2314,32 +2777,32 @@ S4Err S4Key_SerializePubKey(S4KeyContextRef  ctx,
     {
         case kS4KeyType_PublicKey:
             
-             err = ECC_PubKeyHash(ctx->pub.ecc, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
+            err = ECC_PubKeyHash(ctx->pub.ecc, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
             
             switch (ctx->pub.cipherAlgor)
-            {
-                case kCipher_Algorithm_ECC384:
+        {
+            case kCipher_Algorithm_ECC384:
                 keySuiteString =  K_KEYSUITE_ECC384;
-                    break;
-                    
+                break;
+                
             case kCipher_Algorithm_ECC414:
                 keySuiteString =  K_KEYSUITE_ECC414;
-               
+                
                 break;
-     
+                
             default:
                 RETERR(kS4Err_BadParams);
                 
-                    break;
-            }
+                break;
+        }
             break;
             
         default:
             RETERR(kS4Err_BadParams);
             break;
-
-     }
-     
+            
+    }
+    
     g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
     
 #if DEBUG
@@ -2351,7 +2814,7 @@ S4Err S4Key_SerializePubKey(S4KeyContextRef  ctx,
     yajl_gen_config(g, yajl_gen_validate_utf8, 1);
     stat = yajl_gen_map_open(g);
     
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SCKeyVersion, strlen(kS4KeyProp_SCKeyVersion)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Version, strlen(kS4KeyProp_Version)) ; CKYJAL;
     sprintf((char *)tempBuf, "%d", kS4KeyProtocolVersion);
     stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
     
@@ -2369,6 +2832,8 @@ S4Err S4Key_SerializePubKey(S4KeyContextRef  ctx,
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
     
     err = sGenPropStrings(ctx, g); CKERR;
+    err = sGenSignablePropString(ctx, g); CKERR;
+    err = sGenSignatureStrings(ctx, g); CKERR;
     
     stat = yajl_gen_map_close(g); CKYJAL;
     stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
@@ -2409,7 +2874,7 @@ enum S4Key_JSON_Type_
     S4Key_JSON_Type_BASE ,
     S4Key_JSON_Type_VERSION,
     S4Key_JSON_Type_KEYALGORITHM,
- 
+    
     S4Key_JSON_Type_ROUNDS,
     S4Key_JSON_Type_SALT,
     S4Key_JSON_Type_ENCODING,
@@ -2427,6 +2892,15 @@ enum S4Key_JSON_Type_
     
     S4Key_JSON_Type_PROPERTY,
     
+    S4Key_JSON_Type_SIGNATURES,
+    S4Key_JSON_Type_SIGNATURE,
+    S4Key_JSON_Type_SIGNEDBY,
+    S4Key_JSON_Type_SIGNDATE,
+    S4Key_JSON_Type_SIGEXPIRETIME,
+    S4Key_JSON_Type_SIGNED_PROPS,
+    S4Key_JSON_Type_SIGNABLE_PROPS,
+    S4Key_JSON_Type_SIGID,
+    
     ENUM_FORCE( S4Key_JSON_Type_ )
 };
 ENUM_TYPEDEF( S4Key_JSON_Type_, S4Key_JSON_Type   );
@@ -2434,8 +2908,8 @@ ENUM_TYPEDEF( S4Key_JSON_Type_, S4Key_JSON_Type   );
 struct S4KeyJSONcontext
 {
     uint8_t             version;    // message version
-//    S4KeyContext       key;        // used for decoding messages
- 
+    //    S4KeyContext       key;        // used for decoding messages
+    
     S4KeyContext        *keys;     // pointer to array of S4KeyContext
     int                 index;      // current key
     
@@ -2446,7 +2920,11 @@ struct S4KeyJSONcontext
     size_t*         jItemSize;
     uint8_t*        jTag;
     
- };
+    S4KeySig        currentSigItem;             // temp space used for parsing signatures
+    
+    char**          currentSignablePropList; // used for importing current key
+
+};
 
 typedef struct S4KeyJSONcontext S4KeyJSONcontext;
 
@@ -2531,7 +3009,7 @@ static time_t parseRfc3339(const unsigned char *s, size_t stringLen)
     t = timegm(&tm);
     if (t < 0)
         return 0;
-    return t;  
+    return t;
     
     //  	return t - tm.tm_gmtoff;
     
@@ -2596,7 +3074,7 @@ static S4Err sParseKeySuiteString(const unsigned char * stringVal,  size_t strin
         keyType  = kS4KeyType_PublicKey;
         algorithm = kCipher_Algorithm_ECC414;
     }
-
+    
     
     if(keyType == kS4KeyType_Invalid)
         err = kS4Err_CorruptData;
@@ -2608,24 +3086,64 @@ static S4Err sParseKeySuiteString(const unsigned char * stringVal,  size_t strin
 }
 
 
+static void sAppendSigProp(S4KeySig* sig,const char * str, size_t len)
+{
+    
+    int offset = 0;
+    
+    if(!sig->propNameList)
+    {
+        sig->propNameList = XMALLOC(sizeof(char*) * 2);  // do we ever check for memory anymore?
+    }
+    else
+    {
+        for(offset = 0; sig->propNameList[offset] != NULL; offset++);
+        sig->propNameList = XREALLOC(sig->propNameList, sizeof(char*) * (offset + 2));
+    }
+    
+    char* name = XMALLOC(len +1);
+    COPY(str, name, len);
+    name[len] = 0;
+    sig->propNameList[offset++] = name;
+    sig->propNameList[offset] = NULL;
+}
+
+
 static int sParse_start_map(void * ctx)
 {
     S4KeyJSONcontext *jctx = (S4KeyJSONcontext*) ctx;
     int retval = 0;
     
-      jctx->level++;
-//      printf("sParse_start_map\n");
+    jctx->level++;
     
-    if(!jctx->keys)
+    if(jctx->level ==  1)
+    {
+        jctx->currentSignablePropList = NULL;
+        
+    }
+
+//     printf("sParse_start_map(%d) \n",jctx->level);
+    
+     if(!jctx->keys)
     {
         jctx->index = 0;
-
+        
         jctx->keys = XMALLOC(sizeof (S4KeyContext));
+        ZERO(jctx->keys, sizeof(sizeof (S4KeyContext)));
     }
     else
     {
-       jctx->index++;
-       jctx->keys =  XREALLOC(jctx->keys, sizeof(S4KeyContext) * (jctx->index + 1));
+        if(jctx->level > 1)
+        {
+            // SIGNATURES WILL HAVE A SUB MAP OF JSON, DONT CREATE ANOTHER ENTRY
+            if(jctx->jType[jctx->level-1] == S4Key_JSON_Type_SIGNATURES)
+            {
+                return(1);
+             }
+        }
+
+        jctx->index++;
+        jctx->keys =  XREALLOC(jctx->keys, sizeof(S4KeyContext) * (jctx->index + 1));
     }
     
     S4KeyContext* keyP = &jctx->keys[jctx->index];
@@ -2640,22 +3158,63 @@ static int sParse_start_map(void * ctx)
     }
     
     return retval;
- }
+}
 
 static int sParse_end_map(void * ctx)
 {
     S4KeyJSONcontext *jctx = (S4KeyJSONcontext*) ctx;
     int retval = 0;
     
-//     printf("sParse_end_map\n");
-    if(IsntNull(jctx)  )
+     if(IsntNull(jctx)  )
     {
+//        printf("sParse_end_map(%d) \n",jctx->level);
+     
+        if(jctx->level == 1)
+        {
+            if(jctx->currentSignablePropList)
+            {
+                S4KeyContext* keyP = &jctx->keys[jctx->index];
+
+                for(int i = 0; jctx->currentSignablePropList[i]; i++)
+                {
+                    char* propName = jctx->currentSignablePropList[i];
+                    S4KeyProperty* prop = sFindProperty(keyP,propName);
+                    if(prop)
+                    {
+                        prop->extended |=  S4KeyPropertyExtended_Signable;
+                    }
+                    XFREE(propName);
+                }
+                XFREE(jctx->currentSignablePropList);
+                
+                jctx->currentSignablePropList = NULL;
+            }
+         }
+        else if(jctx->level > 1)
+        {
+             S4KeyContext* keyP = &jctx->keys[jctx->index];
+            
+            if(jctx->jType[jctx->level-1] == S4Key_JSON_Type_SIGNATURES)
+            {
+                S4KeySig* item = &jctx->currentSigItem;
+                S4KeySigItem* sigItem = XMALLOC(sizeof(S4KeySigItem));
+                 if(sigItem)
+                {
+                    COPY(item, &sigItem->sig, sizeof(S4KeySig));
+                    
+                    sigItem->next = keyP->sigList;
+                    keyP->sigList = sigItem;
+                    ZERO(item, sizeof(S4KeySig));
+                 }
+            }
+        }
+ 
         retval = 1;
         
-         jctx->level--;
+        jctx->level--;
         
     }
-       return retval;
+    return retval;
 }
 
 static int sParse_start_array(void * ctx)
@@ -2663,7 +3222,7 @@ static int sParse_start_array(void * ctx)
     S4KeyJSONcontext *jctx = (S4KeyJSONcontext*) ctx;
     int retval = 0;
     
-//    printf("sParse_start_array\n");
+//        printf("sParse_start_array\n");
     
     if(IsntNull(jctx))
     {
@@ -2679,12 +3238,12 @@ static int sParse_end_array(void * ctx)
     S4KeyJSONcontext *jctx = (S4KeyJSONcontext*) ctx;
     int retval = 0;
     
-//    printf("sParse_end_array\n");
-     
+//         printf("sParse_end_array\n");
+   
+    
     if(IsntNull(jctx))
     {
         retval = 1;
-        
     }
     
     return retval;
@@ -2694,13 +3253,15 @@ static int sParse_end_array(void * ctx)
 static int sParse_number(void * ctx, const char * str, size_t len)
 {
     S4KeyJSONcontext *jctx = (S4KeyJSONcontext*) ctx;
-   char buf[32] = {0};
+    char buf[32] = {0};
     int valid = 0;
-
-//     printf("sParse_number\n");
-
+    
+    //     printf("sParse_number\n");
+    
     S4KeyContext* keyP = &jctx->keys[jctx->index];
     
+    bool insideSignatures = (jctx->level > 1) && (jctx->jType[jctx->level-1] == S4Key_JSON_Type_SIGNATURES);
+
     if(len < sizeof(buf))
     {
         COPY(str,buf,len);
@@ -2711,55 +3272,71 @@ static int sParse_number(void * ctx, const char * str, size_t len)
             {
                 jctx->version = val;
                 valid = 1;
-
+                
             }
-         }
-         else if(jctx->jType[jctx->level] == S4Key_JSON_Type_ROUNDS)
+        }
+        else if(jctx->jType[jctx->level] == S4Key_JSON_Type_ROUNDS)
         {
             int val = atoi(buf);
             keyP->type = kS4KeyType_PBKDF2;
             keyP->pbkdf2.rounds = val;
             valid = 1;
         }
-         else if(jctx->jType[jctx->level] == S4Key_JSON_Type_THRESHOLD)
-         {
-             int val = atoi(buf);
-             
-             if(keyP->type == kS4KeyType_PublicEncrypted)
-             {
-                 keyP->publicKeyEncoded.threshold = val;
-                 valid = 1;
-             }
-             else if(keyP->type == kS4KeyType_PBKDF2)
-             {
-                 keyP->pbkdf2.threshold = val;
-                 valid = 1;
-             }
-             else  if(keyP->type == kS4KeyType_Share)
-             {
-                 keyP->share.threshold = val;
-                 valid = 1;
-             }
-          }
-         else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SHAREINDEX)
-         {
-             int val = atoi(buf);
-             
-             if(keyP->type == kS4KeyType_PublicEncrypted)
-             {
-                 keyP->publicKeyEncoded.xCoordinate = val;
-                 valid = 1;
-             }
-             else if(keyP->type == kS4KeyType_PBKDF2)
-             {
-                 keyP->pbkdf2.xCoordinate = val;
-                 valid = 1;
-             }
-             else  if(keyP->type == kS4KeyType_Share)
-             {
-                 keyP->share.xCoordinate = val;
-                 valid = 1;
-             }
+        else if(jctx->jType[jctx->level] == S4Key_JSON_Type_THRESHOLD)
+        {
+            int val = atoi(buf);
+            
+            if(keyP->type == kS4KeyType_PublicEncrypted)
+            {
+                keyP->publicKeyEncoded.threshold = val;
+                valid = 1;
+            }
+            else if(keyP->type == kS4KeyType_PBKDF2)
+            {
+                keyP->pbkdf2.threshold = val;
+                valid = 1;
+            }
+            else  if(keyP->type == kS4KeyType_Share)
+            {
+                keyP->share.threshold = val;
+                valid = 1;
+            }
+        }
+        else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SHAREINDEX)
+        {
+            int val = atoi(buf);
+            
+            if(keyP->type == kS4KeyType_PublicEncrypted)
+            {
+                keyP->publicKeyEncoded.xCoordinate = val;
+                valid = 1;
+            }
+            else if(keyP->type == kS4KeyType_PBKDF2)
+            {
+                keyP->pbkdf2.xCoordinate = val;
+                valid = 1;
+            }
+            else  if(keyP->type == kS4KeyType_Share)
+            {
+                keyP->share.xCoordinate = val;
+                valid = 1;
+            }
+        }
+        else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SIGEXPIRETIME)
+        {
+            time_t val = atol(buf);
+            
+            if(insideSignatures)
+            {
+                S4KeySig* sig = &jctx->currentSigItem;
+                sig->expirationTime = val;
+                valid = 1;
+            }
+            else  if(keyP->type == kS4KeyType_Signature)
+            {
+                keyP->sig.expirationTime = val;
+                valid = 1;
+            }
         }
     }
     
@@ -2770,11 +3347,13 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                          size_t stringLen)
 {
     S4KeyJSONcontext *jctx = (S4KeyJSONcontext*) ctx;
-
+    
     S4KeyContext* keyP = &jctx->keys[jctx->index];
-
+    
     int valid = 0;
-//     printf("sParse_string\n");
+    //     printf("sParse_string\n");
+    
+    bool insideSignatures = (jctx->level > 1) && (jctx->jType[jctx->level-1] == S4Key_JSON_Type_SIGNATURES);
     
     if(jctx->jType[jctx->level] == S4Key_JSON_Type_PROPERTY)
     {
@@ -2787,14 +3366,18 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                 switch (propInfo->type)
                 {
                     case S4KeyPropertyType_UTF8String:
-                        sInsertProperty(keyP, propInfo->name, S4KeyPropertyType_UTF8String, (void*)stringVal, stringLen);
+                        sInsertProperty(keyP, propInfo->name, S4KeyPropertyType_UTF8String,
+                                        propInfo->signable?S4KeyPropertyExtended_Signable: S4KeyPropertyExtendedType_None,
+                                        (void*)stringVal, stringLen);
                         valid = 1;
                         break;
                         
                     case S4KeyPropertyType_Time:
                     {
                         time_t t = parseRfc3339(stringVal, stringLen);
-                        sInsertProperty(keyP, propInfo->name, S4KeyPropertyType_UTF8String,  &t, sizeof(time_t));
+                        sInsertProperty(keyP, propInfo->name, S4KeyPropertyType_Time,
+                                        propInfo->signable?S4KeyPropertyExtended_Signable: S4KeyPropertyExtendedType_None,
+                                        &t, sizeof(time_t));
                         valid = 1;
                         break;
                     }
@@ -2806,7 +3389,9 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                         
                         if(base64_decode(stringVal, stringLen, buf, &dataLen) == CRYPT_OK)
                         {
-                            sInsertProperty(keyP, propInfo->name, S4KeyPropertyType_Binary, (void*)buf, dataLen);
+                            sInsertProperty(keyP, propInfo->name, S4KeyPropertyType_Binary,
+                                            propInfo->signable?S4KeyPropertyExtended_Signable: S4KeyPropertyExtendedType_None,
+                                            (void*)buf, dataLen);
                             valid = 1;
                         }
                         XFREE(buf);
@@ -2822,7 +3407,8 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         // else just copy it
         if(!valid)
         {
-            sInsertProperty(keyP, (char *)(jctx->jTag), S4KeyPropertyType_UTF8String, (void*)stringVal, stringLen);
+            sInsertProperty(keyP, (char *)(jctx->jTag), S4KeyPropertyType_UTF8String,S4KeyPropertyExtendedType_None,
+                            (void*)stringVal, stringLen);
             valid = 1;
         }
         
@@ -2833,6 +3419,37 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         }
         
     }
+    if(jctx->jType[jctx->level] == S4Key_JSON_Type_SIGNED_PROPS)
+    {
+        S4KeySig* sig = &jctx->currentSigItem;
+        
+        sAppendSigProp(sig,(char *)stringVal,  stringLen);
+        valid = 1;
+    }
+    if(jctx->jType[jctx->level] == S4Key_JSON_Type_SIGNABLE_PROPS)
+    {
+        int offset = 0;
+        
+        if(!jctx->currentSignablePropList)
+        {
+            jctx->currentSignablePropList = XMALLOC(sizeof(char*) * 2);  // do we ever check for memory anymore?
+        }
+        else
+        {
+            for(offset = 0; jctx->currentSignablePropList[offset] != NULL; offset++);
+            jctx->currentSignablePropList = XREALLOC(jctx->currentSignablePropList, sizeof(char*) * (offset + 2));
+        }
+
+        char* name = XMALLOC(stringLen +1);
+        COPY(stringVal, name, stringLen);
+        name[stringLen] = 0;
+        
+        jctx->currentSignablePropList[offset++] = name;
+        jctx->currentSignablePropList[offset] = NULL;
+ 
+        valid = 1;
+    }
+    
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SALT)
     {
         uint8_t     buf[128];
@@ -2859,18 +3476,18 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
             {
                 COPY(buf, keyP->symKeyEncoded.keyHash, dataLen);
                 valid = 1;
-             }
+            }
             else  if(keyP->type == kS4KeyType_PublicEncrypted && (dataLen == kS4KeyPublic_Encrypted_HashBytes))
             {
                 COPY(buf, keyP->publicKeyEncoded.keyHash, dataLen);
                 valid = 1;
-             }
+            }
             else if(keyP->type == kS4KeyType_PublicKey && (dataLen == kS4KeyPublic_Encrypted_HashBytes))
             {
                 COPY(buf, keyP->pub.keyHash, dataLen);
                 valid = 1;
             }
-             else if(keyP->type == kS4KeyType_PBKDF2 && (dataLen == kS4KeyPBKDF2_HashBytes))
+            else if(keyP->type == kS4KeyType_PBKDF2 && (dataLen == kS4KeyPBKDF2_HashBytes))
             {
                 COPY(buf, keyP->pbkdf2.keyHash, dataLen);
                 valid = 1;
@@ -2885,7 +3502,7 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         size_t dataLen = sizeof(buf);
         
         if( (base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
-            && (dataLen == kS4ShareInfo_HashBytes))
+           && (dataLen == kS4ShareInfo_HashBytes))
         {
             if(keyP->type == kS4KeyType_PublicEncrypted)
             {
@@ -2910,12 +3527,12 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         size_t dataLen = sizeof(buf);
         
         if( (base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
-          && (dataLen <= sizeof(buf)) )
+           && (dataLen <= sizeof(buf)) )
         {
-              COPY(buf, keyP->pub.pubKey, dataLen);
+            COPY(buf, keyP->pub.pubKey, dataLen);
             keyP->pub.pubKeyLen = dataLen;
             keyP->pub.isPrivate = 0;
-               valid = 1;
+            valid = 1;
         }
     }
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_PRIVKEY)
@@ -2932,7 +3549,7 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                 keyP->symKeyEncoded.encryptedLen = dataLen;
                 valid = 1;
             }
-         }
+        }
     }
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_KEYID)
     {
@@ -2949,13 +3566,34 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
             else if(keyP->type == kS4KeyType_SymmetricEncrypted)
             {
                 COPY(buf, keyP->symKeyEncoded.keyID, dataLen);
-             }
+            }
             else
             {
                 keyP->type = kS4KeyType_PublicEncrypted;
                 COPY(buf, keyP->publicKeyEncoded.keyID, dataLen);
-             }
+            }
             valid = 1;
+        }
+    }
+    else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SIGID)
+    {
+        uint8_t     buf[128];
+        size_t dataLen = sizeof(buf);
+        
+        if(( base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
+           && (dataLen  == kS4Key_KeyIDBytes))
+        {
+            if(insideSignatures)
+            {
+                S4KeySig* sig = &jctx->currentSigItem;
+                COPY(buf, sig->issuerID, dataLen);
+                valid = 1;
+            }
+            else if(keyP->type == kS4KeyType_Signature)
+            {
+                COPY(buf, keyP->sig.sigID, dataLen);
+                valid = 1;
+            }
         }
     }
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_ENCRYPTED_SYMKEY)
@@ -2993,7 +3631,7 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                     valid = 1;
                     
                 }
-              }
+            }
             else  if(keyP->type == kS4KeyType_PublicEncrypted)
             {
                 
@@ -3002,8 +3640,8 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                     COPY(buf, keyP->publicKeyEncoded.encrypted, dataLen);
                     keyP->publicKeyEncoded.encryptedLen = dataLen;
                     valid = 1;
-                 }
-  
+                }
+                
             }
             else  if(keyP->type == kS4KeyType_SymmetricEncrypted)
             {
@@ -3016,7 +3654,7 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                 }
                 
             }
-
+            
         }
     }
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_ENCODING)
@@ -3030,9 +3668,9 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         }
         else if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_PBKDF2_AES256, strlen(kS4KeyProp_Encoding_PBKDF2_AES256)))
         {
-                keyP->type = kS4KeyType_PBKDF2;
-                keyP->pbkdf2.encyptAlgor = kCipher_Algorithm_AES256;
-                valid = 1;
+            keyP->type = kS4KeyType_PBKDF2;
+            keyP->pbkdf2.encyptAlgor = kCipher_Algorithm_AES256;
+            valid = 1;
         }
         else if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_PUBKEY_ECC384, strlen(kS4KeyProp_Encoding_PUBKEY_ECC384)))
         {
@@ -3064,6 +3702,13 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
             keyP->symKeyEncoded.encryptingAlgor = kCipher_Algorithm_AES256;
             valid = 1;
         }
+        
+        else if(CMP2(stringVal, stringLen, kS4KeyProp_Encoding_Signature, strlen(kS4KeyProp_Encoding_Signature)))
+        {
+            keyP->type = kS4KeyType_Signature;
+            valid = 1;
+        }
+
     }
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_KEYALGORITHM)
     {
@@ -3075,7 +3720,7 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
             if( keyP->type == kS4KeyType_PBKDF2)
             {
                 keyP->pbkdf2.keyAlgorithmType = keyType;
-
+                
                 if(keyType == kS4KeyType_Symmetric)
                 {
                     keyP->pbkdf2.cipherAlgor = algorithm;
@@ -3092,7 +3737,7 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                     keyP->pbkdf2.cipherAlgor = algorithm;
                     valid = 1;
                 }
-
+                
             }
             else if( keyP->type == kS4KeyType_PublicEncrypted)
             {
@@ -3156,20 +3801,91 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
                 }
             }
         }
-     }
+    }
+    else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SIGNATURES)
+    {
+        // we never see S4Key_JSON_Type_SIGNATURES as a string
+        valid = 0;
+    }
+    else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SIGNATURE)
+    {
+        size_t dataLen = stringLen;
+ 
+        uint8_t     *buf = XMALLOC(dataLen);
+        
+        if(base64_decode(stringVal, stringLen, buf, &dataLen) == CRYPT_OK)
+        {
+            if(insideSignatures)
+            {
+                S4KeySig* sig = &jctx->currentSigItem;
+                
+                sig->signatureLen = (size_t)dataLen;
+                sig->signature = buf;
+                valid = 1;
+                
+            }
+            else if(keyP->type == kS4KeyType_Signature)
+            {
+                keyP->sig.signature = buf;
+                keyP->sig.signatureLen = (size_t)dataLen;
+                valid = 1;
 
+            }
+        }
+    }
+    else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SIGNEDBY)
+    {
+        uint8_t     buf[128];
+        size_t dataLen = sizeof(buf);
+        
+        if(( base64_decode(stringVal,  stringLen, buf, &dataLen)  == CRYPT_OK)
+           && (dataLen  == kS4Key_KeyIDBytes))
+        {
+            if(insideSignatures)
+            {
+                S4KeySig* sig = &jctx->currentSigItem;
+                COPY(buf, sig->issuerID, dataLen);
+                valid = 1;
+                
+            }
+            else if(keyP->type == kS4KeyType_Signature)
+            {
+                COPY(buf, keyP->sig.issuerID, dataLen);
+                valid = 1;
+
+            }
+        }
+        
+    }
+    else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SIGNDATE)
+    {
+        time_t t = parseRfc3339(stringVal, stringLen);
+
+       if(insideSignatures)
+       {
+            S4KeySig* sig = &jctx->currentSigItem;
+            sig->signDate = t;
+           valid = 1;
+        }
+        else  if(keyP->type == kS4KeyType_Signature)
+        {
+            keyP->sig.signDate = t;
+            valid = 1;
+        }
+    }
+   
     return valid;
-
+    
 }
 
 static int sParse_map_key(void * ctx, const unsigned char * stringVal, size_t stringLen )
 {    int valid = 0;
- 
-    S4KeyJSONcontext *jctx = (S4KeyJSONcontext*) ctx;
-   
-//  printf("sParse_map_key[%d] \"%.*s\"\n",(int)jctx->level, (int)stringLen, stringVal);
     
-    if(CMP2(stringVal, stringLen,kS4KeyProp_SCKeyVersion, strlen(kS4KeyProp_SCKeyVersion)))
+    S4KeyJSONcontext *jctx = (S4KeyJSONcontext*) ctx;
+    
+    //  printf("sParse_map_key[%d] \"%.*s\"\n",(int)jctx->level, (int)stringLen, stringVal);
+    
+    if(CMP2(stringVal, stringLen,kS4KeyProp_Version, strlen(kS4KeyProp_Version)))
     {
         jctx->jType[jctx->level] = S4Key_JSON_Type_VERSION;
         valid = 1;
@@ -3209,6 +3925,11 @@ static int sParse_map_key(void * ctx, const unsigned char * stringVal, size_t st
         jctx->jType[jctx->level] = S4Key_JSON_Type_KEYID;
         valid = 1;
     }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_SigID, strlen(kS4KeyProp_SigID)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_SIGID;
+        valid = 1;
+    }
     else  if(CMP2(stringVal, stringLen,kS4KeyProp_ShareHash, strlen(kS4KeyProp_ShareHash)))
     {
         jctx->jType[jctx->level] = S4Key_JSON_Type_SHAREHASH;
@@ -3234,6 +3955,41 @@ static int sParse_map_key(void * ctx, const unsigned char * stringVal, size_t st
         jctx->jType[jctx->level] = S4Key_JSON_Type_PRIVKEY;
         valid = 1;
     }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_Signatures, strlen(kS4KeyProp_Signatures)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_SIGNATURES;
+        valid = 1;
+    }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_SignableProperties, strlen(kS4KeyProp_SignableProperties)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_SIGNABLE_PROPS;
+        valid = 1;
+    }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_SignedDate, strlen(kS4KeyProp_SignedDate)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_SIGNDATE;
+        valid = 1;
+    }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_SigExpire, strlen(kS4KeyProp_SigExpire)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_SIGEXPIRETIME;
+        valid = 1;
+    }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_SignedBy, strlen(kS4KeyProp_SignedBy)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_SIGNEDBY;
+        valid = 1;
+    }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_Signature, strlen(kS4KeyProp_Signature)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_SIGNATURE;
+        valid = 1;
+    }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_SignedProperties, strlen(kS4KeyProp_SignedProperties)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_SIGNED_PROPS;
+        valid = 1;
+    }
     else
     {
         jctx->jType[jctx->level] = S4Key_JSON_Type_PROPERTY;
@@ -3242,9 +3998,10 @@ static int sParse_map_key(void * ctx, const unsigned char * stringVal, size_t st
         valid = 1;
         
     }
- 
-   return valid;
-
+    
+    
+    return valid;
+    
 }
 
 
@@ -3255,7 +4012,7 @@ S4Err S4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
     S4Err               err = kS4Err_NoErr;
     yajl_status             stat = yajl_status_ok;
     yajl_handle             pHand = NULL;
-
+    
     S4KeyJSONcontext       *jctx = NULL;
     size_t                  keyCount = 0;
     
@@ -3269,8 +4026,8 @@ S4Err S4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
         sParse_start_map,
         sParse_map_key,
         sParse_end_map,
-        sParse_start_array,
-        sParse_end_array
+         sParse_start_array,
+         sParse_end_array
     };
     
     yajl_alloc_funcs allocFuncs = {
@@ -3279,10 +4036,10 @@ S4Err S4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
         yajlFree,
         (void *) NULL
     };
-
-//    ValidateParam(ctxArray);
+    
+    //    ValidateParam(ctxArray);
     ValidateParam(inData);
-
+    
     jctx = XMALLOC(sizeof (S4KeyJSONcontext)); CKNULL(jctx);
     ZERO(jctx, sizeof(S4KeyJSONcontext));
     jctx->level = 0;
@@ -3316,23 +4073,23 @@ S4Err S4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
             for(index = 0; index < keyCount; index++)
             {
                 S4KeyContext* keyP = &jctx->keys[index];
-               
+                
                 keys[index] =  XMALLOC(sizeof (S4KeyContext)); CKNULL(keys[index]);
                 COPY(keyP, keys[index], sizeof (S4KeyContext));
-
+                
                 S4KeyContext* copiedKey =  keys[index];
                 
                 if(copiedKey->type == kS4KeyType_PublicKey)
                 {
                     uint8_t             keyID[kS4Key_KeyIDBytes];
                     size_t              keyIDLen = 0;
-
+                    
                     err = ECC_Init(&copiedKey->pub.ecc); CKERR;
                     err = ECC_Import_ANSI_X963(copiedKey->pub.ecc, copiedKey->pub.pubKey, copiedKey->pub.pubKeyLen);CKERR;
-               
+                    
                     // verify keyID
                     err = ECC_PubKeyHash(copiedKey->pub.ecc, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
-                     ASSERTERR(CMP(keyID, copiedKey->pub.keyID, kS4Key_KeyIDBytes), kS4Err_BadIntegrity)
+                    ASSERTERR(CMP(keyID, copiedKey->pub.keyID, kS4Key_KeyIDBytes), kS4Err_BadIntegrity)
                     
                     // verify signature here..
                     
@@ -3340,8 +4097,8 @@ S4Err S4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
                 
             }
             *ctxArray = keys;
-         }
-      }
+        }
+    }
     
     
 done:
@@ -3352,7 +4109,7 @@ done:
             ZERO(jctx->keys, sizeof(S4KeyContext) *  jctx->index);
             XFREE(jctx->keys);
         }
-  
+        
         XFREE(jctx);
     }
     
@@ -3375,7 +4132,7 @@ S4Err S4Key_VerifyPassPhrase(   S4KeyContextRef  ctx,
     uint8_t         unlocking_key[32] = {0};
     size_t           keyBytes = 0;
     uint8_t         keyHash[kS4KeyPBKDF2_HashBytes] = {0};
-
+    
     validateS4KeyContext(ctx);
     ValidateParam(passphrase);
     
@@ -3397,18 +4154,18 @@ S4Err S4Key_VerifyPassPhrase(   S4KeyContextRef  ctx,
     
     
     err = sPASSPHRASE_HASH(unlocking_key, sizeof(unlocking_key),
-                          ctx->pbkdf2.salt, sizeof(ctx->pbkdf2.salt), ctx->pbkdf2.rounds,
+                           ctx->pbkdf2.salt, sizeof(ctx->pbkdf2.salt), ctx->pbkdf2.rounds,
                            keyHash, kS4KeyPBKDF2_HashBytes); CKERR;
     
-   ASSERTERR(CMP(keyHash, ctx->pbkdf2.keyHash, kS4KeyPBKDF2_HashBytes), kS4Err_BadIntegrity)
+    ASSERTERR(CMP(keyHash, ctx->pbkdf2.keyHash, kS4KeyPBKDF2_HashBytes), kS4Err_BadIntegrity)
     
-
+    
 done:
     
     ZERO(unlocking_key, sizeof(unlocking_key));
     
     return err;
-
+    
 }
 
 S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
@@ -3418,10 +4175,10 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
 {
     S4Err           err = kS4Err_NoErr;
     S4KeyContext*   keyCTX = NULL;
-
+    
     Cipher_Algorithm    encyptAlgor = kCipher_Algorithm_Invalid;
     uint8_t             unlocking_key[32] = {0};
-     size_t             keyBytes = 0;
+    size_t             keyBytes = 0;
     uint8_t             decrypted_key[128] = {0};
     uint8_t             keyHash[kS4KeyPBKDF2_HashBytes] = {0};
     
@@ -3433,12 +4190,12 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
     if(passCtx->pbkdf2.keyAlgorithmType == kS4KeyType_Symmetric)
     {
         keyBytes = sGetKeyLength(kS4KeyType_Symmetric, passCtx->pbkdf2.cipherAlgor);
-    
+        
         switch (passCtx->pbkdf2.cipherAlgor)
         {
             case kCipher_Algorithm_2FISH256:
                 encyptAlgor = kCipher_Algorithm_2FISH256;
-                 break;
+                break;
                 
             case kCipher_Algorithm_AES192:
                 encyptAlgor = kCipher_Algorithm_AES256;
@@ -3446,14 +4203,14 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
                 
             default:
                 encyptAlgor = kCipher_Algorithm_AES256;
-                 break;
+                break;
         }
- 
+        
     }
     else  if(passCtx->pbkdf2.keyAlgorithmType == kS4KeyType_Tweekable)
     {
         encyptAlgor = kCipher_Algorithm_2FISH256;
-
+        
         keyBytes = sGetKeyLength(kS4KeyType_Tweekable, passCtx->pbkdf2.cipherAlgor);
     }
     else  if(passCtx->pbkdf2.keyAlgorithmType == kS4KeyType_Share)
@@ -3461,7 +4218,7 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
         encyptAlgor = kCipher_Algorithm_2FISH256;
         keyBytes = passCtx->pbkdf2.encryptedLen;
     }
-
+    
     
     err = PASS_TO_KEY(passphrase, passphraseLen,
                       passCtx->pbkdf2.salt, sizeof(passCtx->pbkdf2.salt), passCtx->pbkdf2.rounds,
@@ -3488,9 +4245,9 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
         
         err =  ECB_Decrypt(encyptAlgor, unlocking_key, passCtx->pbkdf2.encrypted,
                            bytesToDecrypt, decrypted_key); CKERR;
-
+        
         COPY(decrypted_key, keyCTX->sym.symKey, bytesToDecrypt);
-      
+        
     }
     else  if(passCtx->pbkdf2.keyAlgorithmType == kS4KeyType_Tweekable)
     {
@@ -3500,15 +4257,15 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
         
         err =  ECB_Decrypt(encyptAlgor, unlocking_key, passCtx->pbkdf2.encrypted,
                            keyBytes,  decrypted_key); CKERR;
-
+        
         memcpy(keyCTX->tbc.key, decrypted_key, keyBytes);
         
-  //      Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
-      }
+        //      Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, keyBytes >>2);   /* bytes to words */
+    }
     else  if(passCtx->pbkdf2.keyAlgorithmType == kS4KeyType_Share)
     {
         // we dont have a way to determine the expected length of a split key.
-
+        
         // is the Share to big?
         ASSERTERR(keyBytes <= 64 , kS4Err_CorruptData );
         
@@ -3523,9 +4280,10 @@ S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
         keyCTX->share.shareSecretLen = keyBytes;
         COPY(decrypted_key, keyCTX->share.shareSecret, keyBytes);
     }
-
+    
     sCloneProperties(passCtx, keyCTX);
- 
+    sCloneSignatures(passCtx, keyCTX);
+
     *symCtx = keyCTX;
     
 done:
@@ -3541,12 +4299,12 @@ done:
     ZERO(unlocking_key, sizeof(unlocking_key));
     
     return err;
-
+    
 }
 
 S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
-                              S4KeyContextRef       passKeyCtx,
-                              S4KeyContextRef       *outKeyCtx)
+                             S4KeyContextRef       passKeyCtx,
+                             S4KeyContextRef       *outKeyCtx)
 {
     S4Err               err = kS4Err_NoErr;
     S4KeyContext*       keyCTX = NULL;
@@ -3566,7 +4324,7 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
     validateS4KeyContext(encodedCtx);
     validateS4KeyContext(passKeyCtx);
     ValidateParam(outKeyCtx);
-     
+    
     if(encodedCtx->type == kS4KeyType_PublicEncrypted )
     {
         return sDecryptFromPubKey(encodedCtx, passKeyCtx->pub.ecc, outKeyCtx);
@@ -3620,11 +4378,11 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
         err =  ECB_Decrypt(encyptAlgor, unlockingKey, keyToDecrypt, decryptedLen, decrypted_key); CKERR;
         
         COPY(decrypted_key, keyCTX->sym.symKey, decryptedLen);
-      
+        
         // check integrity of decypted value against the MAC
         err = sKEY_HASH(decrypted_key, decryptedLen, keyCTX->type,  keyCTX->sym.symAlgor,
                         keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
-
+        
     }
     else  if(encodedCtx->publicKeyEncoded.keyAlgorithmType == kS4KeyType_Tweekable)
     {
@@ -3635,8 +4393,8 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
         err =  ECB_Decrypt(encyptAlgor, unlockingKey, keyToDecrypt, decryptedLen, decrypted_key); CKERR;
         
         memcpy(keyCTX->tbc.key, decrypted_key, decryptedLen);
-//        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, decryptedLen >>2);   /* bytes to words */
-  
+        //        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, decryptedLen >>2);   /* bytes to words */
+        
         // check integrity of decypted value against the MAC
         err = sKEY_HASH(decrypted_key, decryptedLen, keyCTX->type,  keyCTX->sym.symAlgor,
                         keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
@@ -3652,7 +4410,7 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
                                encodedCtx->symKeyEncoded.keyID,
                                encodedCtx->symKeyEncoded.encrypted, encodedCtx->symKeyEncoded.encryptedLen,
                                &decrypted_privKey, &decrypted_privKeyLen); CKERR;
-      
+        
         err = ECC_Init(&keyCTX->pub.ecc);
         err = ECC_Import(keyCTX->pub.ecc, decrypted_privKey, decrypted_privKeyLen); CKERR;
         err = sCalculateECCData(keyCTX);
@@ -3660,24 +4418,25 @@ S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
         // check integrity of decypted value against the MAC
         err = sKEY_HASH(decrypted_privKey, decrypted_privKeyLen, keyCTX->type,  keyCTX->pub.cipherAlgor,
                         keyHash, kS4KeyPublic_Encrypted_HashBytes ); CKERR;
-
+        
     }
     
     ASSERTERR( CMP(keyHash, encodedCtx->symKeyEncoded.keyHash, kS4KeyPublic_Encrypted_HashBytes),
               kS4Err_BadIntegrity)
     
     sCloneProperties(encodedCtx, keyCTX);
-
+    sCloneSignatures(encodedCtx, keyCTX);
+   
     *outKeyCtx = keyCTX;
     
 done:
-   
+    
     if(IsntNull(decrypted_privKey))
     {
         ZERO(decrypted_privKey, decrypted_privKeyLen);
         XFREE(decrypted_privKey);
     }
-        
+    
     if(IsS4Err(err))
     {
         if(IsntNull(keyCTX))
@@ -3814,7 +4573,7 @@ S4Err S4Key_SerializeToShares(S4KeyContextRef       ctx,
     yajl_gen_config(g, yajl_gen_validate_utf8, 1);
     stat = yajl_gen_map_open(g);
     
-    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SCKeyVersion, strlen(kS4KeyProp_SCKeyVersion)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Version, strlen(kS4KeyProp_Version)) ; CKYJAL;
     sprintf((char *)tempBuf, "%d", kS4KeyProtocolVersion);
     stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
     
@@ -3827,7 +4586,7 @@ S4Err S4Key_SerializeToShares(S4KeyContextRef       ctx,
     stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareThreshold, strlen(kS4KeyProp_ShareThreshold)) ; CKYJAL;
     sprintf((char *)tempBuf, "%d", threshold);
     stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
-
+    
     stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_ShareThreshold, strlen(kS4KeyProp_ShareThreshold)) ; CKYJAL;
     sprintf((char *)tempBuf, "%d", totalShares);
     stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
@@ -3836,7 +4595,7 @@ S4Err S4Key_SerializeToShares(S4KeyContextRef       ctx,
     tempLen = sizeof(tempBuf);
     base64_encode(keyHash, kS4ShareInfo_HashBytes, tempBuf, &tempLen);
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
-   
+    
     stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_EncryptedKey, strlen(kS4KeyProp_EncryptedKey)) ; CKYJAL;
     tempLen = sizeof(tempBuf);
     base64_encode(encrypted_key, keyBytes, tempBuf, &tempLen);
@@ -3859,11 +4618,13 @@ S4Err S4Key_SerializeToShares(S4KeyContextRef       ctx,
         
         if(shareInfo)
             XFREE(shareInfo);
-
+        
     }
     stat = yajl_gen_array_close(g);
     
     err = sGenPropStrings(ctx, g); CKERR;
+    err = sGenSignablePropString(ctx, g); CKERR;
+    err = sGenSignatureStrings(ctx, g); CKERR;
     
     stat = yajl_gen_map_close(g); CKYJAL;
     stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
@@ -3888,7 +4649,7 @@ done:
         if(SHARES_ContextRefIsValid(shareCTX))
             SHARES_Free(shareCTX);
     }
-
+    
     if(IsntNull(g))
         yajl_gen_free(g);
     
@@ -3896,4 +4657,698 @@ done:
     
 }
 
+#ifdef __clang__
+#pragma mark - Public Key Signatures.
+#endif
 
+S4Err S4Key_SignHash( S4KeyContextRef      pubKeyCtx,
+                     void *hash, size_t hashLen,
+                     void *outSig, size_t bufSize, size_t *outSigLen)
+{
+    S4Err           err = kS4Err_NoErr;
+    
+    
+    validateS4KeyContext(pubKeyCtx);
+    ValidateParam(pubKeyCtx->type == kS4KeyType_PublicKey);
+    
+    bool canSign =  ECC_isPrivate(pubKeyCtx->pub.ecc);
+    
+    if(!canSign)
+        RETERR(kS4Err_BadParams);
+    
+    err = ECC_Sign(pubKeyCtx->pub.ecc, hash, hashLen,  outSig, bufSize, outSigLen);CKERR;
+    
+done:
+    
+    return err;
+}
+S4Err S4Key_VerifyHash( S4KeyContextRef  pubKeyCtx,
+                       void *hash, size_t hashLen,
+                       void *sig,  size_t sigLen)
+{
+    S4Err           err = kS4Err_NoErr;
+    
+    validateS4KeyContext(pubKeyCtx);
+    ValidateParam(pubKeyCtx->type == kS4KeyType_PublicKey);
+    
+    bool canVerify =  sECC_ContextIsValid(pubKeyCtx->pub.ecc);
+    
+    if(!canVerify)
+        RETERR(kS4Err_BadParams);
+    
+    err = ECC_Verify(pubKeyCtx->pub.ecc,  sig, sigLen, hash, hashLen);
+    
+done:
+    return err;
+    
+}
+
+
+
+static S4Err sCalulateKeyDigest( S4KeyContextRef  keyCtx,
+                              char**            optionalPropNamesList,
+                              time_t            signDate,
+                              long              sigExpireTime,
+                              uint8_t* hashBuf, size_t *hashBytes )
+{
+    S4Err             err = kS4Err_NoErr;
+    HASH_ContextRef    hash = NULL;
+    
+    validateS4KeyContext(keyCtx);
+    
+    size_t      propListEntries = 0;
+    char**       propList = NULL;
+    
+    time_t       issueTime = signDate;
+    long         expireTime = sigExpireTime == 0?LONG_MAX:sigExpireTime;
+
+    err = HASH_Init( kHASH_Algorithm_SHA256, &hash); CKERR;
+    
+    if(optionalPropNamesList)
+    {
+        for(propListEntries = 0; optionalPropNamesList[propListEntries] != 0; propListEntries++);
+        propList = optionalPropNamesList;
+    }
+    else
+    {
+        err = sGetSignablePropertyNames(keyCtx, &propList, &propListEntries); CKERR;
+    }
+    
+    // sign in issue date and expire
+    err  = HASH_Update(hash,kS4KeyProp_SignedDate, strlen(kS4KeyProp_SignedDate)); CKERR;
+    err  = HASH_Update(hash, ":", 1); CKERR;
+    err  = HASH_Update(hash, &issueTime, sizeof(time_t)); CKERR;
+    err  = HASH_Update(hash, ",", 1); CKERR;
+    err  = HASH_Update(hash,kS4KeyProp_SigExpire, strlen(kS4KeyProp_SigExpire)); CKERR;
+    err  = HASH_Update(hash, ":", 1); CKERR;
+    err  = HASH_Update(hash, &expireTime, sizeof(long)); CKERR;
+    
+    if(propList)
+    {
+        for(int i = 0; i < propListEntries; i++)
+        {
+            // hash in the name
+            err  = HASH_Update(hash, ",", 1); CKERR;
+            err  = HASH_Update(hash,propList[i], strlen(propList[i])); CKERR;
+            err  = HASH_Update(hash, ":", 1); CKERR;
+
+            // Handle the special built in properties
+            if(STRCMP2(propList[i], kS4KeyProp_KeyType))
+            {
+                err  = HASH_Update(hash, &keyCtx->type, sizeof(S4KeyType)); CKERR;
+            }
+            else if(STRCMP2(propList[i], kS4KeyProp_KeySuite))
+            {
+                Cipher_Algorithm  cipherAlgor = kCipher_Algorithm_Invalid;
+                err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeySuite, NULL, &cipherAlgor, sizeof(cipherAlgor), NULL ); CKERR;
+                err = HASH_Update(hash, &cipherAlgor, sizeof(Cipher_Algorithm)); CKERR;
+            }
+            else if(STRCMP2(propList[i], kS4KeyProp_KeyID))
+            {
+                uint8_t keyID [kS4Key_KeyIDBytes] = {0};
+                err = S4Key_GetProperty(keyCtx, kS4KeyProp_KeyID, NULL, &keyID, sizeof(keyID), NULL ); CKERR;
+                err  = HASH_Update(hash,keyID, sizeof(keyID)); CKERR;
+            }
+            else if(STRCMP2(propList[i], kS4KeyProp_SignedBy))
+            {
+                uint8_t keyID [kS4Key_KeyIDBytes] = {0};
+                err = S4Key_GetProperty(keyCtx, kS4KeyProp_SignedBy, NULL, &keyID, sizeof(keyID), NULL ); CKERR;
+                err  = HASH_Update(hash,keyID, sizeof(keyID)); CKERR;
+            }
+            else if(STRCMP2(propList[i], kS4KeyProp_Signature))
+            {
+                err  = HASH_Update(hash,keyCtx->sig.signature, keyCtx->sig.signatureLen);  CKERR;
+            }
+            else if(STRCMP2(propList[i], kS4KeyProp_SignedDate))
+            {
+                err  = HASH_Update(hash, &keyCtx->sig.signDate, sizeof(time_t)); CKERR;
+            }
+            else if(STRCMP2(propList[i], kS4KeyProp_SigExpire))
+            {
+                long  expireTime = keyCtx->sig.expirationTime == 0?LONG_MAX:keyCtx->sig.expirationTime;
+                err  = HASH_Update(hash, &expireTime, sizeof(expireTime)); CKERR;
+            }
+            else if(STRCMP2(propList[i], kS4KeyProp_SigID))
+            {
+                uint8_t keyID [kS4Key_KeyIDBytes] = {0};
+                err = S4Key_GetProperty(keyCtx, kS4KeyProp_SigID, NULL, &keyID, sizeof(keyID), NULL ); CKERR;
+                err  = HASH_Update(hash,keyID, sizeof(keyID)); CKERR;
+            }
+            
+            else if(STRCMP2(propList[i], kS4KeyProp_PubKey))
+            {
+                uint8_t         keyData[256];
+                size_t          keyDataLen = 0;
+                
+                err = ECC_Export_ANSI_X963(keyCtx->pub.ecc, keyData, sizeof(keyData), &keyDataLen);CKERR;
+                err  = HASH_Update(hash,keyData, keyDataLen); CKERR;
+            }
+          
+            // handle the properties found on proplist
+            else
+            {
+                S4KeyProperty* prop = sFindProperty(keyCtx,propList[i]);
+                
+                if(!prop) continue;
+                
+                if(!optionalPropNamesList
+                   && ((prop->extended && S4KeyPropertyExtended_Signable) != S4KeyPropertyExtended_Signable))
+                    continue;
+                
+                switch(prop->type)
+                {
+                    case S4KeyPropertyType_UTF8String:
+                    {
+                        err  = HASH_Update(hash,prop->value, prop->valueLen); CKERR;
+                    }
+                        break;
+                        
+                    case S4KeyPropertyType_Binary:
+                    {
+                        err  = HASH_Update(hash,prop->value, prop->valueLen); CKERR;
+                    }
+                        break;
+                        
+                    case S4KeyPropertyType_Time:
+                    {
+                        uint8_t     tempBuf[32];
+                        size_t      tempLen;
+                        time_t      gTime;
+                        struct      tm *nowtm;
+                        
+                        COPY(prop->value, &gTime, sizeof(gTime));
+                        nowtm = gmtime(&gTime);
+                        tempLen = strftime((char *)tempBuf, sizeof(tempBuf), kRfc339Format, nowtm);
+                        err  = HASH_Update(hash,tempBuf, tempLen); CKERR;
+                    }
+                        break;
+                        
+                    default:
+                        ;
+                        
+                }
+                
+            }
+        }
+    }
+    
+    HASH_GetSize(hash, hashBytes);
+    HASH_Final(hash,hashBuf);
+    
+done:
+    
+    if(!optionalPropNamesList  && propList)
+    {
+        for(int i = 0; propList[i]; i++)
+            XFREE(propList[i]);
+        
+        XFREE(propList);
+    }
+    
+    if(!IsNull(hash))
+        HASH_Free(hash);
+    
+    return err;
+    
+}
+
+#ifdef __clang__
+#pragma mark -  Key Signing/Verify
+#endif
+static void sCloneSignatures(S4KeyContext  *src, S4KeyContext  *dest )
+{
+
+    S4KeySigItem* item = NULL;
+    S4KeySigItem** lastSig = &dest->sigList;
+    
+    for(item = src->sigList; item; item = item->next)
+    {
+        S4KeySigItem* newItem =  XMALLOC(sizeof(S4KeySigItem));
+        ZERO(newItem,sizeof(S4KeySigItem));
+        
+        if(item->sig.signature)
+        {
+            newItem->sig.signature = XMALLOC(item->sig.signatureLen );
+            COPY(item->sig.signature, newItem->sig.signature, item->sig.signatureLen );
+            newItem->sig.signatureLen = item->sig.signatureLen;
+           
+            COPY(item->sig.issuerID, newItem->sig.issuerID, kS4Key_KeyIDBytes );
+            COPY(item->sig.sigID, newItem->sig.sigID, kS4Key_KeyIDBytes );
+            
+            newItem->sig.signDate = item->sig.signDate;
+            newItem->sig.expirationTime  = item->sig.expirationTime;
+            newItem->sig.propNameList = sDeepStrDup(item->sig.propNameList);
+            
+            *lastSig = newItem;
+            lastSig = &newItem->next;
+        }
+        
+        *lastSig = NULL;
+    }
+}
+
+static char** sDeepStrDup( char** list)
+{
+    size_t          listCount = 0;
+    char**          newList = NULL;
+    
+    if(list)
+    {
+        for(int i = 0; list[i]; i++)
+            listCount++;
+        
+        if(listCount)
+        {
+            int i = 0;
+            newList = XMALLOC((listCount + 1 ) * sizeof(char*) );
+            
+            for(i = 0; list[i]; i++)
+                newList[i] = strdup(list[i]);
+            
+            newList[i++] = NULL;
+        }
+        
+  
+    }
+      return newList;
+}
+
+
+static void sInsertSig(S4KeyContextRef      signingCtx,
+                       S4KeyContextRef      pubCtx,
+                       uint8_t              sigID[kS4Key_KeyIDBytes],
+                       uint8_t              *sigData,
+                       size_t               sigDataLen,
+                       time_t               signDate,
+                       time_t               expirationTime,
+                       char**               propNameList)
+{
+    S4KeySigItem* sigItem = XMALLOC(sizeof(S4KeySigItem));
+    if(sigItem)
+    {
+        ZERO(sigItem,sizeof(S4KeySigItem));
+        
+        sigItem->sig.signature = XMALLOC(sigDataLen);
+        COPY(sigData, sigItem->sig.signature, sigDataLen );
+        sigItem->sig.signatureLen = sigDataLen;
+        COPY(&signingCtx->pub.keyID ,  &sigItem->sig.issuerID, kS4Key_KeyIDBytes);
+        COPY(sigID ,  &sigItem->sig.sigID, kS4Key_KeyIDBytes);
+        
+        sigItem->sig.signDate = signDate;
+        sigItem->sig.expirationTime = expirationTime;
+        sigItem->sig.propNameList = sDeepStrDup(propNameList);
+        
+        sigItem->next = pubCtx->sigList;
+        pubCtx->sigList = sigItem;
+    }
+}
+    
+S4Err S4Key_SignKey( S4KeyContextRef      signingCtx,
+                     S4KeyContextRef      keyCtx,
+                     long                 sigExpireTime
+                    )
+{
+    S4Err           err = kS4Err_NoErr;
+    
+    size_t          propNameCount = 0;
+    char**          propNameList = NULL;
+
+    uint8_t        keyHash [32] = {0};
+    size_t         keyHashLen = 0;
+    
+     uint8_t        sigBuff[256];
+    size_t          sigBuffLen = 0;
+    
+    time_t          signDate = time(NULL);
+    long            expireTime = sigExpireTime == 0?LONG_MAX:sigExpireTime;
+    
+    uint8_t        sigID [kS4Key_KeyIDBytes] = {0};
+    
+    validateS4KeyContext(signingCtx);
+    validateS4KeyContext(keyCtx);
+    ValidateParam(keyCtx->type == kS4KeyType_PublicKey
+                  || keyCtx->type == kS4KeyType_Signature );
+    ValidateParam(signingCtx->type == kS4KeyType_PublicKey);
+    
+    bool canSign =  ECC_isPrivate(signingCtx->pub.ecc);
+    
+    if(!canSign)
+        RETERR(kS4Err_BadParams);
+   
+    // Get the properties we use for signing.
+    err = sGetSignablePropertyNames(keyCtx, &propNameList, &propNameCount); CKERR;
+
+    // caclulate the key hash
+    err = sCalulateKeyDigest(keyCtx, propNameList ,signDate, expireTime, keyHash, &keyHashLen); CKERR;
+    
+    // generate a random SigID
+    err = RNG_GetBytes( sigID, sizeof(sigID)); CKERR;
+
+     // calculate the key sig
+    err = ECC_Sign(signingCtx->pub.ecc, keyHash, keyHashLen,  sigBuff, sizeof(sigBuff), &sigBuffLen);CKERR;
+    
+    sInsertSig(signingCtx, keyCtx, sigID, sigBuff, sigBuffLen, signDate, expireTime, propNameList);
+    
+done:
+    
+    if(propNameList)
+   {
+       for(int i = 0; propNameList[i]; i++)
+           XFREE(propNameList[i]);
+       XFREE(propNameList);
+   }
+    
+    return err;
+}
+
+S4Err S4Key_GetKeySignatures( S4KeyContextRef      ctx,
+                                size_t              *outCount,
+                                S4KeyContextRef     *ctxArrayOut[])
+{
+    S4Err           err = kS4Err_NoErr;
+
+    size_t                  keyCount = 0;
+    S4KeyContextRef*         ctxArray = NULL;
+    S4KeySigItem *sigItem   = NULL;
+    int i;
+    
+    validateS4KeyContext(ctx);
+    
+    // get number of signatures
+    for(sigItem = ctx->sigList; sigItem; sigItem = sigItem->next)
+        keyCount++;
+   
+    // allocate the ctxArray
+    ctxArray = XMALLOC(sizeof(S4KeyContext) * keyCount);
+    ZERO(ctxArray, sizeof(S4KeyContext) * keyCount);
+    
+    for(i=0 , sigItem = ctx->sigList ; i < keyCount; i++, sigItem = sigItem->next)
+    {
+        
+        S4KeyContext* keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+        ZERO(keyCTX, sizeof(S4KeyContext));
+        
+        keyCTX->magic = kS4KeyContextMagic;
+        keyCTX->type  = kS4KeyType_Signature;
+        keyCTX->propList = NULL;
+        keyCTX->sigList = NULL;
+      
+        COPY(sigItem->sig.issuerID, keyCTX->sig.issuerID, kS4Key_KeyIDBytes);
+        keyCTX->sig.signDate = sigItem->sig.signDate;
+        keyCTX->sig.expirationTime = sigItem->sig.expirationTime;
+
+        
+        for(int offset = 0; sigItem->sig.propNameList[offset] != NULL; offset++)
+        {
+            sAppendSigProp(&keyCTX->sig,
+                           (char *)sigItem->sig.propNameList[offset],
+                           strlen(sigItem->sig.propNameList[offset]));
+ 
+        }
+
+        keyCTX->sig.signature = XMALLOC(sigItem->sig.signatureLen);
+        COPY(sigItem->sig.signature, keyCTX->sig.signature, sigItem->sig.signatureLen);
+        keyCTX->sig.signatureLen =  sigItem->sig.signatureLen;
+        
+        ctxArray[i] = keyCTX;
+    }
+    
+    
+done:
+
+    if(ctxArrayOut)
+    {
+        if(!keyCount)
+        {
+            *ctxArrayOut = NULL;
+        }
+        else
+        {
+            *ctxArrayOut = ctxArray;
+        }
+    }
+
+    if(outCount) *outCount = keyCount;
+    
+    return err;
+
+}
+
+
+
+S4Err S4Key_VerfiyKeySig( S4KeyContextRef      keyCtx,
+                          S4KeyContextRef      sigingKeyCtx,
+                          S4KeyContextRef      sigCtx)
+{
+    S4Err           err = kS4Err_NoErr;
+
+    uint8_t        keyHash1[32] = {0};
+    size_t         keyHash1Len = 0;
+    
+    validateS4KeyContext(keyCtx);
+    validateS4KeyContext(sigingKeyCtx);
+
+    ValidateParam(keyCtx->type == kS4KeyType_PublicKey
+                  || keyCtx->type == kS4KeyType_Signature );
+    
+    ValidateParam(sigingKeyCtx->type == kS4KeyType_PublicKey);
+    
+    bool isPubKey = sECC_ContextIsValid(sigingKeyCtx->pub.ecc);
+    if(!isPubKey)
+        RETERR(kS4Err_BadParams);
+   
+    bool isSig =  sigCtx->type == kS4KeyType_Signature;
+    if(!isSig)
+        RETERR(kS4Err_BadParams);
+    
+    bool isCorrectKey = S4Key_CompareKeyID(sigingKeyCtx->pub.keyID, sigCtx->sig.issuerID);
+    if(!isCorrectKey)
+        RETERR(kS4Err_BadParams);
+  
+
+    err = sCalulateKeyDigest(keyCtx,sigCtx->sig.propNameList ,
+                                  sigCtx->sig.signDate,
+                                  sigCtx->sig.expirationTime,
+                                  keyHash1, &keyHash1Len); CKERR;
+    
+    err = S4Key_VerifyHash(sigingKeyCtx,
+                           keyHash1,keyHash1Len,
+                           sigCtx->sig.signature, sigCtx->sig.signatureLen);  CKERR;
+    
+done:
+    
+    return err;
+
+}
+
+bool S4Key_CompareKeyID(uint8_t* keyID1, uint8_t* keyID2)
+{
+    return CMP(keyID1, keyID2, kS4Key_KeyIDBytes);
+    
+}
+
+
+#ifdef __clang__
+#pragma mark -  Deatched Sigs.
+#endif
+
+S4Err S4Key_NewSignature( S4KeyContextRef       pubCtx,
+                            void                *hash,
+                            size_t              hashLen,
+                            long                sigExpireTime,
+                            S4KeyContextRef    *ctxOut)
+{
+     S4Err           err = kS4Err_NoErr;
+    S4KeyContext*    keyCTX  = NULL;
+    
+    int             keyBytes  = 0;
+    uint8_t         *keyData = NULL;
+  
+    uint8_t         SIG[256];
+    size_t          SIGlen = 0;
+
+    uint8_t         sigID [kS4Key_KeyIDBytes] = {0};
+
+    time_t          signDate = time(NULL);
+    long            expireTime = sigExpireTime == 0?LONG_MAX:sigExpireTime;
+
+    validateS4KeyContext(pubCtx);
+    ValidateParam(pubCtx->type == kS4KeyType_PublicKey);
+    ValidateParam(ctxOut);
+    
+     err = S4Key_SignHash(pubCtx, hash,hashLen, SIG, sizeof(SIG), &SIGlen); CKERR;
+    
+    // generate a randome SigID
+    err = RNG_GetBytes( sigID, sizeof(sigID)); CKERR;
+
+    keyCTX = XMALLOC(sizeof (S4KeyContext)); CKNULL(keyCTX);
+    ZERO(keyCTX, sizeof(S4KeyContext));
+    
+    keyCTX->magic = kS4KeyContextMagic;
+    keyCTX->type  = kS4KeyType_Signature;
+    keyCTX->propList = NULL;
+    keyCTX->sigList = NULL;
+
+    COPY(pubCtx->pub.keyID, keyCTX->sig.issuerID, kS4Key_KeyIDBytes );
+    
+    keyCTX->sig.signature = XMALLOC(SIGlen );  CKNULL(keyCTX->sig.signature);
+    COPY(SIG, keyCTX->sig.signature, SIGlen );
+    keyCTX->sig.signatureLen = SIGlen;
+    
+    COPY(sigID, keyCTX->sig.sigID, sizeof(keyCTX->sig.sigID));
+  
+    keyCTX->sig.signDate        = signDate;
+    keyCTX->sig.expirationTime  = expireTime;
+
+    *ctxOut = keyCTX;
+    
+done:
+    
+    if(keyData && keyBytes)
+    {
+        ZERO(keyData, keyBytes);
+        XFREE(keyData);
+    }
+    
+    if(IsS4Err(err))
+    {
+        if(keyCTX)
+        {
+            memset(keyCTX, sizeof (S4KeyContext), 0);
+            XFREE(keyCTX);
+        }
+    }
+    
+    return err;
+
+
+}
+
+S4Err S4Key_SerializeSignature( S4KeyContextRef      sigCtx,
+                               uint8_t          **outData,
+                               size_t           *outSize)
+{
+    S4Err           err = kS4Err_NoErr;
+    yajl_gen_status     stat = yajl_gen_status_ok;
+    
+    uint8_t             *yajlBuf = NULL;
+    size_t              yajlLen = 0;
+    yajl_gen            g = NULL;
+    
+    uint8_t             tempBuf[1024];
+    size_t              tempLen;
+    uint8_t             *outBuf = NULL;
+    
+    yajl_alloc_funcs allocFuncs = {
+        yajlMalloc,
+        yajlRealloc,
+        yajlFree,
+        (void *) NULL
+    };
+    
+    validateS4KeyContext(sigCtx);
+    ValidateParam(outData);
+ 
+    ValidateParam(sigCtx->type == kS4KeyType_Signature);
+  
+    g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
+    
+#if DEBUG
+    yajl_gen_config(g, yajl_gen_beautify, 1);
+#else
+    yajl_gen_config(g, yajl_gen_beautify, 0);
+    
+#endif
+    yajl_gen_config(g, yajl_gen_validate_utf8, 1);
+    stat = yajl_gen_map_open(g);
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Version, strlen(kS4KeyProp_Version)) ; CKYJAL;
+    sprintf((char *)tempBuf, "%d", kS4KeyProtocolVersion);
+    stat = yajl_gen_number(g, (char *)tempBuf, strlen((char *)tempBuf)) ; CKYJAL;
+   
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Encoding, strlen(kS4KeyProp_Encoding)) ; CKYJAL;
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Encoding_Signature, strlen(kS4KeyProp_Encoding_Signature)) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SigID, strlen(kS4KeyProp_SigID)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(sigCtx->sig.sigID, kS4Key_KeyIDBytes, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Signature, strlen(kS4KeyProp_Signature)) ; CKYJAL
+    tempLen = sizeof(tempBuf);
+    base64_encode(sigCtx->sig.signature, sigCtx->sig.signatureLen, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SignedBy, strlen(kS4KeyProp_SignedBy)) ; CKYJAL;
+    tempLen = sizeof(tempBuf);
+    base64_encode(sigCtx->sig.issuerID, kS4Key_KeyIDBytes, tempBuf, &tempLen);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SignedDate, strlen(kS4KeyProp_SignedDate)) ; CKYJAL;
+    struct tm *nowtm;
+    nowtm = gmtime(&sigCtx->sig.signDate);
+    tempLen = strftime((char *)tempBuf, sizeof(tempBuf), kRfc339Format, nowtm);
+    stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+
+    if(sigCtx->sig.expirationTime != LONG_MAX)
+    {
+        stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_SigExpire, strlen(kS4KeyProp_SigExpire)) ; CKYJAL;
+        stat = yajl_gen_integer(g, sigCtx->sig.expirationTime) ; CKYJAL;
+    }
+    
+    err = sGenPropStrings(sigCtx, g); CKERR;
+    err = sGenSignatureStrings(sigCtx, g); CKERR;
+
+    stat = yajl_gen_map_close(g); CKYJAL;
+    stat =  yajl_gen_get_buf(g, (const unsigned char**) &yajlBuf, &yajlLen);CKYJAL;
+    
+    outBuf = XMALLOC(yajlLen+1); CKNULL(outBuf);
+    memcpy(outBuf, yajlBuf, yajlLen);
+    outBuf[yajlLen] = 0;
+    
+    
+    *outData = outBuf;
+    
+    if(outSize)
+        *outSize = yajlLen;
+    
+done:
+    if(IsntNull(g))
+        yajl_gen_free(g);
+    
+    return err;
+
+}
+
+S4Err S4Key_VerifySignature( S4KeyContextRef      sigCtx,
+                            S4KeyContextRef       sigingKeyCtx,
+                            void                   *hash,
+                            size_t                 hashLen )
+{
+    S4Err           err = kS4Err_NoErr;
+    
+ 
+    validateS4KeyContext(sigingKeyCtx);
+    validateS4KeyContext(sigCtx);
+    
+    ValidateParam(sigingKeyCtx->type == kS4KeyType_PublicKey);
+    ValidateParam(sigCtx->type == kS4KeyType_Signature);
+    
+    bool isPubKey =  sECC_ContextIsValid(sigingKeyCtx->pub.ecc);
+    if(!isPubKey)
+        RETERR(kS4Err_BadParams);
+    
+    bool isCorrectKey = S4Key_CompareKeyID(sigingKeyCtx->pub.keyID, sigCtx->sig.issuerID);
+    if(!isCorrectKey)
+        RETERR(kS4Err_BadParams);
+    
+    err = S4Key_VerifyHash(sigingKeyCtx,
+                           hash,hashLen,
+                           sigCtx->sig.signature, sigCtx->sig.signatureLen);  CKERR;
+    
+done:
+    
+    return err;
+
+
+}

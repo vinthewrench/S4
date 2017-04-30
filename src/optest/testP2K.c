@@ -57,7 +57,7 @@ static S4Err runP2K_Pairwise()
     uint8_t     key[MSG_KEY_BYTES];
     
     p2k_kat_vector kat;
-    uint8_t*    passphrase;
+    uint8_t*    passphrase = NULL;
     
     
     kat.saltLen = 8;

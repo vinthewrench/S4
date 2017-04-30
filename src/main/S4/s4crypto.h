@@ -12,7 +12,7 @@
 #include "s4pubtypes.h"
 
 #define S4_BUILD_NUMBER               1
-#define S4_SHORT_VERSION_STRING		"1.0.0"
+#define S4_SHORT_VERSION_STRING       "1.1.0"
 
 
 #ifdef __clang__

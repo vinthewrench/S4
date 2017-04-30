@@ -48,4 +48,18 @@ bool sECC_ContextIsValid( const ECC_ContextRef  ref);
 #define validateECCContext( s )		\
 ValidateParam( sECC_ContextIsValid( s ) )
 
+#define PRAGMA_MACRO(x) _Pragma(#x)
+
+#ifndef FIX_BEFORE_SHIP
+
+#if DEBUG
+#define FIX_BEFORE_SHIP(msg) PRAGMA_MACRO(message "FIX_BEFORE_SHIP: " msg)
+#else
+#define FIX_BEFORE_SHIP(msg) PRAGMA_MACRO(GCC error "FIX_BEFORE_SHIP: " msg)
+#endif
+
+#endif
+
+
+
 #endif /* s4internal_h */

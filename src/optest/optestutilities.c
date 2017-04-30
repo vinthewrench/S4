@@ -11,6 +11,19 @@
 #include <stdio.h>
 #include <stddef.h>
 
+
+#ifndef __USE_BSD
+#define __USE_BSD
+#include <time.h>
+#undef __USE_BSD
+#endif
+
+
+#if defined(ANDROID)
+#include "timegm.c"
+#endif
+
+
 #include "s4.h"
 #include "optest.h"
 
@@ -225,7 +238,34 @@ static void dump8(int logFlag,uint8_t* b, size_t cnt )
     OPTESTPrintF("\n");
 }
 
+void dumpKeyID(int logFlag,uint8_t* b )
+{
+    if(!logFlag) return;
+    
+    for (int i=0;i < kS4Key_KeyIDBytes; i++)
+    {
+        OPTESTPrintF( "%02X",b[i]);
+    }
+}
 
+void dumpTime(int logFlag, const time_t date )
+{
+     uint8_t     tempBuf[32];
+    size_t      tempLen;
+
+    static const char *kRfc339Format = "%Y-%m-%dT%H:%M:%SZ";
+    struct tm *nowtm;
+    
+    
+    if(!logFlag) return;
+    
+    nowtm = gmtime(&date);
+   
+    tempLen = strftime((char *)tempBuf, sizeof(tempBuf), kRfc339Format, nowtm);
+    OPTESTPrintF( "%s",tempBuf);
+    
+    
+ }
 
 int compare2Results(const void* expected, size_t expectedLen,
                     const void* calculated, size_t  calculatedLen,

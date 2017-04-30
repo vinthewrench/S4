@@ -170,7 +170,7 @@ enum S4Err
     
     kS4Err_NotEnoughShares,         // 29
 
-    
+    kS4Err_PropertyNotFound,        // 30
 };
 
 typedef int S4Err;
