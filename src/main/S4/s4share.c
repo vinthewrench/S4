@@ -626,7 +626,7 @@ S4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
     sComputeLagrange(shareTable, keyLen, threshold, X0 );
     
     /* For each byte j, interpolate to output[j] using coordinates */
-    for( j=0; j<bufSize; ++j )
+    for( j=0; j<keyLen; ++j )
     {
         ((uint8_t *)outData)[j] =  sInterpolation(shareTable, keyLen ,threshold, j);
     }
