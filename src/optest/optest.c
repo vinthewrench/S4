@@ -93,7 +93,7 @@ static TestTable sOpTestTable[] =
     { 0, kArg_TestID,	  NULL,  kTest_ECC,         "ECC",				0,  "Elliptic Curve Public Key" },
     { 0, kArg_TestID,	  NULL,  kTest_P2K,         "P2K",				0,  "Key Derivation (PBKDF2)" },
     { 0, kArg_TestID,	  NULL,  kTest_Share,      "share",             0,  "Secret Sharing / Key Split" },
-    { 0, kArg_TestID,	  NULL,  kTest_Keys,       "keys",              0,  "Key Import / Export" },
+    { 0, kArg_TestID,	  NULL,  kTest_Keys,       "keys",              0,  "High Level Keys API" },
     { 0, kArg_TestID,	  NULL,  kTest_Utilties,    "utilties",       0,  "S4 Utilties" },
     
      { 0, kArg_TestID,	  NULL,  kTest_Invalid,		 "none",				0,  NULL },
