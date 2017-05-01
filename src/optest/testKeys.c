@@ -39,6 +39,8 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1, bool i
     S4KeyType           type1,type2;
     Cipher_Algorithm     algor1, algor2;
 
+    HASH_Algorithm     hash1, hash2;
+
     int8_t      key1[128], key2[128];
     size_t      keyLen1, keyLen2;
     
@@ -167,6 +169,10 @@ static S4Err sCompareKeys( S4KeyContext  *keyCtx, S4KeyContext  *keyCtx1, bool i
          
         case kS4KeyType_Signature:
         {
+            err = S4Key_GetProperty(keyCtx, kS4KeyProp_HashAlgorithm, NULL, &hash1, sizeof(hash1), NULL ); CKERR;
+            err = S4Key_GetProperty(keyCtx1, kS4KeyProp_HashAlgorithm, NULL, &hash2, sizeof(hash2), NULL ); CKERR;
+            ASSERTERR(hash1 == hash2,  kS4Err_SelfTestFailed);
+           
             err = S4Key_GetProperty(keyCtx, kS4KeyProp_SignedBy, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
             err = S4Key_GetProperty(keyCtx1, kS4KeyProp_SignedBy, NULL, &keyID2, sizeof(keyID2), NULL ); CKERR;
             
@@ -1608,10 +1614,10 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     
     S4KeyPropertyExtendedType   exProp = S4KeyPropertyExtendedType_None;
     uint8_t K3[] = {
-        0x00, 0x01, 0x02, 0x03, 0x05, 0x06, 0x07, 0x08,
-        0x0A, 0x0B, 0x0C, 0x0D, 0x0F, 0x10, 0x11, 0x12,
-        0x14, 0x15, 0x16, 0x17, 0x19, 0x1A, 0x1B, 0x1C,
-        0x1E, 0x1F, 0x20, 0x21, 0x23, 0x24, 0x25, 0x26
+        0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+        0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+        0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
+        0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
     };
 
     size_t      keyCount = 0;
@@ -1746,7 +1752,8 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     S4Key_Free(copiedCtx); copiedCtx = kInvalidS4KeyContextRef;
 
     OPTESTLogDebug("\t  Test Detached Sigs\n");
-    err = S4Key_NewSignature(signPubCtx1, K3,sizeof(K3),30 * 60*60*24,  &detSigCtx); CKERR;
+    err = S4Key_NewSignature(signPubCtx1, K3,sizeof(K3), kHASH_Algorithm_SHA256,
+                             30 * 60*60*24,  &detSigCtx); CKERR;
     err = S4Key_SetProperty(detSigCtx, "FileName", S4KeyPropertyType_UTF8String , "foo.bar", 7 ); CKERR;
 
     uint8_t     certKeyID[kS4Key_KeyIDBytes]  = {0};
@@ -1917,7 +1924,7 @@ S4Err  TestKeys()
     err = sTestECC_SymmetricKeys(); CKERR;
     err = sTest_SharedSymTBCKeys(); CKERR;
     err = sTestPublicKeys(); CKERR;
- 
+    
     OPTESTLogInfo("\nTesting decoding of exported key array\n");
     asprintf(&exported_keys,"%s ]", exported_keys );
     err = S4Key_DeserializeKeys((uint8_t*)exported_keys, strlen(exported_keys), &keyCount, &encodedCtx ); CKERR;

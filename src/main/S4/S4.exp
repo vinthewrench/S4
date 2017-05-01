@@ -114,6 +114,7 @@ _S4Key_GetExtendedProperty
 
 _kS4KeyProp_KeyType
 _kS4KeyProp_KeySuite
+_kS4KeyProp_HashAlgorithm
 _kS4KeyProp_KeyData
 _kS4KeyProp_KeyID
 _kS4KeyProp_KeyIDString

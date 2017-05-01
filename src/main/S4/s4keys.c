@@ -67,6 +67,7 @@ static void * yajlRealloc(void * ctx, void * ptr, size_t sz)
 #define K_KEYTYPE           "keyType"
 #define K_KEYSUITE          "keySuite"
 #define K_KEYDATA           "keyData"
+#define K_HASHALGORITHM     "hashAlgorithm"
 
 #define K_INDEX             "index"
 #define K_THRESHLOLD        "threshold"
@@ -83,6 +84,11 @@ static void * yajlRealloc(void * ctx, void * ptr, size_t sz)
 #define K_KEYSUITE_3FISH512   "ThreeFish-512"
 #define K_KEYSUITE_3FISH1024  "ThreeFish-1024"
 #define K_KEYSUITE_SPLIT      "Shamir"
+
+#define K_HASHALGORITHM_SHA256    "SHA-256"
+#define K_HASHALGORITHM_SHA512    "SHA-512"
+#define K_HASHALGORITHM_SKEIN256  "SKEIN-256"
+#define K_HASHALGORITHM_SKEIN512  "SKEIN-512"
 
 #define K_KEYSUITE_ECC384     "ecc384"
 #define K_KEYSUITE_ECC414     "Curve41417"
@@ -110,6 +116,8 @@ static void * yajlRealloc(void * ctx, void * ptr, size_t sz)
 
 char *const kS4KeyProp_KeyType          = K_KEYTYPE;
 char *const kS4KeyProp_KeySuite         = K_KEYSUITE;
+char *const kS4KeyProp_HashAlgorithm    = K_HASHALGORITHM;
+
 char *const kS4KeyProp_KeyData          = K_KEYDATA;
 char *const kS4KeyProp_KeyID            = K_PROP_KEYID;
 char *const kS4KeyProp_KeyIDString      = K_PROP_KEYIDSTR;
@@ -179,6 +187,7 @@ static S4KeyPropertyInfo sPropertyTable[] = {
     { K_KEYTYPE,                S4KeyPropertyType_Numeric,  true,  false},
     { K_KEYSUITE,               S4KeyPropertyType_Numeric,  true,  true},
     { K_KEYDATA,                S4KeyPropertyType_Binary,  true,  true},
+    { K_HASHALGORITHM,          S4KeyPropertyType_Numeric,  true,  false},
     
     { K_PROP_ENCODING,          S4KeyPropertyType_UTF8String,  true,  true},
     { K_PROP_SALT,              S4KeyPropertyType_Binary,  true,  true},
@@ -191,7 +200,6 @@ static S4KeyPropertyInfo sPropertyTable[] = {
     { K_SHAREHASH,              S4KeyPropertyType_Binary,  true,  true},
     { K_INDEX,                  S4KeyPropertyType_Numeric,  true,  true},
     { K_THRESHLOLD,              S4KeyPropertyType_Numeric,  true,  true},
-    
     
     { K_SIGN_BYID,              S4KeyPropertyType_Binary,   true,  false},
     { K_PROP_EXPIREDATE,        S4KeyPropertyType_Time,     false,  true},
@@ -213,6 +221,7 @@ static char** sDeepStrDup( char** list);
 static S4Err sGetSignablePropertyNames(S4KeyContext *ctx,  char ***namesOut, size_t* countOut );
 static S4Err sCalulateKeyDigest( S4KeyContextRef  keyCtx,
                                 char**            optionalPropNamesList,
+                                HASH_Algorithm    hashAlgorithm,
                                 time_t            signDate,
                                 long              sigExpireTime,
                                 uint8_t* hashBuf, size_t *hashBytes );
@@ -240,6 +249,19 @@ static char *cipher_algor_table(Cipher_Algorithm algor)
         case kCipher_Algorithm_SharedKey: 		return (K_KEYSUITE_SPLIT);
             
             
+        default:				return (("Invalid"));
+    }
+}
+
+
+char *hash_algor_table(HASH_Algorithm algor)
+{
+    switch (algor )
+    {
+        case kHASH_Algorithm_SHA256:		return (K_HASHALGORITHM_SHA256);
+        case kHASH_Algorithm_SHA512:		return (K_HASHALGORITHM_SHA512);
+        case kHASH_Algorithm_SKEIN256:		return (K_HASHALGORITHM_SKEIN256);
+        case kHASH_Algorithm_SKEIN512:		return (K_HASHALGORITHM_SKEIN512);
         default:				return (("Invalid"));
     }
 }
@@ -460,6 +482,8 @@ static yajl_gen_status sGenSignatureStrings(S4KeyContextRef ctx, yajl_gen g)
     uint8_t             tempBuf[1024];
     size_t              tempLen;
 
+    char*               hashAlgorString = "Invalid";
+    
     S4KeySigItem *sigItem = ctx->sigList;
     if(sigItem)
     {
@@ -475,7 +499,12 @@ static yajl_gen_status sGenSignatureStrings(S4KeyContextRef ctx, yajl_gen g)
             base64_encode(sigItem->sig.sigID, kS4Key_KeyIDBytes, tempBuf, &tempLen);
             stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
             
+            stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_HashAlgorithm, strlen(kS4KeyProp_HashAlgorithm)) ; CKYJAL
+            hashAlgorString = hash_algor_table(sigItem->sig.hashAlgorithm);
+            stat = yajl_gen_string(g, (uint8_t *)hashAlgorString, strlen(hashAlgorString)) ; CKYJAL;
+            
             stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Signature, strlen(kS4KeyProp_Signature)) ; CKYJAL;
+            
             tempLen = sizeof(tempBuf);
             base64_encode(sigItem->sig.signature, sigItem->sig.signatureLen, tempBuf, &tempLen);
             stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
@@ -820,6 +849,10 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
             {
                 actualLength =  sizeof(uint32_t);
             }
+            else if(STRCMP2(propName, kS4KeyProp_HashAlgorithm))
+            {
+                actualLength =  sizeof(uint32_t);
+            }
             else if(STRCMP2(propName, kS4KeyProp_Encoding))
             {
                 actualLength =  sizeof(uint32_t);
@@ -1006,6 +1039,18 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
     if(STRCMP2(propName, kS4KeyProp_KeyType))
     {
         COPY(&ctx->type, buffer, actualLength);
+    }
+    else if(STRCMP2(propName, kS4KeyProp_HashAlgorithm))
+    {
+        switch (ctx->type) {
+            case kS4KeyType_Signature:
+                COPY(&ctx->sig.hashAlgorithm , buffer, actualLength);
+                break;
+                
+               default:
+                RETERR(kS4Err_BadParams);
+                
+        }
     }
     else if(STRCMP2(propName, kS4KeyProp_KeySuite))
     {
@@ -2175,6 +2220,7 @@ static S4Err sCloneDetachedSig(S4KeyContext *src, S4KeyContext *dest )
     
     dest->sig.signDate = src->sig.signDate;
     dest->sig.expirationTime = src->sig.expirationTime;
+    dest->sig.hashAlgorithm = src->sig.hashAlgorithm;
     
     dest->sig.signature = XMALLOC(src->sig.signatureLen);  CKNULL(dest->sig.signature);
     COPY(src->sig.signature, dest->sig.signature, src->sig.signatureLen );
@@ -2874,7 +2920,8 @@ enum S4Key_JSON_Type_
     S4Key_JSON_Type_BASE ,
     S4Key_JSON_Type_VERSION,
     S4Key_JSON_Type_KEYALGORITHM,
-    
+    S4Key_JSON_Type_HASHALGORITHM,
+
     S4Key_JSON_Type_ROUNDS,
     S4Key_JSON_Type_SALT,
     S4Key_JSON_Type_ENCODING,
@@ -3013,6 +3060,35 @@ static time_t parseRfc3339(const unsigned char *s, size_t stringLen)
     
     //  	return t - tm.tm_gmtoff;
     
+}
+
+ static S4Err sParseHashAlgorthmString(const unsigned char * stringVal,  size_t stringLen, HASH_Algorithm *algorithmOut)
+{
+    
+    S4Err            err = kS4Err_NoErr;
+    HASH_Algorithm    hashAlgor = kHASH_Algorithm_Invalid;
+    
+    if(CMP2(stringVal, stringLen, K_HASHALGORITHM_SHA256, strlen(K_HASHALGORITHM_SHA256)))
+    {
+         hashAlgor = kHASH_Algorithm_SHA256;
+    }
+    else if(CMP2(stringVal, stringLen, K_HASHALGORITHM_SHA512, strlen(K_HASHALGORITHM_SHA512)))
+    {
+        hashAlgor = kHASH_Algorithm_SHA512;
+    }
+    else if(CMP2(stringVal, stringLen, K_HASHALGORITHM_SKEIN256, strlen(K_HASHALGORITHM_SKEIN256)))
+    {
+        hashAlgor = kHASH_Algorithm_SKEIN256;
+    }
+    else if(CMP2(stringVal, stringLen, K_HASHALGORITHM_SKEIN512, strlen(K_HASHALGORITHM_SKEIN512)))
+    {
+        hashAlgor = kHASH_Algorithm_SKEIN512;
+    }
+   
+    *algorithmOut = hashAlgor;
+    
+    return err;
+
 }
 
 static S4Err sParseKeySuiteString(const unsigned char * stringVal,  size_t stringLen,
@@ -3450,6 +3526,7 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         valid = 1;
     }
     
+    
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_SALT)
     {
         uint8_t     buf[128];
@@ -3710,6 +3787,25 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
         }
 
     }
+    else if(jctx->jType[jctx->level] == S4Key_JSON_Type_HASHALGORITHM)
+    {
+        HASH_Algorithm    hashAlgor = kHASH_Algorithm_Invalid;
+        
+        if(IsntS4Err( sParseHashAlgorthmString(stringVal,  stringLen, &hashAlgor)))
+        {
+            if(insideSignatures)
+            {
+                S4KeySig* sig = &jctx->currentSigItem;
+                sig->hashAlgorithm = hashAlgor;
+                valid = 1;
+            }
+            else  if(keyP->type == kS4KeyType_Signature)
+            {
+                keyP->sig.hashAlgorithm = hashAlgor;
+                valid = 1;
+            }
+        }
+    }
     else if(jctx->jType[jctx->level] == S4Key_JSON_Type_KEYALGORITHM)
     {
         S4KeyType   keyType = kS4KeyType_Invalid;
@@ -3898,6 +3994,11 @@ static int sParse_map_key(void * ctx, const unsigned char * stringVal, size_t st
     else  if(CMP2(stringVal, stringLen,kS4KeyProp_KeySuite, strlen(kS4KeyProp_KeySuite)))
     {
         jctx->jType[jctx->level] = S4Key_JSON_Type_KEYALGORITHM;
+        valid = 1;
+    }
+    else  if(CMP2(stringVal, stringLen,kS4KeyProp_HashAlgorithm, strlen(kS4KeyProp_HashAlgorithm)))
+    {
+        jctx->jType[jctx->level] = S4Key_JSON_Type_HASHALGORITHM;
         valid = 1;
     }
     else  if(CMP2(stringVal, stringLen,kS4KeyProp_Encoding, strlen(kS4KeyProp_Encoding)))
@@ -4707,6 +4808,7 @@ done:
 
 static S4Err sCalulateKeyDigest( S4KeyContextRef  keyCtx,
                               char**            optionalPropNamesList,
+                              HASH_Algorithm    hashAlgorithm,
                               time_t            signDate,
                               long              sigExpireTime,
                               uint8_t* hashBuf, size_t *hashBytes )
@@ -4722,7 +4824,7 @@ static S4Err sCalulateKeyDigest( S4KeyContextRef  keyCtx,
     time_t       issueTime = signDate;
     long         expireTime = sigExpireTime == 0?LONG_MAX:sigExpireTime;
 
-    err = HASH_Init( kHASH_Algorithm_SHA256, &hash); CKERR;
+    err = HASH_Init( hashAlgorithm, &hash); CKERR;
     
     if(optionalPropNamesList)
     {
@@ -4891,7 +4993,8 @@ static void sCloneSignatures(S4KeyContext  *src, S4KeyContext  *dest )
             newItem->sig.signature = XMALLOC(item->sig.signatureLen );
             COPY(item->sig.signature, newItem->sig.signature, item->sig.signatureLen );
             newItem->sig.signatureLen = item->sig.signatureLen;
-           
+            newItem->sig.hashAlgorithm  = item->sig.hashAlgorithm;
+            
             COPY(item->sig.issuerID, newItem->sig.issuerID, kS4Key_KeyIDBytes );
             COPY(item->sig.sigID, newItem->sig.sigID, kS4Key_KeyIDBytes );
             
@@ -4939,6 +5042,7 @@ static void sInsertSig(S4KeyContextRef      signingCtx,
                        uint8_t              sigID[kS4Key_KeyIDBytes],
                        uint8_t              *sigData,
                        size_t               sigDataLen,
+                       HASH_Algorithm       hashAlgorithm,
                        time_t               signDate,
                        time_t               expirationTime,
                        char**               propNameList)
@@ -4954,6 +5058,7 @@ static void sInsertSig(S4KeyContextRef      signingCtx,
         COPY(&signingCtx->pub.keyID ,  &sigItem->sig.issuerID, kS4Key_KeyIDBytes);
         COPY(sigID ,  &sigItem->sig.sigID, kS4Key_KeyIDBytes);
         
+        sigItem->sig.hashAlgorithm = hashAlgorithm;
         sigItem->sig.signDate = signDate;
         sigItem->sig.expirationTime = expirationTime;
         sigItem->sig.propNameList = sDeepStrDup(propNameList);
@@ -4984,6 +5089,8 @@ S4Err S4Key_SignKey( S4KeyContextRef      signingCtx,
     
     uint8_t        sigID [kS4Key_KeyIDBytes] = {0};
     
+    HASH_Algorithm  hashAlgorithm = kHASH_Algorithm_SHA256;
+    
     validateS4KeyContext(signingCtx);
     validateS4KeyContext(keyCtx);
     ValidateParam(keyCtx->type == kS4KeyType_PublicKey
@@ -4999,15 +5106,27 @@ S4Err S4Key_SignKey( S4KeyContextRef      signingCtx,
     err = sGetSignablePropertyNames(keyCtx, &propNameList, &propNameCount); CKERR;
 
     // caclulate the key hash
-    err = sCalulateKeyDigest(keyCtx, propNameList ,signDate, expireTime, keyHash, &keyHashLen); CKERR;
+    err = sCalulateKeyDigest(keyCtx,
+                             propNameList,
+                             hashAlgorithm,
+                             signDate, expireTime,
+                             keyHash, &keyHashLen); CKERR;
     
     // generate a random SigID
     err = RNG_GetBytes( sigID, sizeof(sigID)); CKERR;
 
      // calculate the key sig
-    err = ECC_Sign(signingCtx->pub.ecc, keyHash, keyHashLen,  sigBuff, sizeof(sigBuff), &sigBuffLen);CKERR;
+    err = ECC_Sign(signingCtx->pub.ecc,
+                   keyHash, keyHashLen,
+                   sigBuff, sizeof(sigBuff), &sigBuffLen);CKERR;
     
-    sInsertSig(signingCtx, keyCtx, sigID, sigBuff, sigBuffLen, signDate, expireTime, propNameList);
+    sInsertSig(signingCtx,
+               keyCtx,
+               sigID,
+               sigBuff, sigBuffLen,
+               hashAlgorithm,
+               signDate, expireTime,
+               propNameList);
     
 done:
     
@@ -5056,8 +5175,7 @@ S4Err S4Key_GetKeySignatures( S4KeyContextRef      ctx,
         COPY(sigItem->sig.issuerID, keyCTX->sig.issuerID, kS4Key_KeyIDBytes);
         keyCTX->sig.signDate = sigItem->sig.signDate;
         keyCTX->sig.expirationTime = sigItem->sig.expirationTime;
-
-        
+       
         for(int offset = 0; sigItem->sig.propNameList[offset] != NULL; offset++)
         {
             sAppendSigProp(&keyCTX->sig,
@@ -5066,6 +5184,8 @@ S4Err S4Key_GetKeySignatures( S4KeyContextRef      ctx,
  
         }
 
+        keyCTX->sig.hashAlgorithm  = sigItem->sig.hashAlgorithm;
+        
         keyCTX->sig.signature = XMALLOC(sigItem->sig.signatureLen);
         COPY(sigItem->sig.signature, keyCTX->sig.signature, sigItem->sig.signatureLen);
         keyCTX->sig.signatureLen =  sigItem->sig.signatureLen;
@@ -5127,6 +5247,7 @@ S4Err S4Key_VerfiyKeySig( S4KeyContextRef      keyCtx,
   
 
     err = sCalulateKeyDigest(keyCtx,sigCtx->sig.propNameList ,
+                                  kHASH_Algorithm_SHA256,
                                   sigCtx->sig.signDate,
                                   sigCtx->sig.expirationTime,
                                   keyHash1, &keyHash1Len); CKERR;
@@ -5153,12 +5274,13 @@ bool S4Key_CompareKeyID(uint8_t* keyID1, uint8_t* keyID2)
 #endif
 
 S4Err S4Key_NewSignature( S4KeyContextRef       pubCtx,
-                            void                *hash,
-                            size_t              hashLen,
-                            long                sigExpireTime,
-                            S4KeyContextRef    *ctxOut)
+                         void                   *hashData,
+                         size_t                 hashDataLen,
+                         HASH_Algorithm         hashAlgorithm,
+                         long                   sigExpireTime,
+                         S4KeyContextRef        *ctxOut)
 {
-     S4Err           err = kS4Err_NoErr;
+    S4Err           err = kS4Err_NoErr;
     S4KeyContext*    keyCTX  = NULL;
     
     int             keyBytes  = 0;
@@ -5172,11 +5294,20 @@ S4Err S4Key_NewSignature( S4KeyContextRef       pubCtx,
     time_t          signDate = time(NULL);
     long            expireTime = sigExpireTime == 0?LONG_MAX:sigExpireTime;
 
+    HASH_ContextRef hashCtx = kInvalidHASH_ContextRef;
+    size_t hashSize = 0;
+    
     validateS4KeyContext(pubCtx);
     ValidateParam(pubCtx->type == kS4KeyType_PublicKey);
     ValidateParam(ctxOut);
     
-     err = S4Key_SignHash(pubCtx, hash,hashLen, SIG, sizeof(SIG), &SIGlen); CKERR;
+    // check if hashAlgorithm is appropriate for hashLen
+    err = HASH_Init(hashAlgorithm, &hashCtx); CKERR;
+    err = HASH_GetSize(hashCtx, &hashSize); CKERR;
+    ValidateParam(hashDataLen == hashSize);
+    HASH_Free(hashCtx); hashCtx = kInvalidHASH_ContextRef;
+
+    err = S4Key_SignHash(pubCtx, hashData,hashDataLen, SIG, sizeof(SIG), &SIGlen); CKERR;
     
     // generate a randome SigID
     err = RNG_GetBytes( sigID, sizeof(sigID)); CKERR;
@@ -5197,12 +5328,16 @@ S4Err S4Key_NewSignature( S4KeyContextRef       pubCtx,
     
     COPY(sigID, keyCTX->sig.sigID, sizeof(keyCTX->sig.sigID));
   
+    keyCTX->sig.hashAlgorithm   = hashAlgorithm;
     keyCTX->sig.signDate        = signDate;
     keyCTX->sig.expirationTime  = expireTime;
 
     *ctxOut = keyCTX;
     
 done:
+    
+    if(hashCtx)
+        HASH_Free(hashCtx);
     
     if(keyData && keyBytes)
     {
@@ -5238,6 +5373,7 @@ S4Err S4Key_SerializeSignature( S4KeyContextRef      sigCtx,
     uint8_t             tempBuf[1024];
     size_t              tempLen;
     uint8_t             *outBuf = NULL;
+    char*               hashAlgorString = "Invalid";
     
     yajl_alloc_funcs allocFuncs = {
         yajlMalloc,
@@ -5273,6 +5409,10 @@ S4Err S4Key_SerializeSignature( S4KeyContextRef      sigCtx,
     tempLen = sizeof(tempBuf);
     base64_encode(sigCtx->sig.sigID, kS4Key_KeyIDBytes, tempBuf, &tempLen);
     stat = yajl_gen_string(g, tempBuf, (size_t)tempLen) ; CKYJAL;
+    
+    stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_HashAlgorithm, strlen(kS4KeyProp_HashAlgorithm)) ; CKYJAL
+    hashAlgorString = hash_algor_table(sigCtx->sig.hashAlgorithm);
+    stat = yajl_gen_string(g, (uint8_t *)hashAlgorString, strlen(hashAlgorString)) ; CKYJAL;
     
     stat = yajl_gen_string(g, (uint8_t *)kS4KeyProp_Signature, strlen(kS4KeyProp_Signature)) ; CKYJAL
     tempLen = sizeof(tempBuf);

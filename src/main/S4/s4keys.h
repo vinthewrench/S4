@@ -60,6 +60,7 @@ ENUM_TYPEDEF( S4KeyPropertyExtendedType_, S4KeyPropertyExtendedType   );
 
 extern char *const kS4KeyProp_KeyType;
 extern char *const kS4KeyProp_KeySuite;
+extern char *const kS4KeyProp_HashAlgorithm;
 extern char *const kS4KeyProp_KeyData;
 extern char *const kS4KeyProp_KeyID;
 extern char *const kS4KeyProp_KeyIDString;
@@ -217,7 +218,7 @@ typedef struct  S4KeySig_
     time_t             expirationTime;                  // seconds after signDate
     uint8_t            *signature;
     size_t             signatureLen;
-    
+    HASH_Algorithm     hashAlgorithm;
     char**             propNameList;                   // pointer to array of strings
     
 }S4KeySig;
@@ -379,11 +380,12 @@ S4Err S4Key_GetKeySignatures( S4KeyContextRef      ctx,
 
 bool S4Key_CompareKeyID(uint8_t* keyID1, uint8_t* keyID2);
 
-S4Err S4Key_NewSignature( S4KeyContextRef       pubCtx,
-                         void                   *hash,
-                         size_t                 hashLen,
-                         long                   sigExpireTime,
-                         S4KeyContextRef        *ctxOut);
+S4Err S4Key_NewSignature(   S4KeyContextRef       pubCtx,
+                            void                   *hashData,       // hashed data to be signed
+                            size_t                 hashDataLen,
+                            HASH_Algorithm         hashAlgorithm,
+                            long                   sigExpireTime,
+                            S4KeyContextRef        *ctxOut);
 
 S4Err S4Key_SerializeSignature( S4KeyContextRef      sigCtx,
                                uint8_t          **outData,
