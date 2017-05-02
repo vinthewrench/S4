@@ -3663,7 +3663,7 @@ static int sParse_string(void * ctx, const unsigned char * stringVal,
             if(insideSignatures)
             {
                 S4KeySig* sig = &jctx->currentSigItem;
-                COPY(buf, sig->issuerID, dataLen);
+                COPY(buf, sig->sigID, dataLen);
                 valid = 1;
             }
             else if(keyP->type == kS4KeyType_Signature)
