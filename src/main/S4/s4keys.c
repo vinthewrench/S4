@@ -2092,6 +2092,9 @@ S4Err S4Key_NewPublicKey(Cipher_Algorithm       algorithm,
     err = ECC_Generate(ecc, keybits); CKERR;
     err = S4Key_Import_ECC_Context(ecc, &keyCTX); CKERR;
     
+    // self sign key
+    err = S4Key_SignKey(keyCTX,keyCTX, LONG_MAX); CKERR;
+
     *ctxOut = keyCTX;
     
 done:
