@@ -802,6 +802,14 @@ S4Err S4Key_SetPropertyExtended ( S4KeyContextRef ctx,
     // if you get this far, you can insert a property
     sInsertProperty(ctx, propName, propType,extendedPropType, data, datSize);CKERR;
     
+    if((ctx->type == kS4KeyType_PublicKey)
+       && ECC_isPrivate(ctx->pub.ecc)
+       && (extendedPropType && S4KeyPropertyExtended_Signable) == S4KeyPropertyExtended_Signable)
+    {
+        //  re-sign key  when new property is added
+        err = S4Key_SignKey(ctx,ctx, LONG_MAX); CKERR;
+    }
+    
 done:
     return err;
     
@@ -5037,6 +5045,34 @@ static char** sDeepStrDup( char** list)
 }
 
 
+
+static void sDeleteSignature(S4KeyContextRef pubCtx,
+                             const uint8_t *signedBy )
+{
+    S4KeySigItem* item = pubCtx->sigList;
+    S4KeySigItem* previous = NULL;
+    
+    // find the item;
+    
+    for(item = pubCtx->sigList; item; item = item->next)
+    {
+        if(CMP(item->sig.issuerID, signedBy, kS4Key_KeyIDBytes)) break;
+        previous = item;
+    }
+    
+    if(item)
+    {
+        // remove from list head?
+        if(pubCtx->sigList == item)
+            pubCtx->sigList = item->next;
+        else
+            previous->next = item->next;
+        
+        XFREE(item->sig.signature);
+        XFREE(item);
+    }
+}
+
 static void sInsertSig(S4KeyContextRef      signingCtx,
                        S4KeyContextRef      pubCtx,
                        uint8_t              sigID[kS4Key_KeyIDBytes],
@@ -5058,11 +5094,14 @@ static void sInsertSig(S4KeyContextRef      signingCtx,
         COPY(&signingCtx->pub.keyID ,  &sigItem->sig.issuerID, kS4Key_KeyIDBytes);
         COPY(sigID ,  &sigItem->sig.sigID, kS4Key_KeyIDBytes);
         
-        sigItem->sig.hashAlgorithm = hashAlgorithm;
-        sigItem->sig.signDate = signDate;
+        sigItem->sig.hashAlgorithm  = hashAlgorithm;
+        sigItem->sig.signDate       = signDate;
         sigItem->sig.expirationTime = expirationTime;
-        sigItem->sig.propNameList = sDeepStrDup(propNameList);
-        
+        sigItem->sig.propNameList   = sDeepStrDup(propNameList);
+    
+        // delete old sigs
+        sDeleteSignature(pubCtx, signingCtx->pub.keyID);
+          
         sigItem->next = pubCtx->sigList;
         pubCtx->sigList = sigItem;
     }

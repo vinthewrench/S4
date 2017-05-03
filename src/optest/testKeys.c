@@ -1655,14 +1655,9 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     OPTESTLogDebug("\t\tPublic Key Sign - low level (%ld bytes) \n", SIGlen);
     err = S4Key_VerifyHash(pubCtx,  K3,sizeof(K3), SIG, SIGlen);  CKERR;
     
-    // self sign key
-    OPTESTLogDebug("\t  self sign key\n");
-    err = S4Key_SignKey(pubCtx, pubCtx, LONG_MAX); CKERR;
+    // Keys are self signed and update signature on new signable properties
+//    err = S4Key_SignKey(pubCtx, pubCtx, LONG_MAX); CKERR;
   
-    // Add one more property before siging
-    err = S4Key_SetPropertyExtended(pubCtx, "Other" , S4KeyPropertyType_UTF8String , S4KeyPropertyExtended_Signable,
-                                    "xxxx", 4 ); CKERR;
-    
     OPTESTLogDebug("\t  additional sign key\n");
     err = S4Key_SignKey(signPubCtx1, pubCtx, 30 * 60*60*24 ); CKERR;
    
