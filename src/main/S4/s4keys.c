@@ -656,13 +656,13 @@ static S4Err sDeleteProperty(S4KeyContext *ctx,  const char *propName, bool *nee
     S4Err   err = kS4Err_NoErr;
     
     S4KeyProperty* prop = sFindProperty(ctx,propName);
-    
-    if(needsSigning)
-        *needsSigning = (prop->extended && S4KeyPropertyExtended_Signable) == S4KeyPropertyExtended_Signable;
-    
+
     if(!prop)
         RETERR(kS4Err_PropertyNotFound);
     
+    if(needsSigning)
+        *needsSigning = (prop->extended && S4KeyPropertyExtended_Signable) == S4KeyPropertyExtended_Signable;
+ 
     if(ctx->propList == prop) // front of list
     {
         ctx->propList = prop->next;
