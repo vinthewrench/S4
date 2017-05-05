@@ -1632,6 +1632,7 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     
     OPTESTLogDebug("\t  Create ");
     err = S4Key_NewPublicKey(keyAlgorithm, &pubCtx); CKERR;
+  
     
     err = S4Key_SetProperty(pubCtx, kS4KeyProp_StartDate, S4KeyPropertyType_Time,
                                     &testDate, sizeof(time_t)); CKERR;
@@ -1649,15 +1650,24 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     err = S4Key_GetAllocatedProperty(pubCtx, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
     OPTESTLogDebug("KeyID: %s\n",  keyIDStr);
 
+    // test add / delete property
+    err = S4Key_SetPropertyExtended(pubCtx, "delete", S4KeyPropertyType_UTF8String , S4KeyPropertyExtended_Signable,
+                                    "12345678", 8 ); CKERR;
+   
+    ASSERTERR( S4Key_GetProperty(pubCtx, "delete", NULL, NULL, 0, &dataLen) == kS4Err_NoErr, kS4Err_SelfTestFailed);
+    ASSERTERR(dataLen == 8, kS4Err_SelfTestFailed);
+    
+    err = S4Key_RemoveProperty(pubCtx, "delete"); CKERR
+    
+     ASSERTERR(S4Key_GetProperty(pubCtx, "delete", NULL, NULL, 0, NULL) == kS4Err_PropertyNotFound, kS4Err_SelfTestFailed);
+    
+    // test hash signing
     OPTESTLogDebug("\t  Low level Public Key Sign / Verify\n");
     err = S4Key_SignHash(pubCtx, K3,sizeof(K3),SIG, sizeof(SIG), &SIGlen); CKERR;
   
     OPTESTLogDebug("\t\tPublic Key Sign - low level (%ld bytes) \n", SIGlen);
     err = S4Key_VerifyHash(pubCtx,  K3,sizeof(K3), SIG, SIGlen);  CKERR;
     
-    // Keys are self signed and update signature on new signable properties
-//    err = S4Key_SignKey(pubCtx, pubCtx, LONG_MAX); CKERR;
-  
     OPTESTLogDebug("\t  additional sign key\n");
     err = S4Key_SignKey(signPubCtx1, pubCtx, 30 * 60*60*24 ); CKERR;
    

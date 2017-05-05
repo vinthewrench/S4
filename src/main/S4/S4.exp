@@ -144,4 +144,4 @@ _zbase32_encode
 _S4Key_NewSignature
 _S4Key_SerializeSignature
 _S4Key_VerifySignature
-
+_S4Key_RemoveProperty

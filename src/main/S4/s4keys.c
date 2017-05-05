@@ -588,6 +588,7 @@ done:
 #pragma mark - Key property management.
 #endif
 
+
 static S4KeyProperty* sFindProperty(S4KeyContext *ctx, const char *propName )
 {
     S4KeyProperty* prop = ctx->propList;
@@ -648,6 +649,40 @@ static void sCloneProperties(S4KeyContext *src, S4KeyContext *dest )
     }
     *lastProp = NULL;
     
+}
+
+static S4Err sDeleteProperty(S4KeyContext *ctx,  const char *propName, bool *needsSigning )
+{
+    S4Err   err = kS4Err_NoErr;
+    
+    S4KeyProperty* prop = sFindProperty(ctx,propName);
+    
+    if(needsSigning)
+        *needsSigning = (prop->extended && S4KeyPropertyExtended_Signable) == S4KeyPropertyExtended_Signable;
+    
+    if(!prop)
+        RETERR(kS4Err_PropertyNotFound);
+    
+    if(ctx->propList == prop) // front of list
+    {
+        ctx->propList = prop->next;
+    }
+    else
+    {
+        for(S4KeyProperty* p = ctx->propList; p ; p = p->next)
+            if(p->next == prop)
+            {
+                p->next = prop->next;
+                break;
+            }
+    }
+    
+    XFREE(prop->prop);
+    XFREE(prop->value);
+    XFREE(prop);
+
+done:
+    return err;
 }
 
 
@@ -1040,277 +1075,281 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
     }
     else
     {
-        actualLength = (actualLength < (unsigned long)bufSize) ? actualLength : (unsigned long)bufSize;
+        if(outData)
+            actualLength = (actualLength < (unsigned long)bufSize) ? actualLength : (unsigned long)bufSize;
         buffer = outData;
     }
     
-    if(STRCMP2(propName, kS4KeyProp_KeyType))
+    if(buffer)
     {
-        COPY(&ctx->type, buffer, actualLength);
-    }
-    else if(STRCMP2(propName, kS4KeyProp_HashAlgorithm))
-    {
-        switch (ctx->type) {
-            case kS4KeyType_Signature:
-                COPY(&ctx->sig.hashAlgorithm , buffer, actualLength);
-                break;
-                
-               default:
-                RETERR(kS4Err_BadParams);
-                
+        if(STRCMP2(propName, kS4KeyProp_KeyType))
+        {
+            COPY(&ctx->type, buffer, actualLength);
         }
-    }
-    else if(STRCMP2(propName, kS4KeyProp_KeySuite))
-    {
-        switch (ctx->type) {
-            case kS4KeyType_Symmetric:
-                COPY(&ctx->sym.symAlgor , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_Tweekable:
-                COPY(&ctx->tbc.tbcAlgor , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_PublicKey:
-                COPY(&ctx->pub.cipherAlgor , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_PublicEncrypted:
-                COPY(&ctx->publicKeyEncoded.cipherAlgor , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_PBKDF2:
-            default:
-                RETERR(kS4Err_BadParams);
-                
+        else if(STRCMP2(propName, kS4KeyProp_HashAlgorithm))
+        {
+            switch (ctx->type) {
+                case kS4KeyType_Signature:
+                    COPY(&ctx->sig.hashAlgorithm , buffer, actualLength);
+                    break;
+                    
+                default:
+                    RETERR(kS4Err_BadParams);
+                    
+            }
         }
-    }
-    else if(STRCMP2(propName, kS4KeyProp_Encoding))
-    {
-        switch (ctx->type) {
-            case kS4KeyType_PublicEncrypted:
-            {
-                Cipher_Algorithm  algor = kCipher_Algorithm_Invalid;
-                
-                switch(ctx->publicKeyEncoded.keysize)
+        else if(STRCMP2(propName, kS4KeyProp_KeySuite))
+        {
+            switch (ctx->type) {
+                case kS4KeyType_Symmetric:
+                    COPY(&ctx->sym.symAlgor , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_Tweekable:
+                    COPY(&ctx->tbc.tbcAlgor , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_PublicKey:
+                    COPY(&ctx->pub.cipherAlgor , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_PublicEncrypted:
+                    COPY(&ctx->publicKeyEncoded.cipherAlgor , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_PBKDF2:
+                default:
+                    RETERR(kS4Err_BadParams);
+                    
+            }
+        }
+        else if(STRCMP2(propName, kS4KeyProp_Encoding))
+        {
+            switch (ctx->type) {
+                case kS4KeyType_PublicEncrypted:
                 {
-                    case 384: algor = kCipher_Algorithm_ECC384; break;
-                    case 414: algor = kCipher_Algorithm_ECC414 ; break;
-                    default: algor = kCipher_Algorithm_Invalid;
+                    Cipher_Algorithm  algor = kCipher_Algorithm_Invalid;
+                    
+                    switch(ctx->publicKeyEncoded.keysize)
+                    {
+                        case 384: algor = kCipher_Algorithm_ECC384; break;
+                        case 414: algor = kCipher_Algorithm_ECC414 ; break;
+                        default: algor = kCipher_Algorithm_Invalid;
+                    }
+                    COPY(&algor , buffer, actualLength);
+                    
                 }
-                COPY(&algor , buffer, actualLength);
-                
+                    break;
+                    
+                default:
+                    RETERR(kS4Err_BadParams);
             }
-                break;
-                
-            default:
-                RETERR(kS4Err_BadParams);
         }
-    }
-    else if(STRCMP2(propName, kS4KeyProp_KeyData))
-    {
-        switch (ctx->type) {
-            case kS4KeyType_Symmetric:
-                COPY(&ctx->sym.symKey , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_Tweekable:
-                COPY(&ctx->tbc.key , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_PublicEncrypted:
-                COPY(&ctx->publicKeyEncoded.encrypted , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_PBKDF2:
-            default:
-                RETERR(kS4Err_BadParams);
+        else if(STRCMP2(propName, kS4KeyProp_KeyData))
+        {
+            switch (ctx->type) {
+                case kS4KeyType_Symmetric:
+                    COPY(&ctx->sym.symKey , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_Tweekable:
+                    COPY(&ctx->tbc.key , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_PublicEncrypted:
+                    COPY(&ctx->publicKeyEncoded.encrypted , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_PBKDF2:
+                default:
+                    RETERR(kS4Err_BadParams);
+            }
         }
-    }
-    
-    
-    else if(STRCMP2(propName, kS4KeyProp_SigID))
-    {
-        switch (ctx->type) {
-                
-            case kS4KeyType_Signature:
-                COPY(&ctx->sig.sigID , buffer, actualLength);
-                break;
-                
-            default:
-                RETERR(kS4Err_BadParams);
-                
-        }
-    }
-    else if(STRCMP2(propName, kS4KeyProp_SignedBy))
-    {
-        switch (ctx->type) {
-                
-            case kS4KeyType_Signature:
-                COPY(&ctx->sig.issuerID , buffer, actualLength);
-                break;
-
-            default:
-                RETERR(kS4Err_BadParams);
-
-        }
-    }
-    else if(STRCMP2(propName, kS4KeyProp_SignedDate))
-    {
-        switch (ctx->type) {
-            case kS4KeyType_Signature:
-                
-                COPY(&ctx->sig.signDate, buffer, actualLength);
-                break;
-                
-            default:
-                RETERR(kS4Err_BadParams);
-        }
-    }
-
-    else if(STRCMP2(propName, kS4KeyProp_SigExpire))
-   {
-        switch (ctx->type) {
-            case  kS4KeyType_Signature:
-                
-                COPY(&ctx->sig.expirationTime, buffer, actualLength);
-                break;
-                
-            default:
-                RETERR(kS4Err_BadParams);
-        }
-    }
-    else if(STRCMP2(propName, kS4KeyProp_KeyID))
-    {
-        switch (ctx->type) {
-                
-            case kS4KeyType_SymmetricEncrypted:
-                COPY(&ctx->symKeyEncoded.keyID , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_PublicEncrypted:
-                COPY(&ctx->publicKeyEncoded.keyID , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_PublicKey:
-                COPY(&ctx->pub.keyID , buffer, actualLength);
-                break;
-                
-            case kS4KeyType_Symmetric:
-                // calculate a keyID for the sym key
-                err =  sKEY_HASH(ctx->sym.symKey,  ctx->sym.keylen, ctx->type,
-                                 ctx->sym.symAlgor,  buffer, actualLength );
-                
-                break;
-                
-            case kS4KeyType_Tweekable:
-                // calculate a keyID for the TBC key
-                err =  sKEY_HASH((uint8_t*)ctx->tbc.key,  ctx->tbc.keybits >> 3, ctx->type,
-                                 ctx->tbc.tbcAlgor,  buffer, actualLength );
-                break;
-                
-            default:
-                RETERR(kS4Err_BadParams);
-        }
-    }
-    else if(STRCMP2(propName, kS4KeyProp_Mac))
-    {
-        uint8_t     keyHash[kS4KeyPBKDF2_HashBytes] = {0};
         
-        switch (ctx->type) {
-            case kS4KeyType_Symmetric:
-                err =  sKEY_HASH(ctx->sym.symKey, ctx->tbc.keybits >> 3, ctx->type,
-                                 ctx->sym.symAlgor, keyHash, kS4KeyPublic_Encrypted_HashBytes );
-                
-                COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
-                break;
-                
-            case kS4KeyType_Tweekable:
-                err =  sKEY_HASH((uint8_t*)ctx->tbc.key, ctx->sym.keylen >> 3, ctx->type,
-                                 ctx->tbc.tbcAlgor, keyHash, kS4KeyPublic_Encrypted_HashBytes );
-                
-                COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
-                break;
-                
-            case kS4KeyType_Share:
-                actualLength = kS4KeyPublic_Encrypted_HashBytes;
-                
-                err =  sKEY_HASH(ctx->share.shareSecret, (int)ctx->share.shareSecretLen, ctx->type,
-                                 kCipher_Algorithm_SharedKey, keyHash, kS4KeyPublic_Encrypted_HashBytes );
-                
-                COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
-                break;
-                
-            case kS4KeyType_PublicEncrypted:
-                COPY(ctx->publicKeyEncoded.keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
-                break;
-                
-            default:
-                RETERR(kS4Err_BadParams);
-        }
-    }
-    
-    else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
-    {
-        switch (ctx->type) {
-                
-            case kS4KeyType_SymmetricEncrypted:
-                err = base64_encode(ctx->symKeyEncoded.keyID, sizeof(ctx->symKeyEncoded.keyID), buffer, &actualLength); CKERR;
-                actualLength++;
-                buffer[actualLength]= '\0';
-                break;
-                
-                
-            case kS4KeyType_PublicEncrypted:
-                err = base64_encode(ctx->publicKeyEncoded.keyID, sizeof(ctx->publicKeyEncoded.keyID), buffer, &actualLength); CKERR;
-                actualLength++;
-                buffer[actualLength]= '\0';
-                break;
-                
-            case kS4KeyType_PublicKey:
-                err = base64_encode(ctx->pub.keyID, sizeof(ctx->pub.keyID), buffer, &actualLength); CKERR;
-                actualLength++;
-                buffer[actualLength]= '\0';
-                break;
-                
-                
-                
-            case kS4KeyType_Symmetric:
-            {
-                uint8_t keyID[kS4Key_KeyIDBytes];
-                
-                err =  sKEY_HASH(ctx->sym.symKey,  ctx->sym.keylen, ctx->type,
-                                 ctx->sym.symAlgor,  keyID, kS4Key_KeyIDBytes );
-                
-                err = base64_encode(keyID, kS4Key_KeyIDBytes , buffer, &actualLength); CKERR;
-                actualLength++;
-                buffer[actualLength]= '\0';
+        
+        else if(STRCMP2(propName, kS4KeyProp_SigID))
+        {
+            switch (ctx->type) {
+                    
+                case kS4KeyType_Signature:
+                    COPY(&ctx->sig.sigID , buffer, actualLength);
+                    break;
+                    
+                default:
+                    RETERR(kS4Err_BadParams);
+                    
             }
-                break;
-                
-            case kS4KeyType_Tweekable:
-            {
-                uint8_t keyID[kS4Key_KeyIDBytes];
-                
-                err =  sKEY_HASH((uint8_t*)ctx->tbc.key,  ctx->tbc.keybits >> 3, ctx->type,
-                                 ctx->tbc.tbcAlgor,  keyID, kS4Key_KeyIDBytes );
-                
-                err = base64_encode(keyID, kS4Key_KeyIDBytes , buffer, &actualLength); CKERR;
-                actualLength++;
-                buffer[actualLength]= '\0';
-            }
-                break;
-                
-                
-            default:
-                RETERR(kS4Err_BadParams);
         }
+        else if(STRCMP2(propName, kS4KeyProp_SignedBy))
+        {
+            switch (ctx->type) {
+                    
+                case kS4KeyType_Signature:
+                    COPY(&ctx->sig.issuerID , buffer, actualLength);
+                    break;
+                    
+                default:
+                    RETERR(kS4Err_BadParams);
+                    
+            }
+        }
+        else if(STRCMP2(propName, kS4KeyProp_SignedDate))
+        {
+            switch (ctx->type) {
+                case kS4KeyType_Signature:
+                    
+                    COPY(&ctx->sig.signDate, buffer, actualLength);
+                    break;
+                    
+                default:
+                    RETERR(kS4Err_BadParams);
+            }
+        }
+        
+        else if(STRCMP2(propName, kS4KeyProp_SigExpire))
+        {
+            switch (ctx->type) {
+                case  kS4KeyType_Signature:
+                    
+                    COPY(&ctx->sig.expirationTime, buffer, actualLength);
+                    break;
+                    
+                default:
+                    RETERR(kS4Err_BadParams);
+            }
+        }
+        else if(STRCMP2(propName, kS4KeyProp_KeyID))
+        {
+            switch (ctx->type) {
+                    
+                case kS4KeyType_SymmetricEncrypted:
+                    COPY(&ctx->symKeyEncoded.keyID , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_PublicEncrypted:
+                    COPY(&ctx->publicKeyEncoded.keyID , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_PublicKey:
+                    COPY(&ctx->pub.keyID , buffer, actualLength);
+                    break;
+                    
+                case kS4KeyType_Symmetric:
+                    // calculate a keyID for the sym key
+                    err =  sKEY_HASH(ctx->sym.symKey,  ctx->sym.keylen, ctx->type,
+                                     ctx->sym.symAlgor,  buffer, actualLength );
+                    
+                    break;
+                    
+                case kS4KeyType_Tweekable:
+                    // calculate a keyID for the TBC key
+                    err =  sKEY_HASH((uint8_t*)ctx->tbc.key,  ctx->tbc.keybits >> 3, ctx->type,
+                                     ctx->tbc.tbcAlgor,  buffer, actualLength );
+                    break;
+                    
+                default:
+                    RETERR(kS4Err_BadParams);
+            }
+        }
+        else if(STRCMP2(propName, kS4KeyProp_Mac))
+        {
+            uint8_t     keyHash[kS4KeyPBKDF2_HashBytes] = {0};
+            
+            switch (ctx->type) {
+                case kS4KeyType_Symmetric:
+                    err =  sKEY_HASH(ctx->sym.symKey, ctx->tbc.keybits >> 3, ctx->type,
+                                     ctx->sym.symAlgor, keyHash, kS4KeyPublic_Encrypted_HashBytes );
+                    
+                    COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
+                    break;
+                    
+                case kS4KeyType_Tweekable:
+                    err =  sKEY_HASH((uint8_t*)ctx->tbc.key, ctx->sym.keylen >> 3, ctx->type,
+                                     ctx->tbc.tbcAlgor, keyHash, kS4KeyPublic_Encrypted_HashBytes );
+                    
+                    COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
+                    break;
+                    
+                case kS4KeyType_Share:
+                    actualLength = kS4KeyPublic_Encrypted_HashBytes;
+                    
+                    err =  sKEY_HASH(ctx->share.shareSecret, (int)ctx->share.shareSecretLen, ctx->type,
+                                     kCipher_Algorithm_SharedKey, keyHash, kS4KeyPublic_Encrypted_HashBytes );
+                    
+                    COPY(keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
+                    break;
+                    
+                case kS4KeyType_PublicEncrypted:
+                    COPY(ctx->publicKeyEncoded.keyHash , buffer, kS4KeyPublic_Encrypted_HashBytes);
+                    break;
+                    
+                default:
+                    RETERR(kS4Err_BadParams);
+            }
+        }
+        
+        else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
+        {
+            switch (ctx->type) {
+                    
+                case kS4KeyType_SymmetricEncrypted:
+                    err = base64_encode(ctx->symKeyEncoded.keyID, sizeof(ctx->symKeyEncoded.keyID), buffer, &actualLength); CKERR;
+                    actualLength++;
+                    buffer[actualLength]= '\0';
+                    break;
+                    
+                    
+                case kS4KeyType_PublicEncrypted:
+                    err = base64_encode(ctx->publicKeyEncoded.keyID, sizeof(ctx->publicKeyEncoded.keyID), buffer, &actualLength); CKERR;
+                    actualLength++;
+                    buffer[actualLength]= '\0';
+                    break;
+                    
+                case kS4KeyType_PublicKey:
+                    err = base64_encode(ctx->pub.keyID, sizeof(ctx->pub.keyID), buffer, &actualLength); CKERR;
+                    actualLength++;
+                    buffer[actualLength]= '\0';
+                    break;
+                    
+                    
+                    
+                case kS4KeyType_Symmetric:
+                {
+                    uint8_t keyID[kS4Key_KeyIDBytes];
+                    
+                    err =  sKEY_HASH(ctx->sym.symKey,  ctx->sym.keylen, ctx->type,
+                                     ctx->sym.symAlgor,  keyID, kS4Key_KeyIDBytes );
+                    
+                    err = base64_encode(keyID, kS4Key_KeyIDBytes , buffer, &actualLength); CKERR;
+                    actualLength++;
+                    buffer[actualLength]= '\0';
+                }
+                    break;
+                    
+                case kS4KeyType_Tweekable:
+                {
+                    uint8_t keyID[kS4Key_KeyIDBytes];
+                    
+                    err =  sKEY_HASH((uint8_t*)ctx->tbc.key,  ctx->tbc.keybits >> 3, ctx->type,
+                                     ctx->tbc.tbcAlgor,  keyID, kS4Key_KeyIDBytes );
+                    
+                    err = base64_encode(keyID, kS4Key_KeyIDBytes , buffer, &actualLength); CKERR;
+                    actualLength++;
+                    buffer[actualLength]= '\0';
+                }
+                    break;
+                    
+                    
+                default:
+                    RETERR(kS4Err_BadParams);
+            }
+        }
+        else if(otherProp && buffer)
+        {
+            COPY(otherProp->value,  buffer, actualLength);
+        }  
     }
-    else if(otherProp)
-    {
-        COPY(otherProp->value,  buffer, actualLength);
-        propType = otherProp->type;
-    }
+ 
     
     if(outExtendedProp)
         *outExtendedProp = extendedProp;
@@ -1352,7 +1391,7 @@ S4Err S4Key_GetProperty( S4KeyContextRef ctx,
     S4Err               err = kS4Err_NoErr;
     
     validateS4KeyContext(ctx);
-    ValidateParam(outData);
+//    ValidateParam(outData);
     
     if ( IsntNull( outData ) )
     {
@@ -1380,6 +1419,44 @@ S4Err S4Key_GetAllocatedProperty( S4KeyContextRef ctx,
     return err;
 }
 
+S4Err S4Key_RemoveProperty( S4KeyContextRef ctx,
+                           const char *propName)
+{
+    S4Err               err = kS4Err_NoErr;
+    S4KeyPropertyInfo  *propInfo = NULL;
+    bool found = false;
+    
+    bool needsSigning = false;
+    
+    // is it a read only property?
+    for(propInfo = sPropertyTable; propInfo->name; propInfo++)
+    {
+        if(CMP2(propName, strlen(propName), propInfo->name, strlen(propInfo->name)))
+        {
+            if(propInfo->readOnly)
+                RETERR(kS4Err_BadParams);
+            
+            found = true;
+            break;
+        }
+    }
+    
+    // delete property
+    err = sDeleteProperty(ctx, propName, &needsSigning); CKERR;
+    
+    if((ctx->type == kS4KeyType_PublicKey)
+       && ECC_isPrivate(ctx->pub.ecc)
+       && needsSigning)
+    {
+        //  re-sign key  when new property is added
+        err = S4Key_SignKey(ctx,ctx, LONG_MAX); CKERR;
+    }
+
+
+done:
+    return err;
+
+}
 
 
 #ifdef __clang__

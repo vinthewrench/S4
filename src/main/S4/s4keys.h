@@ -309,6 +309,9 @@ S4Err S4Key_GetExtendedProperty( S4KeyContextRef ctx,
                                 const char *propName,
                                 S4KeyPropertyExtendedType *outPropType);
 
+S4Err S4Key_RemoveProperty( S4KeyContextRef ctx,
+                           const char *propName);
+
 /*
  using S4Key_SerializeToS4Key with public passkey is  limited to TBC keys <= 512 bits
  since ECC is limited to SHA-512
