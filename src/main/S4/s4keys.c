@@ -1442,16 +1442,17 @@ S4Err S4Key_RemoveProperty( S4KeyContextRef ctx,
     }
     
     // delete property
-    err = sDeleteProperty(ctx, propName, &needsSigning); CKERR;
-    
-    if((ctx->type == kS4KeyType_PublicKey)
-       && ECC_isPrivate(ctx->pub.ecc)
-       && needsSigning)
+    err = sDeleteProperty(ctx, propName, &needsSigning);
+    if(IsntS4Err(err))
     {
-        //  re-sign key  when new property is added
-        err = S4Key_SignKey(ctx,ctx, LONG_MAX); CKERR;
+        if((ctx->type == kS4KeyType_PublicKey)
+           && ECC_isPrivate(ctx->pub.ecc)
+           && needsSigning)
+        {
+            //  re-sign key  when new property is added
+            err = S4Key_SignKey(ctx,ctx, LONG_MAX); CKERR;
+        }
     }
-
 
 done:
     return err;
