@@ -366,7 +366,6 @@
 		2E0E1FD91BF1133100E1E845 /* testSecretSharing.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A771BEBEAE100A0375B /* testSecretSharing.c */; };
 		2E0E1FDA1BF1133100E1E845 /* testECC.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A5E1BE8198500A0375B /* testECC.c */; };
 		2E0E1FDB1BF1133100E1E845 /* testP2K.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A611BE81D2B00A0375B /* testP2K.c */; };
-		2E0E1FDC1BF1133100E1E845 /* optest.h in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA664C1BE7DC6100A0375B /* optest.h */; };
 		2E0E1FDD1BF1133100E1E845 /* optestutilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66511BE7E27B00A0375B /* optestutilities.c */; };
 		2E0E1FE01BF12C2700E1E845 /* s4keys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FDF1BF12C2700E1E845 /* s4keys.c */; };
 		2E0E1FE11BF12C2700E1E845 /* s4keys.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1FDF1BF12C2700E1E845 /* s4keys.c */; };
@@ -2846,7 +2845,6 @@
 				2E0E1FD91BF1133100E1E845 /* testSecretSharing.c in Sources */,
 				2E0E1FDA1BF1133100E1E845 /* testECC.c in Sources */,
 				2E0E1FDB1BF1133100E1E845 /* testP2K.c in Sources */,
-				2E0E1FDC1BF1133100E1E845 /* optest.h in Sources */,
 				2EA8F3771C8E098E007433BB /* testUtilties.c in Sources */,
 				2E0E1FDD1BF1133100E1E845 /* optestutilities.c in Sources */,
 			);
