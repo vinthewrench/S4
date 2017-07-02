@@ -9,6 +9,8 @@
 #include "s4internal.h"
 
 #if _USES_XXHASH_
+#define XXH_STATIC_LINKING_ONLY   /* *_state_t */
+
 #include "xxhash.h"
 #endif
 
@@ -40,8 +42,8 @@ struct HASH_Context
 #endif
 
 #if _USES_XXHASH_
-        XXH32_stateBody_t       xxHash32_state;
-        XXH64_stateBody_t       xxHash64_state;
+        XXH32_state_t       xxHash32_state;
+        XXH64_state_t       xxHash64_state;
 #endif
         
     }state;

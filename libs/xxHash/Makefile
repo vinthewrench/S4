@@ -24,10 +24,20 @@
 # xxhsum : provides 32/64 bits hash of one or multiple files, or stdin
 # ################################################################
 
-CFLAGS ?= -O3
-CFLAGS += -std=c99 -Wall -Wextra -Wundef -Wshadow -Wcast-qual -Wcast-align -Wstrict-prototypes -Wstrict-aliasing=1 -pedantic 
-FLAGS  := $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(MOREFLAGS)
+# Version numbers
+LIBVER_MAJOR:=`sed -n '/define XXH_VERSION_MAJOR/s/.*[[:blank:]]\([0-9][0-9]*\).*/\1/p' < xxhash.h`
+LIBVER_MINOR:=`sed -n '/define XXH_VERSION_MINOR/s/.*[[:blank:]]\([0-9][0-9]*\).*/\1/p' < xxhash.h`
+LIBVER_PATCH:=`sed -n '/define XXH_VERSION_RELEASE/s/.*[[:blank:]]\([0-9][0-9]*\).*/\1/p' < xxhash.h`
+LIBVER := $(LIBVER_MAJOR).$(LIBVER_MINOR).$(LIBVER_PATCH)
 
+CFLAGS ?= -O3
+CFLAGS += -Wall -Wextra -Wcast-qual -Wcast-align -Wshadow \
+          -Wstrict-aliasing=1 -Wswitch-enum -Wdeclaration-after-statement \
+		  -Wstrict-prototypes -Wundef
+FLAGS  := $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(MOREFLAGS)
+XXHSUM_VERSION=$(LIBVER)
+MD2ROFF = ronn
+MD2ROFF_FLAGS = --roff --warnings --manual="User Commands" --organization="xxhsum $(XXHSUM_VERSION)"
 
 # Define *.exe as extension for Windows systems
 ifneq (,$(filter Windows%,$(OS)))
@@ -40,7 +50,7 @@ endif
 
 default: xxhsum
 
-all: xxhsum xxhsum32 xxhsum_privateXXH
+all: xxhsum xxhsum32 xxhsum_inlinedXXH
 
 xxhsum: xxhash.c xxhsum.c
 	$(CC)      $(FLAGS) $^ -o $@$(EXT)
@@ -50,8 +60,8 @@ xxhsum: xxhash.c xxhsum.c
 xxhsum32: xxhash.c xxhsum.c
 	$(CC) -m32 $(FLAGS) $^ -o $@$(EXT)
 
-xxhsum_privateXXH: xxhsum.c
-	$(CC) $(FLAGS) -DXXHSUM_INCLUDE_XXHC $^ -o $@$(EXT)
+xxhsum_inlinedXXH: xxhsum.c
+	$(CC) $(FLAGS) -DXXH_PRIVATE_API $^ -o $@$(EXT)
 
 test: clean xxhsum
 	# stdin
@@ -71,9 +81,33 @@ test32: clean xxhsum32
 	@echo ---- test 32-bits ----
 	./xxhsum32 -bi1 xxhash.c
 
+test-xxhsum-c: xxhsum
+	# xxhsum to/from pipe
+	./xxhsum * | ./xxhsum -c -
+	./xxhsum -H0 * | ./xxhsum -c -
+	# xxhsum to/from file, shell redirection
+	./xxhsum * > .test.xxh64
+	./xxhsum -H0 * > .test.xxh32
+	./xxhsum -c .test.xxh64
+	./xxhsum -c .test.xxh32
+	./xxhsum -c < .test.xxh64
+	./xxhsum -c < .test.xxh32
+	# xxhsum -c warns improperly format lines.
+	cat .test.xxh64 .test.xxh32 | ./xxhsum -c -
+	cat .test.xxh32 .test.xxh64 | ./xxhsum -c -
+	# Expects "FAILED"
+	echo "0000000000000000  LICENSE" | ./xxhsum -c -; test $$? -eq 1
+	echo "00000000  LICENSE" | ./xxhsum -c -; test $$? -eq 1
+	# Expects "FAILED open or read"
+	echo "0000000000000000  test-expects-file-not-found" | ./xxhsum -c -; test $$? -eq 1
+	echo "00000000  test-expects-file-not-found" | ./xxhsum -c -; test $$? -eq 1
+
+clean-xxhsum-c:
+	@$(RM) -f .test.xxh32 .test.xxh64
+
 armtest: clean
 	@echo ---- test ARM compilation ----
-	$(MAKE) xxhsum CC=arm-linux-gnueabi-gcc MOREFLAGS="-Werror"
+	$(MAKE) xxhsum CC=arm-linux-gnueabi-gcc MOREFLAGS="-Werror -static"
 
 clangtest: clean
 	@echo ---- test clang compilation ----
@@ -83,18 +117,39 @@ gpptest: clean
 	@echo ---- test g++ compilation ----
 	$(MAKE) all CC=g++ CFLAGS="-O3 -Wall -Wextra -Wundef -Wshadow -Wcast-align -Werror"
 
-sanitize: clean
+c90test: clean
+	@echo ---- test strict C90 compilation [xxh32 only] ----
+	$(CC) -std=c90 -Werror -pedantic -DXXH_NO_LONG_LONG -c xxhash.c
+	$(RM) xxhash.o
+
+usan: clean
 	@echo ---- check undefined behavior - sanitize ----
 	$(MAKE) test CC=clang MOREFLAGS="-g -fsanitize=undefined"
 
 staticAnalyze: clean
 	@echo ---- static analyzer - scan-build ----
-	scan-build --status-bugs -v $(MAKE) all MOREFLAGS=-g
+	CFLAGS="-g -Werror" scan-build --status-bugs -v $(MAKE) all
 
-test-all: clean all test test32 armtest clangtest gpptest sanitize staticAnalyze
+namespaceTest:
+	$(CC) -c xxhash.c
+	$(CC) -DXXH_NAMESPACE=TEST_ -c xxhash.c -o xxhash2.o
+	$(CC) xxhash.o xxhash2.o xxhsum.c -o xxhsum2  # will fail if one namespace missing (symbol collision)
+	$(RM) *.o xxhsum2  # clean
 
-clean:
-	@rm -f core *.o xxhsum$(EXT) xxhsum32$(EXT) xxhsum_privateXXH$(EXT) xxh32sum xxh64sum
+xxhsum.1: xxhsum.1.md
+	cat $^ | $(MD2ROFF) $(MD2ROFF_FLAGS) | sed -n '/^\.\\\".*/!p' > $@
+
+man: xxhsum.1
+
+clean-man:
+	$(RM) xxhsum.1
+
+preview-man: clean-man man
+	man ./xxhsum.1
+
+test-all: clean all namespaceTest test test32 test-xxhsum-c clean-xxhsum-c \
+	armtest clangtest gpptest c90test usan staticAnalyze
+
+clean: clean-xxhsum-c
+	@$(RM) -f core *.o xxhsum$(EXT) xxhsum32$(EXT) xxhsum_inlinedXXH$(EXT) xxh32sum xxh64sum
 	@echo cleaning completed
-
-
