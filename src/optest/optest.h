@@ -98,13 +98,13 @@ int compare2Results(const void* expected, size_t expectedLen,
 
 
 
-S4Err TestHash();
-S4Err TestHMAC();
-S4Err TestCiphers();
-S4Err TestECC();
-S4Err TestP2K();
-S4Err TestTBCiphers();
-S4Err TestSecretSharing();
-S4Err TestKeys();
-S4Err  TestUtilties();
+S4Err TestHash(void);
+S4Err TestHMAC(void);
+S4Err TestCiphers(void);
+S4Err TestECC(void);
+S4Err TestP2K(void);
+S4Err TestTBCiphers(void);
+S4Err TestSecretSharing(void);
+S4Err TestKeys(void);
+S4Err  TestUtilties(void);
 #endif /* optest_h */

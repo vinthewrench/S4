@@ -20,7 +20,7 @@
 #endif
 
 
-S4Err S4_Init();
+S4Err S4_Init(void);
 
 S4Err S4_GetErrorString( S4Err err,  size_t	bufSize, char *outString);
 
