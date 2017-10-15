@@ -3269,7 +3269,6 @@
 				S4_BASE = ./;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SYMROOT = "$(S4_BASE)/build/ios";
 			};
 			name = Debug;
 		};
@@ -3285,7 +3284,6 @@
 				S4_BASE = ./;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				SYMROOT = "$(S4_BASE)/build/ios";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -3301,7 +3299,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				S4_BASE = ./;
 				SDKROOT = iphoneos;
-				SYMROOT = "$(S4_BASE)/build/ios";
 			};
 			name = Debug;
 		};
@@ -3316,7 +3313,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				S4_BASE = ./;
 				SDKROOT = iphoneos;
-				SYMROOT = "$(S4_BASE)/build/ios";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -3449,7 +3445,6 @@
 				PROVISIONING_PROFILE = "";
 				S4_BASE = ./;
 				SKIP_INSTALL = YES;
-				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Debug;
 		};
@@ -3478,7 +3473,6 @@
 				PROVISIONING_PROFILE = "";
 				S4_BASE = ./;
 				SKIP_INSTALL = YES;
-				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Release;
 		};
@@ -3494,7 +3488,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				S4_BASE = ./;
-				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Debug;
 		};
@@ -3510,7 +3503,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				S4_BASE = ./;
-				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Release;
 		};
@@ -3521,7 +3513,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				S4_BASE = .;
-				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Debug;
 		};
@@ -3532,7 +3523,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				S4_BASE = .;
-				SYMROOT = "$(S4_BASE)/build/osx";
 			};
 			name = Release;
 		};
