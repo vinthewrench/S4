@@ -1,3 +1,6 @@
 [submodule "libs/xxHash"]
 	path = libs/xxHash
 	url = https://github.com/Cyan4973/xxHash
+[submodule "libs/yajl"]
+	path = libs/yajl
+	url = https://github.com/lloyd/yajl.git
