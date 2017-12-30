@@ -364,13 +364,13 @@ S4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
     if(hashCTX->ccAlgor == kCCHmacAlgInvalid)
     {
         desc = sDescriptorForHash(algorithm);
+        if(IsNull(desc))
+            RETERR( kS4Err_BadHashNumber);
+
         hashCTX->hashsize = desc->hashsize;
         hashCTX->process = (void*) desc->process;
         hashCTX->done =     (void*) desc->done;
-        
-        if(IsNull(desc))
-            RETERR( kS4Err_BadHashNumber);
-        
+
         if(desc->init)
             err = (desc->init)(&hashCTX->state.tc_state);
         CKERR;
