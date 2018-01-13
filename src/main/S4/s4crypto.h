@@ -11,8 +11,8 @@
 
 #include "s4pubtypes.h"
 
-#define S4_BUILD_NUMBER               1
-#define S4_SHORT_VERSION_STRING       "1.1.0"
+#define S4_BUILD_NUMBER               2
+#define S4_SHORT_VERSION_STRING       "1.1.1"
 
 
 #ifdef __clang__
