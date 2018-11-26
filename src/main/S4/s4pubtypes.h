@@ -9,25 +9,66 @@
 #ifndef s4pubtypes_h
 #define s4pubtypes_h
 
-
-
 #include <limits.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-//#include <time.h>
+#include <time.h>
 
-#ifdef __GNUC__
-#define DEPRECATED(func) func __attribute__ ((deprecated))
-#elif defined(_MSC_VER)
-#define DEPRECATED(func) __declspec(deprecated) func
-#else
-#pragma message("WARNING: You need to implement DEPRECATED for this compiler")
-#define DEPRECATED(func) func
+
+#if !defined(EMSCRIPTEN) && defined(__has_feature) && __has_feature(nullability)
+#   define S4_ASSUME_NONNULL_BEGIN      _Pragma("clang assume_nonnull begin")
+#   define S4_ASSUME_NONNULL_END        _Pragma("clang assume_nonnull end")
+#   define S4_NULLABLE                  nullable
+#   define __S4_NULLABLE               __nullable
+#   define __S4_NONNULL                __nonnull
+#	define __NULLABLE_REF_POINTER __nullable * __nullable
+#	define __CONST_CHAR_P_P const char *__nullable* __nullable		/* nullable const char **p */
+#	define __NULLABLE_XFREE_P_P  * __nullable * __nullable				/* nullable pointer to XMALLOC block */
+
+#else  // NO SUPPORT FOR nullability
+#   define S4_ASSUME_NONNULL_BEGIN
+#   define S4_ASSUME_NONNULL_END
+#   define S4_NULLABLE
+#   define __S4_NULLABLE
+#   define __S4_NONNULL
+#	define __NULLABLE_REF_POINTER *
+#	define __CONST_CHAR_P_P const char ** 		/* nullable const char **p */
+#	define __NULLABLE_XFREE_P_P  ** 				/* nullable pointer to XMALLOC block */
 #endif
 
+
+#ifndef __AVAILABILITYMACROS__
+
+/*
+ * only certain compilers support __attribute__((deprecated))
+ */
+#if defined(__has_feature) && defined(__has_attribute)
+#if __has_attribute(deprecated)
+#define DEPRECATED_ATTRIBUTE        __attribute__((deprecated))
+#if __has_feature(attribute_deprecated_with_message)
+#define DEPRECATED_MSG_ATTRIBUTE(s) __attribute__((deprecated(s)))
+#else
+#define DEPRECATED_MSG_ATTRIBUTE(s) __attribute__((deprecated))
+#endif
+#else
+#define DEPRECATED_ATTRIBUTE
+#define DEPRECATED_MSG_ATTRIBUTE(s)
+#endif
+#elif defined(__GNUC__) && ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))
+#define DEPRECATED_ATTRIBUTE        __attribute__((deprecated))
+#if (__GNUC__ >= 5) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 5))
+#define DEPRECATED_MSG_ATTRIBUTE(s) __attribute__((deprecated(s)))
+#else
+#define DEPRECATED_MSG_ATTRIBUTE(s) __attribute__((deprecated))
+#endif
+#else
+#define DEPRECATED_ATTRIBUTE
+#define DEPRECATED_MSG_ATTRIBUTE(s)
+#endif
+#endif
 
 #if ( DEBUG == 1 )
 #define STATUS_LOG(...)	 printf(__VA_ARGS__)

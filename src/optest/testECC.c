@@ -8,16 +8,15 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "s4.h"
+
 #include "optest.h"
 
 
 
-static S4Err sTestECC(int keySize)
+static S4Err sTestECC(ECC_Algorithm algorithm)
 {
-#define PTsize 32
-    
-    S4Err     err = kS4Err_NoErr;
+	const int PTsize =  32;
+	S4Err     err = kS4Err_NoErr;
     int     i;
     
     uint8_t        PT[PTsize];
@@ -40,24 +39,30 @@ static S4Err sTestECC(int keySize)
     bool isPrivate = false;
     size_t  importKeySize = 0;
     bool    isANSIx963 = false;
-    
+
+	size_t 			keyBytes= 0;
+	const char* 	algorName = NULL;
+
+	ECC_ContextRef ecc = kInvalidECC_ContextRef;
+	ECC_ContextRef eccPub = kInvalidECC_ContextRef;
+
     //   uint8_t             tempBuf[256];
     //   unsigned long       tempLen;
-    
-    
-    OPTESTLogInfo("\tECC-%d \n",  keySize);
-    
-    ECC_ContextRef ecc = kInvalidECC_ContextRef;
-    ECC_ContextRef eccPub = kInvalidECC_ContextRef;
-    
+
+	err = ECC_GetName(algorithm, &algorName); CKERR;
+	OPTESTLogInfo("\t%s \n",  algorName);
+
+	if( !ECC_AlgorithmIsAvailable(algorithm))
+		RETERR(kS4Err_FeatureNotAvailable);
+
+	err = ECC_GetKeySizeInBytes(algorithm, &keyBytes); CKERR;
+
     // fill PT
     for(i = 0; i< PTsize; i++) PT[i]= i;
-    
-    err = ECC_Init(&ecc);
-    
-    OPTESTLogVerbose("\t\tGenerate Pub Key (%ld bytes)\n", pubKeyLen);
-    err = ECC_Generate(ecc, keySize); CKERR;
-    
+
+    OPTESTLogVerbose("\t\tGenerate Pub Key (%ld bytes)\n", keyBytes);
+	err = ECC_Init(algorithm, &ecc);
+
     err =  ECC_Export_ANSI_X963( ecc, pubKey, sizeof(pubKey), &pubKeyLen);CKERR;
     OPTESTLogVerbose("\t\tExport Public Key (%ld bytes)\n", pubKeyLen);
     dumpHex(IF_LOG_DEBUG, pubKey,  (int)pubKeyLen, 0);
@@ -80,8 +85,7 @@ static S4Err sTestECC(int keySize)
     if(ECC_ContextRefIsValid(ecc) ) ECC_Free(ecc );
     ecc = kInvalidECC_ContextRef;
     
-    err = ECC_Init(&eccPub);
-    err = ECC_Import_ANSI_X963( eccPub, pubKey, pubKeyLen);CKERR;
+	err = ECC_Import_ANSI_X963(pubKey, pubKeyLen, &eccPub);CKERR;
     
     importKeySize = 0;
     err =  ECC_KeySize(eccPub, &importKeySize);
@@ -91,8 +95,7 @@ static S4Err sTestECC(int keySize)
     OPTESTLogVerbose("\t\tEncrypt message: (%ld bytes)\n", CTlen);
     dumpHex(IF_LOG_DEBUG, CT,  (int)CTlen, 0);
     
-    err = ECC_Init(&ecc);
-    err = ECC_Import(ecc, privKey, privKeyLen);CKERR;
+    err = ECC_Import(privKey, privKeyLen, &ecc);CKERR;
     
     err =  ECC_KeySize(ecc, &importKeySize);
     OPTESTLogVerbose("\t\tImported %d bit private key\n", (int)importKeySize  );
@@ -130,7 +133,8 @@ done:
     
 }
 
-S4Err sTestECC_DH(int keySize)
+
+S4Err sTestECC_DH(ECC_Algorithm algorithm)
 {
     
     S4Err     err = kS4Err_NoErr;
@@ -145,9 +149,6 @@ S4Err sTestECC_DH(int keySize)
     uint8_t         privKey2[256];
     size_t          privKeyLen2 = 0;
  
-    uint8_t         curveName[256];
-    size_t          curveNameLen = 0;
-    
     ECC_ContextRef eccPriv = kInvalidECC_ContextRef;
     ECC_ContextRef eccPub  = kInvalidECC_ContextRef;
     
@@ -155,20 +156,31 @@ S4Err sTestECC_DH(int keySize)
     size_t          Zlen1;
     uint8_t         Z2       [256];
     size_t          Zlen2;
-    
-    
-    OPTESTLogInfo("\tTesting ECC-DH (%d)\n",  keySize);
-    
+
+	size_t 			keyBytes= 0;
+	const char* 	algorName = NULL;
+	const char* 	curveName = NULL;
+
+	ECC_Algorithm 	algor1 = kECC_Algorithm_Invalid;
+
+	err = ECC_GetName(algorithm, &algorName); CKERR;
+	OPTESTLogInfo("\t%s \n",  algorName);
+
+	if( !ECC_AlgorithmIsAvailable(algorithm))
+		RETERR(kS4Err_FeatureNotAvailable);
+
+	err = ECC_GetKeySizeInBytes(algorithm, &keyBytes); CKERR;
+
     /* create keys   */
     OPTESTLogDebug("\t\tGenerate Key 1\n");
-    err = ECC_Init(&eccPriv); CKERR;
-    err = ECC_Generate(eccPriv, keySize ); CKERR;
-    
+    err = ECC_Init(algorithm, &eccPriv); CKERR;
+
     err =  ECC_Export_ANSI_X963( eccPriv, pubKey1, sizeof(pubKey1), &pubKeyLen1);CKERR;
     err =  ECC_Export(eccPriv, true, privKey1, sizeof(privKey1), &privKeyLen1);CKERR;
-    
-    err = ECC_CurveName(eccPriv, curveName, sizeof(curveName), & curveNameLen); CKERR;
-   
+
+	err = ECC_GetAlgorithm(eccPriv, &algor1); CKERR;
+	err = ECC_GetName(algorithm, &curveName); CKERR;
+  
     OPTESTLogDebug("\t\tKey 1 Pub/Priv %s (%ld,%ld) bytes\n", curveName, pubKeyLen1, privKeyLen1);
     OPTESTLogDebug("\t\tPublic\n");
     dumpHex(IF_LOG_DEBUG, pubKey1,  (int)pubKeyLen1, 0);
@@ -181,9 +193,8 @@ S4Err sTestECC_DH(int keySize)
     
     
     OPTESTLogDebug("\t\tGenerate Key 2\n");
-    err = ECC_Init(&eccPriv); CKERR;
-    err = ECC_Generate(eccPriv, keySize ); CKERR;
-    
+	err = ECC_Init(algorithm, &eccPriv); CKERR;
+
     err =  ECC_Export_ANSI_X963( eccPriv, pubKey2, sizeof(pubKey2), &pubKeyLen2);CKERR;
     err =  ECC_Export(eccPriv, true, privKey2, sizeof(privKey2), &privKeyLen2);CKERR;
     
@@ -199,11 +210,8 @@ S4Err sTestECC_DH(int keySize)
     eccPriv = kInvalidECC_ContextRef;
     
     OPTESTLogDebug("\t\tCalculate Secret for Key1 -> Key2\n");
-    err = ECC_Init(&eccPriv);
-    err = ECC_Import(eccPriv, privKey1, privKeyLen1);CKERR;
-    
-    err = ECC_Init(&eccPub);
-    err = ECC_Import_ANSI_X963( eccPub, pubKey2, pubKeyLen2);CKERR;
+    err = ECC_Import(privKey1, privKeyLen1, &eccPriv);CKERR;
+    err = ECC_Import_ANSI_X963(pubKey2, pubKeyLen2, &eccPub);CKERR;
     
     /* Kdk = MAC(Htotal,Z)    where Z is the DH of Pki and PKr */
     Zlen1 = sizeof(Z1);
@@ -222,11 +230,9 @@ S4Err sTestECC_DH(int keySize)
     eccPub = kInvalidECC_ContextRef;
     
     OPTESTLogDebug("\t\tCalculate Secret for Key2 -> Key1\n");
-    err = ECC_Init(&eccPriv);
-    err = ECC_Import(eccPriv, privKey2, privKeyLen2);CKERR;
+    err = ECC_Import(privKey2, privKeyLen2, &eccPriv);CKERR;
     
-    err = ECC_Init(&eccPub);
-    err = ECC_Import_ANSI_X963( eccPub, pubKey1, pubKeyLen1);CKERR;
+    err = ECC_Import_ANSI_X963(pubKey1, pubKeyLen1, &eccPub);CKERR;
     
     /* Kdk = MAC(Htotal,Z)    where Z is the DH of Pki and PKr */
     Zlen2 = sizeof(Z2);
@@ -262,22 +268,31 @@ done:
 S4Err  TestECC()
 {
     S4Err     err = kS4Err_NoErr;
-    
-    OPTESTLogInfo("\nTesting ECC\n");
-    err = sTestECC(384); CKERR;
-    err = sTestECC(414); CKERR;
+
+	ECC_Algorithm* algorithms;
+	size_t algorCount = 0;
+
+    OPTESTLogInfo("\nTesting low level ECC API\n");
+	err = ECC_GetAvailableAlgorithms(&algorithms, &algorCount); CKERR;
+
+	for(int cnt = 0; cnt < algorCount; cnt++)
+	{
+		err = sTestECC(algorithms[cnt]); CKERR;
+ 	}
     OPTESTLogInfo("\n");
-    
-    OPTESTLogInfo("Testing ECC-DH\n");
-    err = sTestECC_DH(384); CKERR;
-    OPTESTLogVerbose("\n");
-    err = sTestECC_DH(414); CKERR;
-    OPTESTLogInfo("\n");
-    
-    
-    
+
+	OPTESTLogInfo("Testing low level ECC-DH API\n");
+	for(int cnt = 0; cnt < algorCount; cnt++)
+	{
+		err = sTestECC_DH(algorithms[cnt]); CKERR;
+	}
+	OPTESTLogInfo("\n");
+
     
 done:
+	if(algorithms)
+		XFREE(algorithms);
+
     return err;
     
 }

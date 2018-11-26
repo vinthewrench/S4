@@ -9,7 +9,6 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "s4.h"
 #include "optest.h"
 
 
@@ -37,7 +36,7 @@ static S4Err RunCipherKAT(  katvector *kat)
 
 {
     S4Err err = kS4Err_NoErr;
-    char* name = NULL;
+    const char* name = NULL;
     uint8_t *out = NULL;
     
     size_t  alloc_len =   MAX(kat->EBClen, kat->CBClen);

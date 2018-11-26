@@ -13,6 +13,7 @@
 #pragma mark - EBC Symmetric Crypto
 #endif
 
+EXPORT_FUNCTION
 S4Err ECB_Encrypt(Cipher_Algorithm algorithm,
                   const void *	key,
                   const void *	in,
@@ -68,7 +69,7 @@ done:
     
 }
 
-
+EXPORT_FUNCTION
 S4Err ECB_Decrypt(Cipher_Algorithm algorithm,
                   const void *	key,
                   const void *	in,
@@ -157,7 +158,7 @@ static bool sCBC_ContextIsValid( const CBC_ContextRef  ref)
 ValidateParam( sCBC_ContextIsValid( s ) )
 
 
-S4Err CBC_Init(Cipher_Algorithm algorithm,
+EXPORT_FUNCTION S4Err CBC_Init(Cipher_Algorithm algorithm,
                const void *key,
                const void *iv,
                CBC_ContextRef * ctxOut)
@@ -221,7 +222,20 @@ done:
     return err;
 }
 
-S4Err CBC_Encrypt(CBC_ContextRef ctx,
+
+EXPORT_FUNCTION S4Err CBC_GetAlgorithm(CBC_ContextRef ctx, Cipher_Algorithm *algorithm)
+{
+	S4Err             err = kS4Err_NoErr;
+
+	validateCBCContext(ctx);
+
+	if(algorithm)
+		*algorithm = ctx->algor;
+
+	return err;
+}
+
+EXPORT_FUNCTION S4Err CBC_Encrypt(CBC_ContextRef ctx,
                   const void *	in,
                   size_t         bytesIn,
                   void *         out )
@@ -240,7 +254,7 @@ S4Err CBC_Encrypt(CBC_ContextRef ctx,
     
 }
 
-S4Err CBC_Decrypt(CBC_ContextRef ctx,
+EXPORT_FUNCTION S4Err CBC_Decrypt(CBC_ContextRef ctx,
                   const void *	in,
                   size_t         bytesIn,
                   void *         out )
@@ -259,7 +273,7 @@ S4Err CBC_Decrypt(CBC_ContextRef ctx,
     
 }
 
-void CBC_Free(CBC_ContextRef  ctx)
+EXPORT_FUNCTION void CBC_Free(CBC_ContextRef  ctx)
 {
     
     if(sCBC_ContextIsValid(ctx))
@@ -275,11 +289,14 @@ void CBC_Free(CBC_ContextRef  ctx)
 #define MIN_MSG_BLOCKSIZE   32
 #define MSG_BLOCKSIZE   16
 
-S4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
-                     uint8_t *key,
-                     const uint8_t *iv,
-                     const uint8_t *in, size_t in_len,
-                     uint8_t **outData, size_t *outSize)
+EXPORT_FUNCTION S4Err
+CBC_EncryptPAD(Cipher_Algorithm algorithm,
+               uint8_t*         key,
+               const uint8_t*   iv,
+               const uint8_t*   in,
+			   size_t           in_len,
+               uint8_t**        outAllocData,
+			   size_t*          outSize)
 {
     S4Err    err     = kS4Err_NoErr;
     CBC_ContextRef      cbc = kInvalidCBC_ContextRef;
@@ -307,11 +324,19 @@ S4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
     err = CBC_Init(algorithm, key, iv,  &cbc);CKERR;
     
     err = CBC_Encrypt(cbc, buffer, buffLen, buffer); CKERR;
-    
-    
-    *outData = buffer;
-    *outSize = buffLen;
-    
+
+	if(outSize)
+		*outSize = buffLen;
+
+	if(outAllocData)
+    	*outAllocData = buffer;
+	else if(buffer)
+	{
+		memset(buffer, buffLen, 0);
+		XFREE(buffer);
+		buffer = NULL;
+	}
+
 done:
     
     if(IsS4Err(err))
@@ -330,12 +355,14 @@ done:
 
 
 
-S4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
-                     uint8_t *key,
-                     const uint8_t *iv,
-                     const uint8_t *in, size_t in_len,
-                     uint8_t **outData, size_t *outSize)
-
+EXPORT_FUNCTION S4Err
+CBC_DecryptPAD(Cipher_Algorithm algorithm,
+               uint8_t*         key,
+               const uint8_t*   iv,
+               const uint8_t*   in,
+               size_t           in_len,
+               uint8_t**        outAllocData,
+               size_t*          outSize)
 {
     S4Err err = kS4Err_NoErr;
     CBC_ContextRef      cbc = kInvalidCBC_ContextRef;
@@ -356,10 +383,19 @@ S4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
     if(bytes2Pad > buffLen)
         RETERR(kS4Err_CorruptData);
     
-    *outData = buffer;
-    *outSize = buffLen- bytes2Pad;
-    
-    
+
+	if(outSize)
+		*outSize = buffLen- bytes2Pad;;
+
+	if(outAllocData)
+		*outAllocData = buffer;
+	else if(buffer)
+	{
+		memset(buffer, buffLen, 0);
+		XFREE(buffer);
+		buffer = NULL;
+	}
+
 done:
     if(IsS4Err(err))
     {

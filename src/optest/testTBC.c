@@ -8,14 +8,13 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "s4.h"
 #include "optest.h"
 
 
 
 typedef struct  {
     char                *msg;
-    Cipher_Algorithm   algor;
+    Cipher_Algorithm    algor;
     int                 keysize;
     
     uint64_t*           key;
@@ -41,7 +40,7 @@ static S4Err RunCipherKAT(  katvector *kat)
     uint8_t IN[1024];
     uint8_t CT[1024];
     uint8_t PT[1024];
-    char* name = NULL;
+    const char* name = NULL;
  
     name = cipher_algor_table(kat->algor);
     
@@ -50,9 +49,9 @@ static S4Err RunCipherKAT(  katvector *kat)
     // save a copy of plaintext
     memcpy(IN,kat->PT,kat->keysize >> 3);
     
-    err = TBC_Init(kat->algor, kat->key, &TBC); CKERR;
-    
-    err = TBC_SetTweek(TBC, kat->tweek); CKERR;
+    err = TBC_Init(kat->algor, kat->key,kat->keysize >>3,  &TBC); CKERR;
+
+    err = TBC_SetTweek(TBC, kat->tweek, sizeof(uint64_t) * 2 ); CKERR;
     
     err = TBC_Encrypt(TBC, IN, CT); CKERR;
     

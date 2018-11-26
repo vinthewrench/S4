@@ -15,7 +15,7 @@
 #pragma mark - Key import Export.
 #endif
 
-
+//S4_ASSUME_NONNULL_BEGIN
 
 #define kS4KeyPBKDF2_SaltBytes      8
 #define kS4KeyPBKDF2_HashBytes      8
@@ -77,6 +77,7 @@ extern char *const kS4KeyProp_SignableProperties;
 extern char *const kS4KeyProp_SignedDate;
 extern char *const kS4KeyProp_SigExpire;
 extern char *const kS4KeyProp_SigID;
+extern char *const kS4KeyProp_p2kParams;
 
 typedef struct S4KeySigItem  S4KeySigItem;
 
@@ -101,11 +102,10 @@ enum S4KeyType_
     kS4KeyType_PublicEncrypted      = 4,
     kS4KeyType_SymmetricEncrypted   = 5,
     kS4KeyType_Share                = 6,
-    
     kS4KeyType_PublicKey            = 7,
-    
     kS4KeyType_Signature            = 8,
-    
+	kS4KeyType_P2K              	= 9,
+
     kS4KeyType_Invalid           =  kEnumMaxValue,
     
     ENUM_FORCE( S4KeyType_ )
@@ -151,6 +151,25 @@ typedef struct S4KeyPBKDF2_
     
 }S4KeyPBKDF2;
 
+typedef struct S4KeyP2K_
+{
+	S4KeyType              keyAlgorithmType;
+	Cipher_Algorithm       cipherAlgor;
+	const char*			   p2kParams;
+
+	uint8_t             keyHash[kS4KeyPBKDF2_HashBytes];
+
+	Cipher_Algorithm       encyptAlgor;
+	uint8_t             encrypted[256];
+	size_t              encryptedLen;
+
+	// FOR PASSCODE SHARED KEYS
+	uint8_t         threshold;                              /* Number of shares needed to combine */
+	uint8_t			xCoordinate;                            /* X coordinate of share  AKA the share index */
+	uint8_t			shareHash[kS4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
+
+}S4KeyP2K;
+
 typedef struct S4KeyPublic_Encrypted_
 {
     S4KeyType               keyAlgorithmType;
@@ -173,7 +192,7 @@ typedef struct S4KeyPublic_Encrypted_
 
 typedef struct S4KeyPublic_
 {
-    Cipher_Algorithm    cipherAlgor;            /*  kCipher_Algorithm_ECC384, kCipher_Algorithm_ECC414 */
+	ECC_Algorithm		eccAlgor;
     bool                isPrivate;
     
     uint8_t             keyID[kS4Key_KeyIDBytes];
@@ -246,6 +265,7 @@ struct S4KeyContext
         S4KeySymmetric      sym;
         S4KeyTBC            tbc;
         S4KeyPBKDF2         pbkdf2;
+		S4KeyP2K			p2k;
         S4KeyPublic_Encrypted   publicKeyEncoded;
         S4KeySym_Encrypted  symKeyEncoded;
         SHARES_ShareInfo    share;
@@ -320,7 +340,7 @@ S4Err S4Key_RemoveProperty( S4KeyContextRef ctx,
 S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
                              S4KeyContextRef  passKeyCtx,
                              uint8_t          **outData,
-                             size_t           *outSize);
+                             size_t* 		 outSize);
 
 
 S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
@@ -328,6 +348,13 @@ S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
                                   size_t           passphraseLen,
                                   uint8_t          **outData,
                                   size_t           *outSize);
+
+S4Err S4Key_SerializeToPassPhrase_WithAlgorithm(	P2K_Algorithm p2kAlgor,
+													S4KeyContextRef  ctx,
+													const uint8_t       *passphrase,
+													size_t           passphraseLen,
+													uint8_t          **outData,
+													size_t           *outSize);
 
 S4Err S4Key_SerializeToShares(S4KeyContextRef       ctx,
                               uint32_t              totalShares,
@@ -340,10 +367,17 @@ S4Err S4Key_SerializePubKey(S4KeyContextRef  ctx,
                             uint8_t          **outData,
                             size_t           *outSize);
 
+// returns an array of S4KeyContextRef- one for each key found.
+
 S4Err S4Key_DeserializeKeys( uint8_t *inData, size_t inLen,
                             size_t           *outCount,
                             S4KeyContextRef  *ctxArray[]);
 
+
+// same as S4Key_DeserializeKeys but this will return error if one than one key wa found.
+
+S4Err S4Key_DeserializeKey( uint8_t *inData, size_t inLen,
+										   S4KeyContextRef    *ctxOut);
 
 S4Err S4Key_VerifyPassPhrase(   S4KeyContextRef  ctx,
                              const uint8_t    *passphrase,
@@ -400,5 +434,7 @@ S4Err S4Key_VerifySignature( S4KeyContextRef      sigCtx,
                             void                   *hash,
                             size_t                 hashLen );
 
+
+//S4_ASSUME_NONNULL_END
 
 #endif /* s4Keys_h */

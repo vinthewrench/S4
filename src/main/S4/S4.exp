@@ -12,7 +12,12 @@ _HASH_GetSize
 _HASH_Free
 _HASH_Export
 _HASH_Import
+_HASH_Reset
 _HASH_DO
+_HASH_GetBits
+_HASH_GetName
+_HASH_GetAvailableAlgorithms
+_HASH_GetAlgorithm
 
 _MAC_Init
 _MAC_Update
@@ -20,8 +25,16 @@ _MAC_Final
 _MAC_Free
 _MAC_HashSize
 _MAC_KDF
+_MAC_GetAlgorithm
+_MAC_AlgorithmIsAvailable
+_MAC_GetName
 
 _Cipher_GetSize
+_Cipher_AlgorithmIsAvailable
+_Cipher_GetKeySize
+_Cipher_GetBlockSize
+_Cipher_GetName
+
 _ECB_Encrypt
 _ECB_Decrypt
 
@@ -29,6 +42,7 @@ _CBC_Init
 _CBC_Encrypt
 _CBC_Decrypt
 _CBC_Free
+_CBC_GetAlgorithm
 
 _CBC_EncryptPAD
 _CBC_DecryptPAD
@@ -41,11 +55,9 @@ _TBC_Free
 
 _ECC_Init
 _ECC_Free
-_ECC_Generate
 _ECC_isPrivate
 _ECC_Export
 _ECC_Import_Info
-_ECC_CurveName
 _ECC_Import
 _ECC_Import_ANSI_X963
 _ECC_Export_ANSI_X963
@@ -56,9 +68,24 @@ _ECC_Decrypt
 _ECC_Verify
 _ECC_Sign
 _ECC_PubKeyHash
+_ECC_AlgorithmIsAvailable
+_ECC_GetAvailableAlgorithms
+_ECC_GetName
+_ECC_GetAlgorithm
+_ECC_GetKeySizeInBytes
+
+_P2K_Init
+_P2K_Free
+_P2K_AlgorithmIsAvailable
+_P2K_GetAlgorithm
+_P2K_GetAvailableAlgorithms
+_P2K_GetName
+_P2K_EncodePassword
+_P2K_DecodePassword
 
 _PASS_TO_KEY
 _PASS_TO_KEY_SETUP
+_PASS_TO_KEY_ARGON2
 
 _RNG_GetBytes
 _RNG_GetPassPhrase
@@ -94,7 +121,9 @@ _S4Key_Free
 _S4Key_Copy
 _S4Key_SerializeToS4Key
 _S4Key_SerializeToPassPhrase
+_S4Key_SerializeToPassPhrase_WithAlgorithm
 _S4Key_DeserializeKeys
+_S4Key_DeserializeKey
 _S4Key_VerifyPassPhrase
 _S4Key_DecryptFromPassPhrase
 _S4Key_DecryptFromS4Key
@@ -129,6 +158,7 @@ _kS4KeyProp_SignableProperties
 _kS4KeyProp_SignedDate
 _kS4KeyProp_SigExpire
 _kS4KeyProp_SigID
+_kS4KeyProp_p2kParams
 
 _S4Key_SerializeToShares
 
@@ -136,7 +166,6 @@ _S4Key_NewPublicKey
 _S4Key_SerializePubKey
 _S4Key_Clone_ECC_Context
 _S4Key_Import_ECC_Context
-_ECC_CipherAlgorithm
 
 _zbase32_decode
 _zbase32_encode

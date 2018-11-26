@@ -541,12 +541,12 @@ static char pgpWordListEven[256][10] =
     "Zulu"
 };
 
-char* PGPWordOdd(uint8_t in)
+EXPORT_FUNCTION char* PGPWordOdd(uint8_t in)
 {
     return pgpWordListOdd[in];
 }
 
-char* PGPWordEven(uint8_t in)
+EXPORT_FUNCTION char* PGPWordEven(uint8_t in)
 {
     return pgpWordListEven[in];
 }

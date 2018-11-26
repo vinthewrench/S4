@@ -381,7 +381,7 @@ static S4Err sInterpolation(void* shareData, size_t shareLen, uint32_t nShares, 
 
 #define SHARE_DATA(_context_, _shareNum_) (sGetShareData(&_context_->shareData, _context_->shareLen, _shareNum_))
 
-S4Err SHARES_Init( const void       *key,
+EXPORT_FUNCTION S4Err SHARES_Init( const void       *key,
                    size_t           keyLen,
                    uint32_t         totalShares,
                    uint32_t         threshold,
@@ -506,7 +506,7 @@ done:
 }
 
 
-void  SHARES_Free(SHARES_ContextRef  ctx)
+EXPORT_FUNCTION void  SHARES_Free(SHARES_ContextRef  ctx)
 {
     if(sSHARES_ContextIsValid(ctx))
     {
@@ -517,7 +517,7 @@ void  SHARES_Free(SHARES_ContextRef  ctx)
     }
 }
 
-S4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
+EXPORT_FUNCTION S4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
                            uint32_t            shareNumber,
                            SHARES_ShareInfo    **shareInfoOut,
                            size_t              *shareInfoLen)
@@ -527,7 +527,6 @@ S4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
     SHARES_ShareInfo*   shareInfo = NULL;
     
     validateSHARESContext(ctx);
-    ValidateParam(shareInfoOut);
     ValidateParam( shareNumber < ctx->totalShares);
     
     bufSize = sizeof(SHARES_ShareInfo);
@@ -537,15 +536,22 @@ S4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
     shareInfo = XMALLOC(bufSize); CKNULL(shareInfo);
     ZERO(shareInfo, bufSize);
  
-     shareInfo->threshold = ctx->threshold;
+	shareInfo->threshold = ctx->threshold;
     COPY(ctx->shareHash, shareInfo->shareHash, kS4ShareInfo_HashBytes);
  
     shareInfo->xCoordinate = hdr->xCoordinate;
     shareInfo->shareSecretLen = hdr->shareDataLen;
     COPY(hdr->data, shareInfo->shareSecret, hdr->shareDataLen);
-    
-    *shareInfoOut = shareInfo;
-    
+
+	if(shareInfoOut)
+		*shareInfoOut = shareInfo;
+	else if(shareInfo)
+	{
+		memset(shareInfo, bufSize, 0);
+		XFREE(shareInfo);
+		shareInfo = NULL;
+	}
+
     if(shareInfoLen)
         *shareInfoLen = bufSize;
     
@@ -555,7 +561,7 @@ done:
    
 }
 
-S4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
+EXPORT_FUNCTION S4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
                            SHARES_ShareInfo*        sharesInfoIn[],
                            void                     *outData,
                            size_t                   bufSize,

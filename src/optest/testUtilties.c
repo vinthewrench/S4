@@ -7,7 +7,7 @@
 //
 
 #include <stdio.h>
-#include "s4.h"
+
 #include "optest.h"
 
 /*

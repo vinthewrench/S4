@@ -11,8 +11,10 @@
 
 #include "s4pubtypes.h"
 
-#define S4_BUILD_NUMBER               2
-#define S4_SHORT_VERSION_STRING       "1.1.1"
+S4_ASSUME_NONNULL_BEGIN
+
+#define S4_BUILD_NUMBER               6
+#define S4_SHORT_VERSION_STRING       "2.0.0"
 
 
 #ifdef __clang__
@@ -22,14 +24,68 @@
 
 S4Err S4_Init(void);
 
-S4Err S4_GetErrorString( S4Err err,  size_t	bufSize, char *outString);
+S4Err S4_GetErrorString( S4Err err,  char outString[__S4_NONNULL 256]);
 
-S4Err S4_GetVersionString(size_t	bufSize, char *outString);
+S4Err S4_GetVersionString(char outString[__S4_NONNULL 256]);
 
 #ifdef __clang__
-#pragma mark - PBKDF2 function wrappers
+#pragma mark - High level Password to Key function wrappers
 #endif
 
+// high level P2K API
+enum P2K_Algorithm_
+{
+	kP2K_Algorithm_Argon2d             = 0,  //	Argon2_d = 0,
+	kP2K_Algorithm_Argon2i             = 1,  // Argon2_i = 1,
+	kP2K_Algorithm_Argon2id            = 2,	//	Argon2_id = 2
+
+	kP2K_Algorithm_PBKDF2            	= 100,
+
+	kP2K_Algorithm_Invalid           =  kEnumMaxValue,
+
+	ENUM_FORCE( P2K_Algorithm_ )
+};
+
+ENUM_TYPEDEF( P2K_Algorithm_, P2K_Algorithm );
+
+typedef struct P2K_Context *      P2K_ContextRef;
+
+#define	kInvalidP2K_ContextRef		((P2K_ContextRef) NULL)
+
+#define P2K_ContextRefIsValid( ref )		( (ref) != kInvalidP2K_ContextRef )
+
+S4Err P2K_Init( P2K_Algorithm algorithm,
+				P2K_ContextRef __NULLABLE_REF_POINTER ctx);
+
+void  P2K_Free(P2K_ContextRef  ctx);
+
+S4Err P2K_EncodePassword(P2K_ContextRef  ctx,
+						 const uint8_t 	 *password,
+						 size_t  		password_len,
+						 size_t		 	 salt_len,
+						 size_t		 	 key_len,
+						 uint8_t 		*key_buf,
+						 char __NULLABLE_XFREE_P_P paramStr
+						 );
+
+S4Err P2K_GetAlgorithm(P2K_ContextRef ctx, P2K_Algorithm *algorithm);
+
+bool P2K_AlgorithmIsAvailable(P2K_Algorithm algorithm);
+
+S4Err P2K_GetAvailableAlgorithms(P2K_Algorithm __NULLABLE_XFREE_P_P outAlgorithms,
+								 size_t* __S4_NULLABLE outCount);
+
+S4Err P2K_GetName(P2K_Algorithm algorithm, __CONST_CHAR_P_P p2kName);
+
+S4Err P2K_DecodePassword( 	const uint8_t 	 *password,
+						 	size_t  		password_len,
+						 	const char		*paramStr,
+						 	void *outKey, 	size_t bufSize, size_t *keySize
+						 );
+
+#ifdef __clang__
+#pragma mark - lower level P2K APIs
+#endif
 
 S4Err PASS_TO_KEY(   const uint8_t  *password,
                      unsigned long  password_len,
@@ -47,18 +103,41 @@ S4Err PASS_TO_KEY_SETUP(
                            uint32_t       *rounds_out);
 
 
+enum ARGON2_Algorithm_
+{
+	// this needs to map to (argon2_type) from Argon2.h
+	kARGON2_Algorithm_Argon2d             = 0,  //	Argon2_d = 0,
+	kARGON2_Algorithm_Argon2i             = 1,  // 	Argon2_i = 1,
+	kARGON2_Algorithm_Argon2id            = 2,	//	Argon2_id = 2
+
+	kARGON2_Algorithm_Invalid           =  kEnumMaxValue,
+
+	ENUM_FORCE( ARGON2_Algorithm_ )
+};
+
+ENUM_TYPEDEF( ARGON2_Algorithm_, ARGON2_Algorithm   );
+
+S4Err PASS_TO_KEY_ARGON2(ARGON2_Algorithm algorithm,
+						 const uint8_t  *password,
+						 unsigned long  password_len,
+						 uint8_t		*salt,
+						 unsigned long	salt_len,
+						 uint32_t	 	t_cost,
+						 uint32_t	 	m_cost,
+						 uint32_t 	 	parallelism,
+						 uint8_t        *key_buf,
+						 unsigned long  key_len );
+
 #ifdef __clang__
 #pragma mark - RNG function wrappers
 #endif
 
-S4Err RNG_GetBytes(
-                      void *         out,
+S4Err RNG_GetBytes(	  void *         out,
                       size_t         outLen
                       );
 
-S4Err RNG_GetPassPhrase(
-                           size_t         bits,
-                           char **         outPassPhrase );
+S4Err RNG_GetPassPhrase( size_t         bits,
+                           char __NULLABLE_XFREE_P_P outPassPhrase );
 
 #ifdef __clang__
 #pragma mark - HASH function wrappers
@@ -72,7 +151,6 @@ typedef struct HASH_Context *      HASH_ContextRef;
 #define HASH_ContextRefIsValid( ref )		( (ref) != kInvalidHASH_ContextRef )
 
 #define kHASH_ContextAllocSize 512
-
 
 enum HASH_Algorithm_
 {
@@ -91,7 +169,16 @@ enum HASH_Algorithm_
     kHASH_Algorithm_xxHash32        = 20,
     kHASH_Algorithm_xxHash64        = 21,
 #endif
-    
+
+#if _USES_SHA3_
+	kHASH_Algorithm_SHA3_224     	= 30,
+	kHASH_Algorithm_SHA3_256    	= 31,
+	kHASH_Algorithm_SHA3_384     	= 32,
+	kHASH_Algorithm_SHA3_512     	= 33,
+
+	kHASH_Algorithm_KECCAK_256   	= 34,	// as seen in Ethereum
+#endif
+
     kHASH_Algorithm_Invalid           =  kEnumMaxValue,
     
     ENUM_FORCE( HASH_Algorithm_ )
@@ -100,20 +187,39 @@ enum HASH_Algorithm_
 
 ENUM_TYPEDEF( HASH_Algorithm_, HASH_Algorithm   );
 
-S4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx);
+S4Err HASH_GetBits(HASH_Algorithm algorithm, size_t *hashBits);  // number of bits in hash
+
+S4Err HASH_GetName(HASH_Algorithm algorithm, __CONST_CHAR_P_P hashName);
+
+// Get an malloc array of available algorithms
+// calller must deallocate the outAlgorithms typically with XFREE
+//
+S4Err HASH_GetAvailableAlgorithms(HASH_Algorithm __NULLABLE_XFREE_P_P outAlgorithms,
+								  size_t* __S4_NULLABLE outCount);
+
+bool HASH_AlgorithmIsAvailable(HASH_Algorithm algorithm);
+
+S4Err HASH_Init(HASH_Algorithm algorithm,
+				HASH_ContextRef __NULLABLE_REF_POINTER ctx);
 
 S4Err HASH_Update(HASH_ContextRef ctx, const void *data, size_t dataLength);
 
 S4Err HASH_Final(HASH_ContextRef  ctx, void *hashOut);
 
-S4Err HASH_GetSize(HASH_ContextRef  ctx, size_t *hashSize);
+S4Err HASH_GetSize(HASH_ContextRef  ctx, size_t *hashSizeBytes);
 
 void HASH_Free(HASH_ContextRef  ctx);
 
-S4Err HASH_Export(HASH_ContextRef ctx, void *outData, size_t bufSize, size_t *datSize);
-S4Err HASH_Import(void *inData, size_t bufSize, HASH_ContextRef * ctx);
+S4Err HASH_Reset(HASH_ContextRef  ctx);
 
-S4Err HASH_DO(HASH_Algorithm algorithm, const unsigned char *in, unsigned long inlen, unsigned long outLen, uint8_t *out);
+S4Err HASH_GetAlgorithm(HASH_ContextRef ctx, HASH_Algorithm *algorithm);
+
+S4Err HASH_Export(HASH_ContextRef ctx, void *outData, size_t bufSize, size_t *datSize);
+
+S4Err HASH_Import(void *inData, size_t bufSize,
+				  HASH_ContextRef __NULLABLE_REF_POINTER  ctx);
+
+S4Err HASH_DO(HASH_Algorithm algorithm, const void *in, size_t inlen, size_t outLen, void *out);
 
 #ifdef __clang__
 #pragma mark - Message  Authentication Code wrappers
@@ -138,11 +244,15 @@ typedef struct MAC_Context *      MAC_ContextRef;
 
 #define MAC_ContextRefIsValid( ref )		( (ref) != kInvalidMAC_ContextRef )
 
+bool MAC_AlgorithmIsAvailable(MAC_Algorithm algorithm);
+
+S4Err MAC_GetName(MAC_Algorithm algorithm, __CONST_CHAR_P_P macName);
+
 S4Err MAC_Init(MAC_Algorithm     mac,
                   HASH_Algorithm    hash,
                   const void        *macKey,
                   size_t            macKeyLen,
-                  MAC_ContextRef    *ctx);
+                  MAC_ContextRef __NULLABLE_REF_POINTER ctx);
 
 S4Err MAC_Update(MAC_ContextRef  ctx,
                     const void      *data,
@@ -155,7 +265,9 @@ S4Err MAC_Final(MAC_ContextRef   ctx,
 void MAC_Free(MAC_ContextRef  ctx);
 
 S4Err MAC_HashSize( MAC_ContextRef  ctx,
-                      size_t         * bytes);
+                      size_t         * hashSizeBytes);
+
+S4Err MAC_GetAlgorithm(MAC_ContextRef ctx, MAC_Algorithm *algorithm);
 
 S4Err  MAC_KDF(MAC_Algorithm     mac,
                          HASH_Algorithm    hash,
@@ -164,7 +276,7 @@ S4Err  MAC_KDF(MAC_Algorithm     mac,
                          const char*    label,
                          const uint8_t* context,
                          unsigned long   contextLen,
-                         uint32_t        hashLen,
+                         size_t        	 hashLen,
                          unsigned long   outLen,
                          uint8_t         *out);
 
@@ -179,8 +291,7 @@ enum Cipher_Algorithm_
     kCipher_Algorithm_AES192         = 2,
     kCipher_Algorithm_AES256         = 3,
     kCipher_Algorithm_2FISH256       = 4,
-  
-    
+
     kCipher_Algorithm_3FISH256      = 100,
     kCipher_Algorithm_3FISH512      = 102,
     kCipher_Algorithm_3FISH1024     = 103,
@@ -188,17 +299,29 @@ enum Cipher_Algorithm_
     kCipher_Algorithm_SharedKey      =  200,
 
     kCipher_Algorithm_ECC384        =  300,
-    kCipher_Algorithm_ECC414        =  301, /*  Dan Bernstein Curve3617  */
-    
+	kCipher_Algorithm_NISTP384		=  300,
+
+     kCipher_Algorithm_ECC414        =  301, /*  Dan Bernstein Curve3617  */
+	kCipher_Algorithm_ECC41417		=  301,
+	
     kCipher_Algorithm_Invalid           =  kEnumMaxValue,
     
     ENUM_FORCE( Cipher_Algorithm_ )
 };
 
-
 ENUM_TYPEDEF( Cipher_Algorithm_, Cipher_Algorithm   );
 
-S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bytesOut);
+
+S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bytesOut)
+DEPRECATED_MSG_ATTRIBUTE("Use Cipher_GetKeySize and convert to bytes  instead.");
+
+bool Cipher_AlgorithmIsAvailable(Cipher_Algorithm algorithm);
+
+S4Err Cipher_GetName(Cipher_Algorithm algorithm, __CONST_CHAR_P_P cipherName);
+
+S4Err Cipher_GetKeySize(Cipher_Algorithm algorithm, size_t *keyBits);
+
+S4Err Cipher_GetBlockSize(Cipher_Algorithm algorithm, size_t *blockSizeBytes);
 
 S4Err ECB_Encrypt(Cipher_Algorithm algorithm,
                   const void *	key,
@@ -222,7 +345,9 @@ typedef struct CBC_Context *      CBC_ContextRef;
 S4Err CBC_Init(Cipher_Algorithm cipher,
                   const void *key,
                   const void *iv,
-                  CBC_ContextRef * ctxOut);
+                  CBC_ContextRef __NULLABLE_REF_POINTER ctxOut);
+
+S4Err CBC_GetAlgorithm(CBC_ContextRef ctx, Cipher_Algorithm *algorithm);
 
 S4Err CBC_Encrypt(CBC_ContextRef ctx,
                      const void *	in,
@@ -242,15 +367,15 @@ S4Err CBC_EncryptPAD(Cipher_Algorithm algorithm,
                      uint8_t *key,
                      const uint8_t *iv,
                      const uint8_t *in, size_t in_len,
-                     uint8_t **outData, size_t *outSize);
-
-
+                     uint8_t __NULLABLE_XFREE_P_P outAllocData,
+					 size_t* __S4_NULLABLE outSize);
 
 S4Err CBC_DecryptPAD(Cipher_Algorithm algorithm,
                      uint8_t *key,
                      const uint8_t *iv,
                      const uint8_t *in, size_t in_len,
-                     uint8_t **outData, size_t *outSize);
+                     uint8_t __NULLABLE_XFREE_P_P outAllocData,
+					 size_t* __S4_NULLABLE outSize);
 
 
 #ifdef __clang__
@@ -267,10 +392,12 @@ typedef struct TBC_Context *      TBC_ContextRef;
 
 S4Err TBC_Init(Cipher_Algorithm algorithm,
                const void *key,
-               TBC_ContextRef * ctx);
+			   size_t keylen,
+               TBC_ContextRef __NULLABLE_REF_POINTER ctx);
 
 S4Err TBC_SetTweek(TBC_ContextRef ctx,
-                  const void *	tweek);
+                  const void *	tweek,
+				   size_t 		tweeklen);		// tweek must be 16 bytes..
 
 S4Err TBC_Encrypt(TBC_ContextRef ctx,
                   const void *	in,
@@ -287,6 +414,20 @@ void TBC_Free(TBC_ContextRef  ctx);
 #pragma mark - ECC function wrappers
 #endif
 
+enum ECC_Algorithm_
+{
+	// be carefule with these values.. they need to map to Cipher_Algorithm
+	kECC_Algorithm_ECC384         		= kCipher_Algorithm_ECC384,
+	kECC_Algorithm_NISTP384				= kCipher_Algorithm_NISTP384,
+
+	kECC_Algorithm_Curve41417        	= kCipher_Algorithm_ECC41417,
+
+	kECC_Algorithm_Invalid           =  kEnumMaxValue,
+
+	ENUM_FORCE( ECC_Algorithm_ )
+};
+
+ENUM_TYPEDEF( ECC_Algorithm_, ECC_Algorithm );
 
 typedef struct ECC_Context *      ECC_ContextRef;
 
@@ -294,52 +435,67 @@ typedef struct ECC_Context *      ECC_ContextRef;
 
 #define ECC_ContextRefIsValid( ref )		( (ref) != kInvalidECC_ContextRef )
 
-S4Err ECC_Init(ECC_ContextRef * ctx);
+S4Err ECC_Init(ECC_Algorithm algorithm,
+			   ECC_ContextRef __NULLABLE_REF_POINTER ctx);
+
+S4Err ECC_GetName(ECC_Algorithm algorithm, __CONST_CHAR_P_P algorName);
+
+S4Err ECC_GetKeySizeInBytes(ECC_Algorithm algorithm,
+							size_t* __S4_NULLABLE keySizeBytes);
+
+// Get an malloc array of available algorithms
+// calller must deallocate the outAlgorithms typically with XFREE
+//
+S4Err ECC_GetAvailableAlgorithms(ECC_Algorithm __NULLABLE_XFREE_P_P outAlgorithms,
+								 size_t* __S4_NULLABLE outCount);
+
+bool ECC_AlgorithmIsAvailable(ECC_Algorithm algorithm);
+
+S4Err ECC_Import_ANSI_X963(const void *in, size_t inlen,
+						   ECC_ContextRef __NULLABLE_REF_POINTER ctxOUT);
+
+S4Err ECC_Import(const void *in, size_t inlen,
+				 ECC_ContextRef __NULLABLE_REF_POINTER ctxOUT );
 
 void ECC_Free(ECC_ContextRef  ctx);
 
-S4Err ECC_Generate(ECC_ContextRef  ctx,
-                      size_t          keysize );
-
-bool    ECC_isPrivate(ECC_ContextRef  ctx );
+bool ECC_isPrivate(ECC_ContextRef  ctx );
 
 S4Err ECC_Export(ECC_ContextRef  ctx,
-                    int             exportPrivate,
+                    bool           exportPrivate,
                     void            *outData,
                     size_t          bufSize,
                     size_t          *datSize);
 
-S4Err ECC_Import_Info( void *in, size_t inlen,
+S4Err ECC_Import_Info( const void *in, size_t inlen,
                          bool *isPrivate,
                          bool *isANSIx963,
                          size_t *keySizeOut  );
 
-S4Err ECC_CurveName( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen);
-
-S4Err  ECC_CipherAlgorithm( ECC_ContextRef  ctx, Cipher_Algorithm* algorith);
-
-S4Err ECC_Import(ECC_ContextRef  ctx,   void *in, size_t inlen );
-
-S4Err ECC_Import_ANSI_X963(ECC_ContextRef  ctx,   void *in, size_t inlen );
+S4Err ECC_GetAlgorithm(ECC_ContextRef ctx, ECC_Algorithm *algorithm);
 
 S4Err ECC_Export_ANSI_X963(ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *datSize);
 
-S4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t *outDataLen);
+S4Err ECC_PubKeyHash( ECC_ContextRef  ctx, void *outData, size_t bufSize, size_t* __S4_NULLABLE outDataLen);
 
 S4Err ECC_SharedSecret (ECC_ContextRef privCtx,
                            ECC_ContextRef  pubCtx,
-                           void *outZ,
+                           void *outData,
                            size_t bufSize,
-                           size_t *datSize);
+                           size_t* __S4_NULLABLE datSize);
 
 S4Err ECC_KeySize( ECC_ContextRef  ctx, size_t * bits);
 
-S4Err ECC_Encrypt(ECC_ContextRef  pubCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen);
-S4Err ECC_Decrypt(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen);
+S4Err ECC_Encrypt(ECC_ContextRef  pubCtx, const void *inData, size_t inDataLen,
+				  void *outData, size_t bufSize, size_t *outDataLen);
+
+S4Err ECC_Decrypt(ECC_ContextRef  privCtx, const void *inData, size_t inDataLen,
+				  void *outData, size_t bufSize, size_t *outDataLen);
 
 S4Err ECC_Verify(ECC_ContextRef  pubCtx, void *sig, size_t sigLen,  void *hash, size_t hashLen);
 
-S4Err ECC_Sign(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,  void *outData, size_t bufSize, size_t *outDataLen);
+S4Err ECC_Sign(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,
+			   void *outData, size_t bufSize, size_t *outDataLen);
 
 
 
@@ -371,17 +527,17 @@ S4Err SHARES_Init( const void       *key,
                   size_t           keyLen,
                   uint32_t         totalShares,
                   uint32_t         threshold,
-                  SHARES_ContextRef *ctx);
+                  SHARES_ContextRef __NULLABLE_REF_POINTER ctx);
 
 void  SHARES_Free(SHARES_ContextRef  ctx);
 
 S4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
                             uint32_t            shareNumber,
-                            SHARES_ShareInfo    **shareInfo,
+                            SHARES_ShareInfo   __NULLABLE_XFREE_P_P shareInfo,
                             size_t              *shareInfoLen);
 
 S4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
-                               SHARES_ShareInfo*        sharesInfoIn[],
+							   SHARES_ShareInfo* __S4_NONNULL   sharesInfoIn[__S4_NONNULL],
                                void                     *outData,
                                size_t                   bufSize,
                                size_t                   *outDataLen);
@@ -436,5 +592,6 @@ int zbase32_encode(uint8_t *encoded,
                    const uint8_t *input,
                    unsigned int bits);
 
+S4_ASSUME_NONNULL_END
 
 #endif /* s4crypto_h */

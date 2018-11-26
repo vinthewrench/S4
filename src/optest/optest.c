@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include  "s4.h"
 #include  "optest.h"
 
 
@@ -91,7 +90,7 @@ static TestTable sOpTestTable[] =
     { 0, kArg_TestID,	  NULL,  kTest_TBC,         "TBC",              0,  "Tweekable Block Ciphers" },
  
     { 0, kArg_TestID,	  NULL,  kTest_ECC,         "ECC",				0,  "Elliptic Curve Public Key" },
-    { 0, kArg_TestID,	  NULL,  kTest_P2K,         "P2K",				0,  "Key Derivation (PBKDF2)" },
+    { 0, kArg_TestID,	  NULL,  kTest_P2K,         "P2K",				0,  "Password Key Derivation" },
     { 0, kArg_TestID,	  NULL,  kTest_Share,      "share",             0,  "Secret Sharing / Key Split" },
     { 0, kArg_TestID,	  NULL,  kTest_Keys,       "keys",              0,  "High Level Keys API" },
     { 0, kArg_TestID,	  NULL,  kTest_Utilties,    "utilties",       0,  "S4 Utilties" },
@@ -317,7 +316,7 @@ int optest_main(int argc, char **argv)
     OPTESTLogInfo(" Initialize SDK\n");
     err = S4_Init(); CKERR;
     
-    err = S4_GetVersionString(sizeof(str), str); CKERR;
+    err = S4_GetVersionString(str); CKERR;
     OPTESTLogInfo("\t%14s: %s\n","Version",str);
     
     /* log start time */
@@ -391,7 +390,7 @@ done:
     if(IsS4Err(err))
     {
         
-        if(IsntS4Err( S4_GetErrorString(err, sizeof(str), str)))
+        if(IsntS4Err( S4_GetErrorString(err, str)))
         {
             OPTESTLogError("\nError %d:  %s\n", err, str);
         }

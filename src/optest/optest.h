@@ -10,7 +10,7 @@
 #define optest_h
 
 #include <stdio.h>
-#include  "s4.h"
+#include   <s4/s4.h>
 
 #ifdef __IPHONE_OS_VERSION_MIN_REQUIRED
 #define OPTEST_IOS_SPECIFIC 1
@@ -72,11 +72,11 @@ extern unsigned int gLogLevel;
 
 int OPTESTPrintF(const char *, ...);
 
-char *hash_algor_table(HASH_Algorithm algor);
-char *cipher_algor_table(Cipher_Algorithm algor);
-char* mac_algor_table(MAC_Algorithm algor);
-char *key_type_table(S4KeyType type);
-uint32_t hash_algor_bits(HASH_Algorithm algor);
+const char *hash_algor_table(HASH_Algorithm algor);
+const char *cipher_algor_table(Cipher_Algorithm algor);
+const char* mac_algor_table(MAC_Algorithm algor);
+const char *key_type_table(S4KeyType type);
+size_t hash_algor_bits(HASH_Algorithm algor);
 
 
 
@@ -90,11 +90,11 @@ void dumpTime(int logFlag, const time_t date );
 void dumpByteConst( uint8_t* buffer, size_t length);  // used for creating consts;
 
 int compareResults(const void* expected, const void* calculated, size_t len,
-                   DumpFormatType format, char* comment );
+                   DumpFormatType format, const char* comment );
 
 int compare2Results(const void* expected, size_t expectedLen,
                     const void* calculated, size_t  calculatedLen,
-                    DumpFormatType format, char* comment );
+                    DumpFormatType format, const char* comment );
 
 
 

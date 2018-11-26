@@ -23,15 +23,13 @@
 #include "timegm.c"
 #endif
 
-
-#include "s4.h"
 #include "optest.h"
 
 void OutputString(char *s);
 
 #ifdef OPTEST_IOS_SPECIFIC
 
-#elif defined(OPTEST_OSX_SPECIFIC) || (OPTEST_LINUX_SPECIFIC)
+#elif defined(OPTEST_OSX_SPECIFIC) || (OPTEST_LINUX_SPECIFIC) ||  (EMSCRIPTEN)
 
 #ifndef INXCTEST
 
@@ -269,7 +267,7 @@ void dumpTime(int logFlag, const time_t date )
 
 int compare2Results(const void* expected, size_t expectedLen,
                     const void* calculated, size_t  calculatedLen,
-                    DumpFormatType format, char* comment )
+                    DumpFormatType format, const char* comment )
 {
     S4Err err = kS4Err_NoErr;
     
@@ -287,7 +285,7 @@ int compare2Results(const void* expected, size_t expectedLen,
 
 
 S4Err compareResults(const void* expected, const void* calculated, size_t len,
-                        DumpFormatType format, char* comment  )
+                        DumpFormatType format, const char* comment  )
 {
     S4Err err = kS4Err_NoErr;
     
@@ -302,7 +300,7 @@ S4Err compareResults(const void* expected, const void* calculated, size_t len,
             case kResultFormat_Byte:
                 OPTESTLogError( "\t\texpected:\n");
                 dumpHex(IF_LOG_ERROR, ( uint8_t*) expected, (int)len, 0);
-                OPTESTLogError( "\t\tcalulated:\n");
+                OPTESTLogError( "\t\tcalculated:\n");
                 dumpHex(IF_LOG_ERROR,( uint8_t*) calculated, (int)len, 0);
                 OPTESTLogError( "\n");
                 break;
@@ -310,7 +308,7 @@ S4Err compareResults(const void* expected, const void* calculated, size_t len,
             case kResultFormat_Long:
                 OPTESTLogError( "\t\texpected:\n");
                 dump64(IF_LOG_ERROR,( uint8_t*) expected, len);
-                OPTESTLogError( "\t\tcalulated:\n");
+                OPTESTLogError( "\t\tcalculated:\n");
                 dump64(IF_LOG_ERROR,( uint8_t*) calculated, len );
                 OPTESTLogError( "\n");
                 break;
@@ -318,7 +316,7 @@ S4Err compareResults(const void* expected, const void* calculated, size_t len,
             case kResultFormat_Cstr:
                 OPTESTLogError( "\t\texpected:\n");
                 dump8(IF_LOG_ERROR,( uint8_t*) expected, len);
-                OPTESTLogError( "\t\tcalulated:\n");
+                OPTESTLogError( "\t\tcalculated:\n");
                 dump8(IF_LOG_ERROR,( uint8_t*) calculated, len );
                 OPTESTLogError( "\n");
                 break;
@@ -334,87 +332,63 @@ S4Err compareResults(const void* expected, const void* calculated, size_t len,
 
 
 
-char *hash_algor_table(HASH_Algorithm algor)
+const char *hash_algor_table(HASH_Algorithm algor)
 {
-    switch (algor )
-    {
-        case kHASH_Algorithm_SHA1: 		return (("SHA-1"));
-        case kHASH_Algorithm_SHA224:		return (("SHA-224"));
-        case kHASH_Algorithm_SHA256:		return (("SHA-256"));
-        case kHASH_Algorithm_SHA384:		return (("SHA-384"));
-        case kHASH_Algorithm_SHA512:		return (("SHA-512"));
-        case kHASH_Algorithm_SHA512_256:	return (("SHA-512/256"));
-        case kHASH_Algorithm_SKEIN256:		return (("SKEIN-256"));
-        case kHASH_Algorithm_SKEIN512:		return (("SKEIN-512"));
-        case kHASH_Algorithm_SKEIN1024:		return (("SKEIN-1024"));
+	S4Err err = kS4Err_NoErr;
 
-        
-#if _USES_XXHASH_
-        case kHASH_Algorithm_xxHash32:		return (("xxHash-32"));
-        case kHASH_Algorithm_xxHash64:		return (("xxHash-64"));
-#endif
-        
-        default:				return (("Invalid"));
-    }
-}
+	const char* name = "Invalid";
 
-uint32_t hash_algor_bits(HASH_Algorithm algor)
+	err = HASH_GetName(algor, &name);
+
+	return name;
+ }
+
+
+size_t hash_algor_bits(HASH_Algorithm algor)
 {
-     switch (algor )
-    {
-        case kHASH_Algorithm_SHA1: 		   return ( 160);
-        case kHASH_Algorithm_SHA224:        return (224);
-        case kHASH_Algorithm_SHA256:		 return (256);
-        case kHASH_Algorithm_SHA384:		 return (384);
-        case kHASH_Algorithm_SHA512:		 return (512);
-        case kHASH_Algorithm_SHA512_256:	 return (256);
-        case kHASH_Algorithm_SKEIN256:		 return (256);
-        case kHASH_Algorithm_SKEIN512:		 return (512);
-        case kHASH_Algorithm_SKEIN1024:		 return (1024);
-        default:				 return (0);
-    }
+	size_t bits = 0;
+	S4Err err = kS4Err_NoErr;
+
+	err = HASH_GetBits(algor, &bits);
+
+	return bits;
 }
 
 
 
-char *mac_algor_table(MAC_Algorithm algor)
+const char *mac_algor_table(MAC_Algorithm algor)
 {
-    switch (algor )
-    {
-        case kMAC_Algorithm_HMAC: 		return (("HMAC"));
-        case kMAC_Algorithm_SKEIN:		return (("SKEIN"));
-        default:				return (("Invalid"));
-    }
+	S4Err err = kS4Err_NoErr;
+
+	const char* name = "Invalid";
+
+	err = MAC_GetName(algor, &name);
+
+	return name;
 }
 
 
 
-char *cipher_algor_table(Cipher_Algorithm algor)
+const char *cipher_algor_table(Cipher_Algorithm algor)
 {
-    switch (algor )
-    {
-        case kCipher_Algorithm_AES128: 		return (("AES-128"));
-        case kCipher_Algorithm_AES192: 		return (("AES-192"));
-        case kCipher_Algorithm_AES256: 		return (("AES-256"));
-        case kCipher_Algorithm_2FISH256: 		return (("Twofish-256"));
+	S4Err err = kS4Err_NoErr;
 
-        case kCipher_Algorithm_3FISH256: 		return (("ThreeFish-256"));
-        case kCipher_Algorithm_3FISH512: 		return (("ThreeFish-512"));
-        case kCipher_Algorithm_3FISH1024: 		return (("ThreeFish-1024"));
-            
-        case kCipher_Algorithm_ECC384: 		return (("ECC-384"));
-        case kCipher_Algorithm_ECC414: 		return (("ECC-414"));
-default:				return (("Invalid"));
-    }
+	const char* name = "Invalid";
+
+	err = Cipher_GetName(algor, &name);
+
+	return name;
+
 }
 
-char *key_type_table(S4KeyType type)
+const char *key_type_table(S4KeyType type)
 {
     switch (type )
     {
         case kS4KeyType_Symmetric: 		return (("Symmetric"));
         case kS4KeyType_Tweekable: 		return (("TBC"));
         case kS4KeyType_PBKDF2: 		return (("Encr-PBKDF2 "));
+		case kS4KeyType_P2K: 			return (("Encr-P2K "));
         case kS4KeyType_PublicEncrypted: 		return (("Encr-PubKey"));
         case kS4KeyType_PublicKey:              return (("Public Key"));
         default:				return (("Invalid"));

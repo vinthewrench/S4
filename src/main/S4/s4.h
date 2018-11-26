@@ -10,10 +10,11 @@
 #define S4_h
 
 #ifdef __APPLE__
-#define _USES_COMMON_CRYPTO_ 1
+//#define _USES_COMMON_CRYPTO_ 1
 #endif
 
- #define _USES_XXHASH_ 1
+#define _USES_XXHASH_ 1
+#define _USES_SHA3_ 	1
 
 #include "s4pubtypes.h"
 #include "s4crypto.h"

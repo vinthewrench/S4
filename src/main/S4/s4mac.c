@@ -94,12 +94,64 @@ int sCCMacFinal(CCHmacContext *ctx, unsigned char *out, unsigned long *outlen)
 
 #endif
 
-S4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_t macKeyLen, MAC_ContextRef * ctx)
+typedef struct S4MacInfo_
+{
+	char      *const name;
+	MAC_Algorithm algorithm;
+ 	bool			available;
+} S4MacInfo;
+
+static S4MacInfo sMacInfoTable[] = {
+
+	{ "HMAC",    		kMAC_Algorithm_HMAC,	true},
+	{ "SKEIN",    		kMAC_Algorithm_SKEIN,	true},
+
+	{ NULL,    	kMAC_Algorithm_Invalid, 		false},
+};
+
+
+static S4MacInfo* sMacInfoForAlgorithm(MAC_Algorithm algorithm)
+{
+	S4MacInfo* info = NULL;
+
+	for(S4MacInfo* macInfo = sMacInfoTable; macInfo->name; macInfo++)
+	{
+		if(algorithm == macInfo->algorithm)
+		{
+			info = macInfo;
+			break;
+		}
+	}
+
+	return info;
+
+}
+
+EXPORT_FUNCTION bool MAC_AlgorithmIsAvailable(MAC_Algorithm algorithm)
+{
+	bool isAvailable = false;
+
+	S4MacInfo* macInfo = sMacInfoForAlgorithm(algorithm);
+	if(macInfo)
+	{
+		isAvailable = macInfo->available;
+	}
+	return isAvailable;
+}
+
+
+EXPORT_FUNCTION S4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_t macKeyLen, MAC_ContextRef * ctx)
 {
     int             err = kS4Err_NoErr;
     const struct    ltc_hash_descriptor* hashDesc = NULL;
     MAC_Context*   macCTX = NULL;
-    
+
+	if(!MAC_AlgorithmIsAvailable(mac))
+		RETERR(kS4Err_FeatureNotAvailable);
+
+	if(!HASH_AlgorithmIsAvailable(hash))
+		RETERR(kS4Err_FeatureNotAvailable);
+
     ValidateParam(ctx);
     *ctx = NULL;
     
@@ -107,7 +159,6 @@ S4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_
     
     if(IsNull(hashDesc))
         RETERR( kS4Err_BadHashNumber);
-    
     
     macCTX = XMALLOC(sizeof (MAC_Context)); CKNULL(macCTX);
     
@@ -121,7 +172,7 @@ S4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const void *macKey, size_
             
 #if  _USES_COMMON_CRYPTO_
             
-            switch(hash)
+       switch(hash)
         {
             case kHASH_Algorithm_MD5:
                 macCTX->ccAlgor = kCCHmacAlgMD5;
@@ -227,9 +278,21 @@ done:
 }
 
 
-S4Err MAC_HashSize( MAC_ContextRef  ctx, size_t * bytes)
+EXPORT_FUNCTION S4Err MAC_GetAlgorithm(MAC_ContextRef ctx, MAC_Algorithm *algorithm)
 {
-    int  err = kS4Err_NoErr;
+	S4Err             err = kS4Err_NoErr;
+
+	validateMACContext(ctx);
+
+	if(algorithm)
+		*algorithm = ctx->macAlgor;
+
+	return err;
+}
+
+EXPORT_FUNCTION S4Err MAC_HashSize( MAC_ContextRef  ctx, size_t * bytes)
+{
+    S4Err  err = kS4Err_NoErr;
     
     validateMACContext(ctx);
     
@@ -240,8 +303,23 @@ S4Err MAC_HashSize( MAC_ContextRef  ctx, size_t * bytes)
     return (err);
 }
 
+EXPORT_FUNCTION  S4Err MAC_GetName(MAC_Algorithm algorithm, const char **macName)
+{
+	S4Err err = kS4Err_FeatureNotAvailable;
 
-S4Err MAC_Update(MAC_ContextRef  ctx, const void *data, size_t dataLength)
+	S4MacInfo* macInfo = sMacInfoForAlgorithm(algorithm);
+	if(macInfo)
+	{
+		if(macName)
+			*macName = macInfo->name;
+		err = kS4Err_NoErr;
+
+	}
+
+	return err;
+}
+
+EXPORT_FUNCTION S4Err MAC_Update(MAC_ContextRef  ctx, const void *data, size_t dataLength)
 {
     int             err = kS4Err_NoErr;
     
@@ -253,7 +331,7 @@ S4Err MAC_Update(MAC_ContextRef  ctx, const void *data, size_t dataLength)
     return (err);
 }
 
-S4Err MAC_Final(MAC_ContextRef  ctx, void *macOut,  size_t *resultLen)
+EXPORT_FUNCTION S4Err MAC_Final(MAC_ContextRef  ctx, void *macOut,  size_t *resultLen)
 {
     int             err = kS4Err_NoErr;
     unsigned long  outlen = *resultLen;
@@ -269,7 +347,7 @@ S4Err MAC_Final(MAC_ContextRef  ctx, void *macOut,  size_t *resultLen)
 
 
 
-void MAC_Free(MAC_ContextRef  ctx)
+EXPORT_FUNCTION void MAC_Free(MAC_ContextRef  ctx)
 {
     
     if(sMAC_ContextIsValid(ctx))
@@ -280,14 +358,14 @@ void MAC_Free(MAC_ContextRef  ctx)
 }
 
 
-S4Err  MAC_KDF(  MAC_Algorithm      mac,
+EXPORT_FUNCTION S4Err  MAC_KDF(  MAC_Algorithm      mac,
                HASH_Algorithm     hash,
                uint8_t*           K,
                unsigned long      Klen,
                const char*        label,
                const uint8_t*     context,
                unsigned long      contextLen,
-               uint32_t           hashLen,
+               size_t    	      hashLen,
                unsigned long      outLen,
                uint8_t            *out)
 {

@@ -7,9 +7,8 @@
 //
 
 #include <stdio.h>
-#include "s4.h"
-#include "optest.h"
 #include <time.h>
+#include "optest.h"
 
 
 static char *const kS4KeyProp_TestPassCodeID   = "passcodeID";
@@ -24,6 +23,15 @@ typedef struct  {
     
 } cipherKATvector;
 
+
+typedef struct  {
+	char*               comment;
+	Cipher_Algorithm    algor;
+	int                 keysize;
+	uint8_t             *key;
+	uint8_t             *passPhrase;
+	P2K_Algorithm		p2KAlgor;
+} cipherP2K_KATvector;
 
 
 static char *exported_keys   = NULL;
@@ -232,6 +240,85 @@ done:
 }
 
 
+
+static S4Err sRunCipherP2KImportExportKAT(  cipherP2K_KATvector *kat)
+{
+	S4Err err = kS4Err_NoErr;
+	S4KeyContextRef keyCtx =  kInvalidS4KeyContextRef;
+	S4KeyContextRef keyCtx1 =  kInvalidS4KeyContextRef;
+
+	S4KeyContextRef  *passCtx = NULL;
+	size_t      keyCount = 0;
+
+	const char* name = NULL;
+
+	uint8_t     *data = NULL;
+	size_t      dataLen = 0;
+
+	time_t          testDate  = time(NULL) ;
+
+	name = cipher_algor_table(kat->algor);
+
+	OPTESTLogVerbose("\t%-14s ", name);
+	OPTESTLogVerbose("%8s", "Export");
+
+	err = S4Key_NewSymmetric(kat->algor, kat->key, &keyCtx  ); CKERR;
+
+	err = S4Key_SetProperty(keyCtx,kS4KeyProp_TestPassCodeID,S4KeyPropertyType_UTF8String, kat->comment, strlen(kat->comment)); CKERR;
+	err = S4Key_SetProperty(keyCtx, kS4KeyProp_StartDate, S4KeyPropertyType_Time ,  &testDate, sizeof(time_t)); CKERR;
+
+	err = S4Key_SerializeToPassPhrase_WithAlgorithm(kat->p2KAlgor,
+													keyCtx,
+													kat->passPhrase, strlen((char*)kat->passPhrase),
+													&data, &dataLen); CKERR;
+
+	OPTESTLogDebug("\n------\n%s------\n",data);
+
+	OPTESTLogVerbose("%8s", "Import");
+	err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &passCtx ); CKERR;
+
+	//   sDumpS4Key(OPTESTLOG_LEVEL_DEBUG, passCtx);
+//
+	OPTESTLogVerbose("%8s", "Verify");
+	err = S4Key_VerifyPassPhrase(passCtx[0], kat->passPhrase, strlen((char*)kat->passPhrase)); CKERR;
+
+	err = S4Key_DecryptFromPassPhrase(passCtx[0],kat->passPhrase, strlen((char*)kat->passPhrase), &keyCtx1); CKERR;
+
+	err = sCompareKeys(keyCtx, keyCtx1, false); CKERR;
+
+	if(data)
+	{
+		asprintf(&exported_keys,"%s %s %s", exported_keys,strlen(exported_keys) > 1?",":"", data );
+		exported_key_count++;
+	}
+
+done:
+	if(data)
+		XFREE(data);
+
+	if(S4KeyContextRefIsValid(keyCtx))
+	{
+		S4Key_Free(keyCtx);
+	}
+	if(passCtx)
+	{
+		if(S4KeyContextRefIsValid(passCtx[0]))
+		{
+			S4Key_Free(passCtx[0]);
+		}
+		XFREE(passCtx);
+
+	}
+	if(S4KeyContextRefIsValid(keyCtx1))
+	{
+		S4Key_Free(keyCtx1);
+	}
+
+	OPTESTLogVerbose("\n");
+
+	return err;
+}
+
 static S4Err sRunCipherPBKDF2ImportExportKAT(  cipherKATvector *kat)
 {
     S4Err err = kS4Err_NoErr;
@@ -241,7 +328,7 @@ static S4Err sRunCipherPBKDF2ImportExportKAT(  cipherKATvector *kat)
     S4KeyContextRef  *passCtx = NULL;
     size_t      keyCount = 0;
      
-    char* name = NULL;
+    const char* name = NULL;
     
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
@@ -317,7 +404,7 @@ static S4Err sRunCipherImportExportKAT(  cipherKATvector *kat)
     S4KeyContextRef  *importCtx = NULL;
     size_t      keyCount = 0;
     
-    char* name = NULL;
+    const char* name = NULL;
     
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
@@ -426,26 +513,57 @@ static S4Err  sTestSymmetricKeys()
         {"Key 3",   kCipher_Algorithm_AES256, 256,   K3, passPhrase1},
         {"Key 4",   kCipher_Algorithm_2FISH256, 256,   K3, passPhrase1},
     };
-    
-    
-    
-    OPTESTLogInfo("\nTesting Symmetric S4Key Encoding\n");
-    
+
+	cipherP2K_KATvector kat_vector_array1[] =
+	{
+		{"Key 1",	kCipher_Algorithm_AES128, 128,	K1, passPhrase1, kP2K_Algorithm_PBKDF2},
+		{"Key 1",	kCipher_Algorithm_AES128, 128,	K1, passPhrase1, kP2K_Algorithm_Argon2d},
+		{"Key 1",	kCipher_Algorithm_AES128, 128,	K1, passPhrase1, kP2K_Algorithm_Argon2i},
+		{"Key 1",	kCipher_Algorithm_AES128, 128,	K1, passPhrase1, kP2K_Algorithm_Argon2id},
+
+		{"Key 2",	kCipher_Algorithm_AES192, 192,	K2, passPhrase1, kP2K_Algorithm_PBKDF2},
+		{"Key 2",	kCipher_Algorithm_AES192, 192,	K2, passPhrase1, kP2K_Algorithm_Argon2d},
+		{"Key 2",	kCipher_Algorithm_AES192, 192,	K2, passPhrase1, kP2K_Algorithm_Argon2i},
+		{"Key 2",	kCipher_Algorithm_AES192, 192,	K2, passPhrase1, kP2K_Algorithm_Argon2id},
+
+		{"Key 3",   kCipher_Algorithm_AES256, 256,   K3, passPhrase1, kP2K_Algorithm_PBKDF2},
+		{"Key 3",   kCipher_Algorithm_AES256, 256,   K3, passPhrase1, kP2K_Algorithm_Argon2d},
+		{"Key 3",   kCipher_Algorithm_AES256, 256,   K3, passPhrase1, kP2K_Algorithm_Argon2i},
+		{"Key 3",   kCipher_Algorithm_AES256, 256,   K3, passPhrase1, kP2K_Algorithm_Argon2id},
+
+ 		{"Key 4",   kCipher_Algorithm_2FISH256, 256,   K3, passPhrase1, kP2K_Algorithm_PBKDF2},
+  		{"Key 4",   kCipher_Algorithm_2FISH256, 256,   K3, passPhrase1, kP2K_Algorithm_Argon2d},
+		{"Key 4",   kCipher_Algorithm_2FISH256, 256,   K3, passPhrase1, kP2K_Algorithm_Argon2i},
+		{"Key 4",   kCipher_Algorithm_2FISH256, 256,   K3, passPhrase1, kP2K_Algorithm_Argon2id},
+	};
+
+
+	OPTESTLogInfo("\nTesting Symmetric S4Key Encoding\n");
+
     /* run  known answer tests (KAT) */
     for (i = 0; i < sizeof(kat_vector_array)/ sizeof(cipherKATvector) ; i++)
     {
         err = sRunCipherImportExportKAT( &kat_vector_array[i] ); CKERR;
     }
-    
-    OPTESTLogInfo("\nTesting  Symmetric PBKDF2 S4Key Encoding\n");
+
+
+    OPTESTLogInfo("\nTesting Symmetric S4Key (PBKDF2) Encode to passphrase\n");
 
     /* run  known answer tests (KAT) */
     for (i = 0; i < sizeof(kat_vector_array)/ sizeof(cipherKATvector) ; i++)
     {
         err = sRunCipherPBKDF2ImportExportKAT( &kat_vector_array[i] ); CKERR;
-      }
-    
-  
+	}
+
+	OPTESTLogInfo("\nTesting Symmetric S4Key Encode to passphrase\n");
+
+	/* run  known answer tests (KAT) */
+	for (i = 0; i < sizeof(kat_vector_array1)/ sizeof(cipherP2K_KATvector) ; i++)
+	{
+		err = sRunCipherP2KImportExportKAT( &kat_vector_array1[i] ); CKERR;
+	}
+
+
 done:
      return err;
 }
@@ -475,10 +593,10 @@ static S4Err sRunSharedPBKDF2ImportExportKAT(  cipherKATvector *kat)
     size_t              PT1len;
     
     int                 i;
-    char* name = NULL;
+    const char* name = NULL;
    
     
-    name = cipher_algor_table(kat->algor);
+	name = cipher_algor_table(kat->algor);
     
     OPTESTLogVerbose("\t%-14s ", name);
     // skip AES-192
@@ -614,8 +732,8 @@ static S4Err sRunSharedECCImportExportKAT(  cipherKATvector *kat)
     size_t              PT1len;
     
     int                 i;
-    char* name = NULL;
-    
+	const char* name = NULL;
+
     
     uint8_t ecc414_pubkey[] = {
         0x04,0x06,0x8b,0x14,0xa4,0x14,0x6a,0x2a,
@@ -660,14 +778,12 @@ static S4Err sRunSharedECCImportExportKAT(  cipherKATvector *kat)
     
     name = cipher_algor_table(kat->algor);
     
-    err = ECC_Init(&eccPub);
-    err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
+    err = ECC_Import_ANSI_X963(ecc414_pubkey, sizeof(ecc414_pubkey), &eccPub);CKERR;
     err = ECC_PubKeyHash(eccPub, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
     err = S4Key_Import_ECC_Context(eccPub, &pubCtx); CKERR;
     eccPub = kInvalidECC_ContextRef;
     
-    err = ECC_Init(&eccPriv);
-    err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
+    err = ECC_Import(ecc414_privkey, sizeof(ecc414_privkey), &eccPriv);CKERR;
     err = S4Key_Import_ECC_Context(eccPriv, &privCtx); CKERR;
     eccPriv = kInvalidECC_ContextRef;
    
@@ -884,8 +1000,8 @@ static S4Err sRunTBCImportExportKAT(  cipherKATvector *kat)
 
     size_t      keyCount = 0;
     
-    char* name = NULL;
-    
+	const char* name = NULL;
+
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
     time_t          testDate  = time(NULL) ;
@@ -970,8 +1086,8 @@ static S4Err sRunTBCPBKDF2ImportExportKAT(  cipherKATvector *kat)
     S4KeyContextRef  *passCtx = NULL;
     size_t      keyCount = 0;
  
-    char* name = NULL;
-    
+	const char* name = NULL;
+
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
      
@@ -1118,8 +1234,8 @@ static S4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
 
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
-    char* name = NULL;
-    
+	const char* name = NULL;
+
     uint8_t ecc414_pubkey[] = {
         0x04,0x06,0x8b,0x14,0xa4,0x14,0x6a,0x2a,
         0x3d,0xab,0x05,0xda,0xdf,0x75,0xef,0x5f,
@@ -1163,14 +1279,12 @@ static S4Err sRunCipherECCImportExportKAT(  cipherKATvector *kat)
     
     name = cipher_algor_table(kat->algor);
     
-    err = ECC_Init(&eccPub);
-    err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
+    err = ECC_Import_ANSI_X963(ecc414_pubkey, sizeof(ecc414_pubkey), &eccPub);CKERR;
     err = ECC_PubKeyHash(eccPub, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
     err = S4Key_Import_ECC_Context(eccPub, &pubCtx); CKERR;
     eccPub = kInvalidECC_ContextRef;
 
-    err = ECC_Init(&eccPriv);
-    err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
+	err = ECC_Import(ecc414_privkey, sizeof(ecc414_privkey),&eccPriv);CKERR;
     err = S4Key_Import_ECC_Context(eccPriv, &privCtx); CKERR;
     eccPriv = kInvalidECC_ContextRef;
 
@@ -1319,7 +1433,8 @@ static S4Err sRunTBC_ECCImportExportKAT(  cipherKATvector *kat)
 
     uint8_t     *data = NULL;
     size_t      dataLen = 0;
-    char* name = NULL;
+	const char* name = NULL;
+
     
     uint8_t ecc414_pubkey[] = {
         0x04,0x06,0x8b,0x14,0xa4,0x14,0x6a,0x2a,
@@ -1365,14 +1480,12 @@ static S4Err sRunTBC_ECCImportExportKAT(  cipherKATvector *kat)
     
     name = cipher_algor_table(kat->algor);
     
-    err = ECC_Init(&eccPub);
-    err = ECC_Import_ANSI_X963( eccPub, ecc414_pubkey, sizeof(ecc414_pubkey));CKERR;
+   err = ECC_Import_ANSI_X963( ecc414_pubkey, sizeof(ecc414_pubkey),&eccPub);CKERR;
     err = ECC_PubKeyHash(eccPub, keyID, kS4Key_KeyIDBytes, &keyIDLen);CKERR;
     err = S4Key_Import_ECC_Context(eccPub, &pubCtx); CKERR;
     eccPub = kInvalidECC_ContextRef;
     
-    err = ECC_Init(&eccPriv);
-    err = ECC_Import(eccPriv, ecc414_privkey, sizeof(ecc414_privkey));CKERR;
+    err = ECC_Import(ecc414_privkey, sizeof(ecc414_privkey),&eccPriv);CKERR;
     err = S4Key_Import_ECC_Context(eccPriv, &privCtx); CKERR;
     eccPriv = kInvalidECC_ContextRef;
     
@@ -1595,7 +1708,7 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     S4KeyContextRef detSigCtx1     =  kInvalidS4KeyContextRef;
     
     ECC_ContextRef  ecc         = kInvalidECC_ContextRef;
-    char* name = NULL;
+	const char* name = NULL;
     char* keyIDStr = NULL;
   
     uint8_t             keyID[kS4Key_KeyIDBytes]  = {0};
@@ -1609,8 +1722,8 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     uint8_t        SIG[256];
     size_t         SIGlen = 0;
 
-    S4KeyContextRef     *importCtx = NULL;
-    S4KeyContextRef     *importPubCtx =  NULL;
+    S4KeyContextRef     *importCtx = NULL;  // typically an array of contexts
+    S4KeyContextRef     importPubCtx =  NULL;  // just one key
     
     S4KeyPropertyExtendedType   exProp = S4KeyPropertyExtendedType_None;
     uint8_t K3[] = {
@@ -1680,39 +1793,38 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     err = S4Key_SerializePubKey(pubCtx, &data, &dataLen); CKERR;
     OPTESTLogDebug("------\n%s------\n",data);
    
-    err = S4Key_DeserializeKeys(data, dataLen, &keyCount, &importPubCtx ); CKERR;
-    ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
-    XFREE(data); data = NULL;
-    err = sCompareKeys(pubCtx, importPubCtx[0], true); CKERR;
+    err = S4Key_DeserializeKey(data, dataLen, &importPubCtx ); CKERR;
+     XFREE(data); data = NULL;
+    err = sCompareKeys(pubCtx, importPubCtx, true); CKERR;
     
     // check in imported properties show as signable
-    err = S4Key_GetExtendedProperty(importPubCtx[0], kS4KeyProp_Owner, &exProp); CKERR;
+    err = S4Key_GetExtendedProperty(importPubCtx, kS4KeyProp_Owner, &exProp); CKERR;
     ASSERTERR(exProp && S4KeyPropertyExtended_Signable == S4KeyPropertyExtended_Signable,  kS4Err_SelfTestFailed);
 
-     err = S4Key_GetExtendedProperty(importPubCtx[0], kS4KeyProp_StartDate, &exProp); CKERR;
+     err = S4Key_GetExtendedProperty(importPubCtx, kS4KeyProp_StartDate, &exProp); CKERR;
      ASSERTERR(exProp && S4KeyPropertyExtended_Signable == S4KeyPropertyExtended_Signable,  kS4Err_SelfTestFailed);
 
     // check sigs
-    err = sTestKeySigs(importPubCtx[0],signPubCtx1); CKERR;
+    err = sTestKeySigs(importPubCtx,signPubCtx1); CKERR;
     
     // check the key itself
-    err = S4Key_Clone_ECC_Context(importPubCtx[0], &ecc);
+    err = S4Key_Clone_ECC_Context(importPubCtx, &ecc);
     ASSERTERR(!ECC_isPrivate(ecc),  kS4Err_SelfTestFailed);
     err = ECC_PubKeyHash(ecc, keyID, kS4Key_KeyIDBytes, NULL);CKERR;
-    err = S4Key_GetProperty(importPubCtx[0], kS4KeyProp_KeyID, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
+    err = S4Key_GetProperty(importPubCtx, kS4KeyProp_KeyID, NULL, &keyID1, sizeof(keyID1), NULL ); CKERR;
     err = compareResults( keyID, keyID1, kS4Key_KeyIDBytes, kResultFormat_Byte, "keyID"); CKERR;
     ECC_Free(ecc); ecc  = kInvalidECC_ContextRef;
     
     OPTESTLogDebug("\t  Encrypt to Public Key\n");
     // encrypt to public key
     err = S4Key_NewSymmetric(kCipher_Algorithm_2FISH256, K3, &symKeyCtx  ); CKERR;
-    err = S4Key_SerializeToS4Key(symKeyCtx, importPubCtx[0], &data, &dataLen); CKERR;
+    err = S4Key_SerializeToS4Key(symKeyCtx, importPubCtx, &data, &dataLen); CKERR;
     OPTESTLogDebug("------\n%s------\n",data);
     XFREE(data); data = NULL;
     
     OPTESTLogDebug("\t  Clone Public Key\n");
-    err = S4Key_Copy(importPubCtx[0], &copiedCtx);
-    err = sCompareKeys(importPubCtx[0],copiedCtx, true); CKERR;
+    err = S4Key_Copy(importPubCtx, &copiedCtx);
+    err = sCompareKeys(importPubCtx,copiedCtx, true); CKERR;
     S4Key_Free(copiedCtx); copiedCtx = kInvalidS4KeyContextRef;
     
     // create a random  unlocking key
@@ -1730,11 +1842,10 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     err = S4Key_DecryptFromS4Key(importCtx[0], passKeyCtx , &pubCtx1); CKERR;
     if(importPubCtx)
     {
-        if(S4KeyContextRefIsValid(importPubCtx[0]))
+        if(S4KeyContextRefIsValid(importPubCtx))
         {
-            S4Key_Free(importPubCtx[0]);
+            S4Key_Free(importPubCtx);
         }
-        XFREE(importPubCtx);
         importPubCtx = NULL;
     }
     
@@ -1852,12 +1963,11 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
   
     if(importPubCtx)
     {
-        if(S4KeyContextRefIsValid(importPubCtx[0]))
+        if(S4KeyContextRefIsValid(importPubCtx))
         {
-            S4Key_Free(importPubCtx[0]);
+            S4Key_Free(importPubCtx);
         }
-        XFREE(importPubCtx);
-    }
+	}
     
     if(S4KeyContextRefIsValid(copiedCtx))
     {
@@ -1922,14 +2032,14 @@ S4Err  TestKeys()
     int i;
     
     asprintf(&exported_keys,"[" );
-    
+
     err = sTestSymmetricKeys(); CKERR;
     err = sTestTBCKeys(); CKERR;
     err = sTestECC_TBCKeys(); CKERR;
     err = sTestECC_SymmetricKeys(); CKERR;
     err = sTest_SharedSymTBCKeys(); CKERR;
     err = sTestPublicKeys(); CKERR;
-    
+
     OPTESTLogInfo("\nTesting decoding of exported key array\n");
     asprintf(&exported_keys,"%s ]", exported_keys );
     err = S4Key_DeserializeKeys((uint8_t*)exported_keys, strlen(exported_keys), &keyCount, &encodedCtx ); CKERR;
@@ -1944,6 +2054,7 @@ S4Err  TestKeys()
             
             S4KeyType   type1;
             char**       keyIDStr = NULL;
+			char**       p2kParamStr = NULL;
             size_t      datSize = 0;
             
             err = S4Key_GetProperty(keyP, kS4KeyProp_KeyType, NULL, &type1, sizeof(type1), NULL ); CKERR;
@@ -1953,7 +2064,17 @@ S4Err  TestKeys()
                     err = S4Key_GetAllocatedProperty(keyP, kS4KeyProp_TestPassCodeID, NULL, (void**)&keyIDStr, &datSize);
                     OPTESTLogDebug("\t%2d %10s %.*s\n", i,  key_type_table(type1), datSize,keyIDStr);
                     break;
-                    
+
+				case kS4KeyType_P2K:
+					err = S4Key_GetAllocatedProperty(keyP, kS4KeyProp_TestPassCodeID, NULL, (void**)&keyIDStr, &datSize); CKERR;
+					OPTESTLogDebug("\t%2d %10s %.*s\n", i,  key_type_table(type1), datSize,keyIDStr);
+
+					err = S4Key_GetAllocatedProperty(keyP, kS4KeyProp_p2kParams, NULL, (void**)&p2kParamStr, &datSize); CKERR;
+					OPTESTLogDebug("\t%2d %10s %.*s\n", i,  key_type_table(type1), datSize,p2kParamStr);
+
+
+					break;
+
                 case kS4KeyType_PublicEncrypted:
                      err = S4Key_GetAllocatedProperty(keyP, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, &datSize); CKERR;
                     OPTESTLogDebug("\t%2d %10s %.*s\n", i,  key_type_table(type1),datSize, keyIDStr);
@@ -1963,7 +2084,8 @@ S4Err  TestKeys()
                 default:
                     break;
             }
-            
+
+			if(p2kParamStr) XFREE(p2kParamStr);
             if(keyIDStr) XFREE(keyIDStr);
             
         }

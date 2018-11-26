@@ -8,6 +8,7 @@
 
 
 #include "s4internal.h"
+#include <argon2.h>
 
 
 #ifdef __clang__
@@ -18,7 +19,7 @@
 #define ROUNDMEASURE 10000
 #define MIN_ROUNDS 1500
 
-S4Err PASS_TO_KEY_SETUP(   unsigned long  password_len,
+EXPORT_FUNCTION S4Err PASS_TO_KEY_SETUP(   unsigned long  password_len,
                         unsigned long  key_len,
                         uint8_t        *salt,
                         unsigned long  salt_len,
@@ -84,7 +85,7 @@ done:
 
 
 
-S4Err PASS_TO_KEY (const uint8_t  *password,
+EXPORT_FUNCTION S4Err PASS_TO_KEY (const uint8_t  *password,
                    unsigned long  password_len,
                    uint8_t       *salt,
                    unsigned long  salt_len,
@@ -123,4 +124,36 @@ done:
     return err;
     
     
+}
+
+EXPORT_FUNCTION S4Err PASS_TO_KEY_ARGON2(ARGON2_Algorithm algorithm,
+						 const uint8_t  *password,
+						 unsigned long  password_len,
+						 uint8_t		*salt,
+						 unsigned long	salt_len,
+						 uint32_t	 	t_cost,
+						 uint32_t	 	m_cost,
+						 uint32_t 	 	parallelism,
+						 uint8_t        *key_buf,
+						 unsigned long  key_len )
+{
+	S4Err    err     = kS4Err_NoErr;
+
+	int  status  = ARGON2_OK;
+
+	status = argon2_hash(t_cost,
+						 m_cost,
+						 parallelism,
+						 password, password_len,
+						 salt, salt_len,
+						 (void*)key_buf, key_len,
+						 NULL, 0,
+						 (argon2_type) algorithm,
+						 ARGON2_VERSION_NUMBER);
+
+	if(status != ARGON2_OK)
+		err = kS4Err_BadParams;
+
+	return err;
+
 }

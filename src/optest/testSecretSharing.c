@@ -8,9 +8,9 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "s4.h"
+#include <stdlib.h>
+
 #include "optest.h"
- #include <stdlib.h>
 
 
 

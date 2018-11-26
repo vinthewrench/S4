@@ -43,8 +43,9 @@ static bool sTBC_ContextIsValid( const TBC_ContextRef  ref)
 ValidateParam( sTBC_ContextIsValid( s ) )
 
 
-S4Err TBC_Init(Cipher_Algorithm algorithm,
+EXPORT_FUNCTION S4Err TBC_Init(Cipher_Algorithm algorithm,
                const void *key,
+				size_t keylen,
                TBC_ContextRef * ctxOut)
 {
     int             err     = kS4Err_NoErr;
@@ -71,8 +72,10 @@ S4Err TBC_Init(Cipher_Algorithm algorithm,
         default:
             RETERR(kS4Err_BadCipherNumber);
     }
-    
-    
+
+	if(keylen != keybits >> 3)
+		RETERR(kS4Err_BadParams);
+
     tbcCTX = XMALLOC(sizeof (TBC_Context)); CKNULL(tbcCTX);
     
     tbcCTX->magic = kTBC_ContextMagic;
@@ -102,7 +105,7 @@ done:
     
 }
 
-void TBC_Free(TBC_ContextRef  ctx)
+EXPORT_FUNCTION void TBC_Free(TBC_ContextRef  ctx)
 {
     
     if(sTBC_ContextIsValid(ctx))
@@ -113,25 +116,31 @@ void TBC_Free(TBC_ContextRef  ctx)
 }
 
 
-S4Err TBC_SetTweek(TBC_ContextRef ctx,
-                   const void *	tweekIn)
+EXPORT_FUNCTION S4Err TBC_SetTweek(TBC_ContextRef ctx,
+                   	const void *	tweekIn,
+					size_t 			tweeklen) 	// tweek must be 16 bytes..
 {
     S4Err       err = kS4Err_NoErr;
     u64b_t      tweek[2] = {0L,0L};
     
     validateTBCContext(ctx);
-    
+	ValidateParam(tweekIn);
+	
+	if(tweeklen != sizeof(tweek))
+		RETERR(kS4Err_BadParams);
+
     memcpy(tweek, tweekIn, sizeof(tweek));
     
  //   Skein_Get64_LSB_First(tweek, tweekIn, 2);   /* bytes to words */
     
     threefishSetKey(&ctx->state, ctx->keybits, ctx->key, tweek);
-    
+
+done:
     return (err);
     
 }
 
-S4Err TBC_Encrypt(TBC_ContextRef ctx,
+EXPORT_FUNCTION S4Err TBC_Encrypt(TBC_ContextRef ctx,
                   const void *	in,
                   void *         out )
 {
@@ -145,7 +154,7 @@ S4Err TBC_Encrypt(TBC_ContextRef ctx,
     
 }
 
-S4Err TBC_Decrypt(TBC_ContextRef ctx,
+EXPORT_FUNCTION S4Err TBC_Decrypt(TBC_ContextRef ctx,
                   const void *	in,
                   void *         out )
 {

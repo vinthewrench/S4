@@ -9,12 +9,44 @@
 #include "s4.h"
 #include "s4internal.h"
   
+
+#ifndef EMSCRIPTEN
+#include <string.h>
+#else
+
+//functions not defined in EMSCRIPTEN
+ 
+/*
+ * Find the first occurrence of find in s, where the search is limited to the
+ * first slen characters of s.
+ */
+char * strnstr(const char *haystack, const char *needle, size_t slen)
+{
+	char c, sc;
+	size_t len;
+
+	if ((c = *needle++) != '\0') {
+		len = strlen(needle);
+		do {
+			do {
+				if ((sc = *haystack++) == '\0' || slen-- < 1)
+					return (NULL);
+			} while (sc != c);
+			if (len > slen)
+				return (NULL);
+		} while (strncmp(haystack, needle, len) != 0);
+		haystack--;
+	}
+	return ((char *)haystack);
+}
+
+#endif
+
 #ifdef __clang__
 #pragma mark - init
 #endif
 
-
-S4Err S4_Init()
+EXPORT_FUNCTION S4Err S4_Init()
 {
     S4Err err = kS4Err_NoErr;
     
@@ -104,7 +136,7 @@ S4Err sCrypt2S4Err(int t_err)
 }
 
 
-S4Err  S4_GetErrorString( S4Err err,  size_t	bufSize, char *outString)
+EXPORT_FUNCTION S4Err  S4_GetErrorString( S4Err err,  char outString[256])
 {
     int i;
     *outString = 0;
@@ -112,8 +144,6 @@ S4Err  S4_GetErrorString( S4Err err,  size_t	bufSize, char *outString)
     for(i = 0; i< ERROR_MAP_TABLE_SIZE; i++)
         if(error_map_table[i].err == err)
         {
-            if(strlen(error_map_table[i].msg) +1 > bufSize)
-                return (kS4Err_BufferTooSmall);
             strcpy(outString, error_map_table[i].msg);
             return kS4Err_NoErr;
         }
@@ -126,7 +156,7 @@ S4Err  S4_GetErrorString( S4Err err,  size_t	bufSize, char *outString)
 #endif
 
 
-S4Err  S4_GetVersionString(size_t	bufSize, char *outString)
+EXPORT_FUNCTION S4Err  S4_GetVersionString(char outString[256])
 {
     S4Err                 err = kS4Err_NoErr;
     
@@ -145,9 +175,9 @@ S4Err  S4_GetVersionString(size_t	bufSize, char *outString)
             S4_BUILD_NUMBER,
              GIT_COMMIT_HASH);
     
-    if(strlen(version_string) +1 > bufSize)
-        RETERR (kS4Err_BufferTooSmall);
-    
+//    if(strlen(version_string) +1 > bufSize)
+//        RETERR (kS4Err_BufferTooSmall);
+//
     strcpy(outString, version_string);
     
 done:
@@ -229,11 +259,13 @@ static void bin2hex(  uint8_t* inBuf, size_t inLen, uint8_t* outBuf, size_t* out
 }
 
 
-S4Err RNG_GetPassPhrase(
+EXPORT_FUNCTION S4Err RNG_GetPassPhrase(
                            size_t         bits,
                            char **         outPassPhrase )
 {
     S4Err             err = kS4Err_NoErr;
+
+	ValidateParam(outPassPhrase);
     
     size_t              passBytesLen = bits/8;
     uint8_t*            passBytes = XMALLOC(passBytesLen);
@@ -241,15 +273,17 @@ S4Err RNG_GetPassPhrase(
     size_t              passPhraseLen =   (passBytesLen *2) +1;
     uint8_t*            passPhrase = XMALLOC(passPhraseLen);
     
-    
     err = RNG_GetBytes(passBytes,passBytesLen); CKERR;
     
     bin2hex(passBytes, passBytesLen, passPhrase, &passPhraseLen);
     passPhrase[passPhraseLen] =  '\0' ;
     
-    if(outPassPhrase) *outPassPhrase = (char*) passPhrase;
+	*outPassPhrase = (char*) passPhrase;
     
     done:
+
+	if(err)
+		XFREE(passPhrase);
     
     ZERO(passBytes, passBytesLen);
     XFREE(passBytes);
@@ -259,7 +293,7 @@ S4Err RNG_GetPassPhrase(
 }
 
 
-S4Err RNG_GetBytes(     void *         out,
+EXPORT_FUNCTION S4Err RNG_GetBytes(     void *         out,
                       size_t         outLen
                       )
 {
@@ -282,31 +316,123 @@ S4Err RNG_GetBytes(     void *         out,
 }
 
 
-S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bytesOut)
+typedef struct S4CipherInfo_
+{
+	char      *const name;
+	Cipher_Algorithm algorithm;
+	size_t			keybits;
+	size_t			blockSize;
+	bool			isSymmetric;
+	bool			available;
+} S4CipherInfo;
+
+static S4CipherInfo sCipherInfoTable[] = {
+
+	{ "AES-128",  kCipher_Algorithm_AES128, 		128, 	16, 	true,true},
+	{ "AES-192",  kCipher_Algorithm_AES192, 		192, 	16, 	true,true},
+	{ "AES-256",  kCipher_Algorithm_AES256, 		256, 	16, 	true,true},
+
+	{ "Twofish-256", kCipher_Algorithm_2FISH256, 	256, 	16, 	true,true},
+
+ 	{"ThreeFish-256", kCipher_Algorithm_3FISH256, 	256, 	32, 	true, true},
+	{"ThreeFish-512", kCipher_Algorithm_3FISH512, 	512, 	64, 	true, true},
+	{"ThreeFish-1024", kCipher_Algorithm_3FISH1024, 1024, 	128, 	true, true},
+
+	{"ECC-384", 	kCipher_Algorithm_ECC384, 		384, 	48, 	false, true},
+	{"Curve41417", 	kCipher_Algorithm_ECC414, 		414, 	52, 	false, true},
+
+	{"SharedKey", 	kCipher_Algorithm_SharedKey, 		0, 	0, 	false, false},	// fill this in..
+
+	{ NULL,    kCipher_Algorithm_Invalid, 			0, 		0, 		true, 	false},
+};
+
+ S4CipherInfo* sCipherInfoForAlgorithm(Cipher_Algorithm algorithm)
+{
+	S4CipherInfo* info = NULL;
+
+	for(S4CipherInfo* cipherInfo = sCipherInfoTable; cipherInfo->name; cipherInfo++)
+	{
+		if(algorithm == cipherInfo->algorithm)
+		{
+			info = cipherInfo;
+			break;
+		}
+	}
+	return info;
+}
+
+EXPORT_FUNCTION bool Cipher_AlgorithmIsAvailable(Cipher_Algorithm algorithm)
+{
+	bool isAvailable = false;
+
+	S4CipherInfo* cipherInfo = sCipherInfoForAlgorithm(algorithm);
+	if(cipherInfo)
+	{
+		isAvailable = cipherInfo->available;
+	}
+	return isAvailable;
+}
+
+
+EXPORT_FUNCTION  S4Err Cipher_GetName(Cipher_Algorithm algorithm, const char **cipherName)
+{
+	S4Err err = kS4Err_FeatureNotAvailable;
+
+	S4CipherInfo* cipherInfo = sCipherInfoForAlgorithm(algorithm);
+	if(cipherInfo)
+	{
+ 		if(cipherName)
+			*cipherName = cipherInfo->name;
+		err = kS4Err_NoErr;
+	}
+
+	return err;
+}
+
+
+EXPORT_FUNCTION S4Err Cipher_GetKeySize(Cipher_Algorithm algorithm, size_t *keyBits)
+{
+	S4Err err = kS4Err_FeatureNotAvailable;
+
+	S4CipherInfo* cipherInfo = sCipherInfoForAlgorithm(algorithm);
+	if(cipherInfo)
+	{
+		if(keyBits)
+			*keyBits = cipherInfo->keybits;
+		err = kS4Err_NoErr;
+	}
+
+	return err;
+}
+
+EXPORT_FUNCTION S4Err Cipher_GetBlockSize(Cipher_Algorithm algorithm, size_t *blockSize)
+{
+	S4Err err = kS4Err_FeatureNotAvailable;
+
+	S4CipherInfo* cipherInfo = sCipherInfoForAlgorithm(algorithm);
+	if(cipherInfo)
+	{
+		if(blockSize)
+			*blockSize = cipherInfo->blockSize;
+		err = kS4Err_NoErr;
+	}
+
+	return err;
+}
+
+
+
+EXPORT_FUNCTION S4Err Cipher_GetSize(Cipher_Algorithm  algorithm, size_t *bytesOut)
 {
     S4Err       err = kS4Err_NoErr;
     size_t      bits = 0;
-    
-    switch(algorithm)
-    {
-        case kCipher_Algorithm_AES128: bits = 128; break;
-        case kCipher_Algorithm_AES192: bits = 192; break;
-        case kCipher_Algorithm_AES256: bits = 256; break;
-        case kCipher_Algorithm_2FISH256: bits = 256; break;
-        case kCipher_Algorithm_3FISH256: bits = 256; break;
-        case kCipher_Algorithm_3FISH512: bits = 512; break;
-        case kCipher_Algorithm_3FISH1024: bits = 1024; break;
-        default:
-            RETERR(kS4Err_ResourceUnavailable);
-    };
-    
+
+	err = Cipher_GetKeySize(algorithm, &bits ); CKERR;
+
     if(bytesOut)
         *bytesOut = bits >> 3;
     
 done:
     return (err);
-   
-}
-
-
+ }
 

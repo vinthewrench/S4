@@ -46,7 +46,7 @@ static const char encoded_character_lookup[] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
 };
 
-int zbase32_decode(uint8_t *decoded,
+EXPORT_FUNCTION int zbase32_decode(uint8_t *decoded,
                    const uint8_t *encoded,
                    unsigned int bits)
 
@@ -94,7 +94,7 @@ int zbase32_decode(uint8_t *decoded,
 }
 
 
-int zbase32_encode(uint8_t *encoded,
+EXPORT_FUNCTION int zbase32_encode(uint8_t *encoded,
                    const uint8_t *input,
                    unsigned int bits) {
     uint8_t *output = encoded;
