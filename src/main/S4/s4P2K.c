@@ -183,6 +183,7 @@ EXPORT_FUNCTION S4Err P2K_Init( P2K_Algorithm algorithm,
 	*ctx = NULL;
 
 	p2kCTX = XMALLOC(sizeof (P2K_Context)); CKNULL(p2kCTX);
+    ZERO(p2kCTX,sizeof(P2K_Context));
 
 	p2kCTX->magic = kP2K_ContextMagic;
 	p2kCTX->algor = algorithm;
