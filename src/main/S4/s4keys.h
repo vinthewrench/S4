@@ -457,23 +457,6 @@ S4Err S4Key_VerifySignature( S4KeyContextRef      sigCtx,
                             void                   *hash,
                             size_t                 hashLen );
 
-S4Err S4Key_DecryptKeyFromPassPhrase(  uint8_t * __S4_NONNULL inData,
-									 size_t inLen,
-									 const uint8_t* __S4_NONNULL passphrase,
-									 size_t           passphraseLen,
-									 uint8_t __NULLABLE_XFREE_P_P outAllocKey,
-									 size_t* __S4_NULLABLE 		outKeySize);
-
-S4Err S4Key_EncryptKeyToPassPhrase( const void* __S4_NONNULL key,
-								   size_t 			keyLen,
-								   Cipher_Algorithm cipherAlgorithm,
-								   const uint8_t* __S4_NONNULL passphrase,
-								   size_t           passphraseLen,
-								   P2K_Algorithm 	passPhraseAlgorithm,
-								   uint8_t __NULLABLE_XFREE_P_P outAllocData,
-								   size_t* __S4_NULLABLE 		outSize);
-
-
 
 //S4_ASSUME_NONNULL_END
 

@@ -537,18 +537,18 @@ S4Err  TestKeysToPassPhrase()
 
 			err = RNG_GetBytes(key,sizeof(key)); CKERR;
 
-			err = S4Key_EncryptKeyToPassPhrase( key, sizeof(key), cipherAlgorithm,
+			err = P2K_EncryptKeyToPassPhrase( key, sizeof(key), cipherAlgorithm,
 											   passCode, passCodeLen, passPhraseAlgorithm,
 											   &eskData, &eskDataLen); CKERR;
 
 			OPTESTLogDebug("\n------\n%s------\n",eskData);
 
-			err = S4Key_DecryptKeyFromPassPhrase(eskData, eskDataLen,
+			err = P2K_DecryptKeyFromPassPhrase(eskData, eskDataLen,
 												 passCode, passCodeLen,
 												 &key1, & key1Len); CKERR;
 
 			// compare key and key1
-			err = compare2Results( key, sizeof(key), key1, key1Len , kResultFormat_Byte, "S4Key_DecryptKeyFromPassPhrase"); CKERR;
+			err = compare2Results( key, sizeof(key), key1, key1Len , kResultFormat_Byte, "P2K_DecryptKeyFromPassPhrase"); CKERR;
 
 
 			if(eskData)

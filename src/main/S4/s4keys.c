@@ -6330,7 +6330,7 @@ done:
 #pragma mark -  Passcode to Key.
 #endif
 
-EXPORT_FUNCTION S4Err S4Key_EncryptKeyToPassPhrase( const void 		*keyIn,
+EXPORT_FUNCTION S4Err P2K_EncryptKeyToPassPhrase( const void 		*keyIn,
 												   size_t 			keyInLen,
 												   Cipher_Algorithm cipherAlgorithm,
 												   const uint8_t    *passphrase,
@@ -6503,7 +6503,7 @@ done:
 
 }
 
-S4Err S4Key_DecryptKeyFromPassPhrase(  uint8_t * __S4_NONNULL inData,
+S4Err P2K_DecryptKeyFromPassPhrase(  uint8_t * __S4_NONNULL inData,
 									 size_t inLen,
 									 const uint8_t* __S4_NONNULL passphrase,
 									 size_t           passphraseLen,

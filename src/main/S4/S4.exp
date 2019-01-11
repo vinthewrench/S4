@@ -176,6 +176,6 @@ _S4Key_VerifySignature
 _S4Key_RemoveProperty
 
 _HASH_NormalizePassPhrase
-_S4Key_EncryptKeyToPassPhrase
-_S4Key_DecryptKeyFromPassPhrase
+_P2K_EncryptKeyToPassPhrase
+_P2K_DecryptKeyFromPassPhrase
 
