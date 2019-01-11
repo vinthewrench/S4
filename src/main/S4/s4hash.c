@@ -898,3 +898,50 @@ done:
     return err;
 }
 
+
+EXPORT_FUNCTION S4Err HASH_NormalizePassPhrase(const uint8_t    *passphrase,
+											   size_t           passphraseLen,
+											   const uint8_t    *salt,
+											   size_t           saltLen,
+											   uint8_t __NULLABLE_XFREE_P_P outAllocData,
+											   size_t* __S4_NULLABLE outSize)
+{
+
+	S4Err             	err         = kS4Err_NoErr;
+	HASH_ContextRef     hashCtx     = kInvalidHASH_ContextRef;
+
+	size_t          	hashSize = 0;
+	uint8_t         	hashBuf [512/8];
+	uint16_t			byteLen;
+
+	const HASH_Algorithm hashAlgor  = kHASH_Algorithm_SHA3_512;
+	err = HASH_Init(hashAlgor, &hashCtx); CKERR;
+	err = HASH_GetSize(hashCtx, &hashSize);CKERR;
+
+	byteLen = passphraseLen;
+	err = HASH_Update(hashCtx,&byteLen, sizeof(byteLen));
+	err = HASH_Update(hashCtx, passphrase, passphraseLen); CKERR;
+
+	byteLen = saltLen;
+	err = HASH_Update(hashCtx,&byteLen, sizeof(byteLen));
+	err = HASH_Update(hashCtx, salt, saltLen); CKERR;
+
+	err = HASH_Final(hashCtx, hashBuf); CKERR;
+
+	if(outSize)
+		*outSize = hashSize;
+
+	if(outAllocData)
+	{
+		 uint8_t  *buffer = XMALLOC(hashSize);
+		COPY(hashBuf, buffer, hashSize);
+		*outAllocData = buffer;
+	}
+
+done:
+	if(!IsNull(hashCtx))
+		HASH_Free(hashCtx);
+
+	return err;
+
+}

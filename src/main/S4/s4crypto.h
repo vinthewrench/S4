@@ -221,6 +221,13 @@ S4Err HASH_Import(void *inData, size_t bufSize,
 
 S4Err HASH_DO(HASH_Algorithm algorithm, const void *in, size_t inlen, size_t outLen, void *out);
 
+S4Err HASH_NormalizePassPhrase(const uint8_t    *passphrase,
+							   size_t           passphraseLen,
+							   const uint8_t    *salt,
+							   size_t           saltLen,
+							   uint8_t __NULLABLE_XFREE_P_P outAllocData,
+							   size_t* __S4_NULLABLE outSize);
+
 #ifdef __clang__
 #pragma mark - Message  Authentication Code wrappers
 #endif

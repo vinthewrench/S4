@@ -476,12 +476,127 @@ done:
 
 }
 
+S4Err  TestKeysToPassPhrase()
+{
+	Cipher_Algorithm cipherAlgorithms[] =
+	{
+		kCipher_Algorithm_AES128,
+/*		kCipher_Algorithm_AES192,   not supported  */
+		kCipher_Algorithm_AES256,
+		kCipher_Algorithm_2FISH256
+	};
+
+	S4Err     err = kS4Err_NoErr;
+	P2K_Algorithm* passPhraseAlgorithms;
+	size_t algorCount = 0;
+
+	uint8_t    *eskData = NULL;
+	size_t     eskDataLen = 0;
+
+	uint8_t*  	key1 	= NULL;
+	size_t      key1Len  = 0;
+
+	uint8_t    *passCode = NULL;
+	size_t     passCodeLen = 0;
+
+ 	OPTESTLogInfo("\nTesting Keys to PassPhrase\n");
+
+	err = P2K_GetAvailableAlgorithms(&passPhraseAlgorithms, &algorCount); CKERR;
+
+	for(int i = 0; i < algorCount; i++)
+	{
+		P2K_Algorithm passPhraseAlgorithm = passPhraseAlgorithms[i];
+		const char* p2KName = "Invalid";
+		const char* saltString = "Some Salt";
+
+		uint8_t  	passphrase [256];
+		const size_t  passphraseLen = sizeof(passphrase) -1;
+
+		err = P2K_GetName(passPhraseAlgorithm, &p2KName); CKERR;
+		OPTESTLogInfo("%10s\t", p2KName );
+
+		err = RNG_GetPassPhrase(passphraseLen,  (char **) passphrase); CKERR;
+
+		err = HASH_NormalizePassPhrase(passphrase,passphraseLen,
+									   (uint8_t*)saltString, strlen(saltString),
+									   &passCode, &passCodeLen); CKERR;
+
+		for (int j = 0; j < sizeof(cipherAlgorithms)/ sizeof(Cipher_Algorithm) ; j++)
+		{
+			Cipher_Algorithm cipherAlgorithm = cipherAlgorithms[j];
+			const char* 		cipherName = "Invalid";
+			size_t              cipherSizeInBits = 0;
+			size_t              cipherSizeInBytes = 0;
+			uint8_t  	  		key[128];
+
+			err = Cipher_GetName(cipherAlgorithm, &cipherName); CKERR;
+			OPTESTLogInfo("%10s\t", cipherName );
+
+			err = Cipher_GetKeySize(cipherAlgorithm, &cipherSizeInBits); CKERR;
+			cipherSizeInBytes = cipherSizeInBits / 8;
+
+			err = RNG_GetBytes(key,sizeof(key)); CKERR;
+
+			err = S4Key_EncryptKeyToPassPhrase( key, sizeof(key), cipherAlgorithm,
+											   passCode, passCodeLen, passPhraseAlgorithm,
+											   &eskData, &eskDataLen); CKERR;
+
+			OPTESTLogDebug("\n------\n%s------\n",eskData);
+
+			err = S4Key_DecryptKeyFromPassPhrase(eskData, eskDataLen,
+												 passCode, passCodeLen,
+												 &key1, & key1Len); CKERR;
+
+			// compare key and key1
+			err = compare2Results( key, sizeof(key), key1, key1Len , kResultFormat_Byte, "S4Key_DecryptKeyFromPassPhrase"); CKERR;
+
+
+			if(eskData)
+			{
+				XFREE(eskData);
+				eskData = NULL;
+			}
+
+			if(key1)
+			{
+				XFREE(key1);
+				key1 = NULL;
+			}
+		}
+
+			if(passCode)
+			{
+				XFREE(passCode);
+				passCode = NULL;
+			}
+
+		OPTESTLogDebug("\t" );
+
+		OPTESTLogInfo("✓\n");
+	}
+
+
+done:
+
+	if(eskData)
+		XFREE(eskData);
+
+	if(passCode)
+		XFREE(passCode);
+
+	if(passPhraseAlgorithms)
+		XFREE(passPhraseAlgorithms);
+
+	return err;
+
+}
+
 S4Err  TestP2K()
 {
 	S4Err     err = kS4Err_NoErr;
 
-	err = TestP2KAPI(); CKERR;
-
+  	err = TestP2KAPI(); CKERR;
+	err = TestKeysToPassPhrase(); CKERR;
 	err = TestARGON2(); CKERR;
 	err = TestPBKDF2(); CKERR;
 

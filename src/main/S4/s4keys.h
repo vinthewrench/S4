@@ -105,6 +105,7 @@ enum S4KeyType_
     kS4KeyType_PublicKey            = 7,
     kS4KeyType_Signature            = 8,
 	kS4KeyType_P2K              	= 9,
+	kS4KeyType_P2K_ESK            	= 10,
 
     kS4KeyType_Invalid           =  kEnumMaxValue,
     
@@ -169,6 +170,27 @@ typedef struct S4KeyP2K_
 	uint8_t			shareHash[kS4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
 
 }S4KeyP2K;
+
+typedef struct S4KeyESK_
+{
+	S4KeyType              keyAlgorithmType;
+	Cipher_Algorithm       cipherAlgor;
+	const char*			   p2kParams;
+
+	uint8_t             	keyHash[kS4KeyPBKDF2_HashBytes];
+
+	Cipher_Algorithm       encyptAlgor;
+
+	uint8_t             iv[256];
+	size_t              ivLen;
+
+	uint8_t             esk[256];
+	size_t              eskLen;
+
+	uint8_t             *encrypted;
+	size_t              encryptedLen;
+}S4KeyESK;
+
 
 typedef struct S4KeyPublic_Encrypted_
 {
@@ -272,7 +294,8 @@ struct S4KeyContext
         
         S4KeyPublic         pub;
         S4KeySig            sig;
-    };
+		S4KeyESK            esk;
+	};
     
 };
 
@@ -433,6 +456,23 @@ S4Err S4Key_VerifySignature( S4KeyContextRef      sigCtx,
                              S4KeyContextRef      sigingKeyCtx,
                             void                   *hash,
                             size_t                 hashLen );
+
+S4Err S4Key_DecryptKeyFromPassPhrase(  uint8_t * __S4_NONNULL inData,
+									 size_t inLen,
+									 const uint8_t* __S4_NONNULL passphrase,
+									 size_t           passphraseLen,
+									 uint8_t __NULLABLE_XFREE_P_P outAllocKey,
+									 size_t* __S4_NULLABLE 		outKeySize);
+
+S4Err S4Key_EncryptKeyToPassPhrase( const void* __S4_NONNULL key,
+								   size_t 			keyLen,
+								   Cipher_Algorithm cipherAlgorithm,
+								   const uint8_t* __S4_NONNULL passphrase,
+								   size_t           passphraseLen,
+								   P2K_Algorithm 	passPhraseAlgorithm,
+								   uint8_t __NULLABLE_XFREE_P_P outAllocData,
+								   size_t* __S4_NULLABLE 		outSize);
+
 
 
 //S4_ASSUME_NONNULL_END

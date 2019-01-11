@@ -174,3 +174,8 @@ _S4Key_NewSignature
 _S4Key_SerializeSignature
 _S4Key_VerifySignature
 _S4Key_RemoveProperty
+
+_HASH_NormalizePassPhrase
+_S4Key_EncryptKeyToPassPhrase
+_S4Key_DecryptKeyFromPassPhrase
+
