@@ -115,10 +115,9 @@ static const error_map_entry error_map_table[] =
     { -1            ,           kS4Err_OtherError    ,        "Other Error" },
     
     { -1            ,           kS4Err_NotEnoughShares    ,     "Not enough shares to recombine secret" },
-    
-    
-    
-    
+	{ -1            ,           kS4Err_PropertyNotFound    ,     "Property not found" },
+	{ -1            ,           kS4Err_ShareOwnerMismatch    ,	"Share does not belong to owner" },
+
 };
 
 

@@ -107,21 +107,21 @@ _S4_Store8
 _S4_SkipBytes
 _S4_GetBuffPtr
 
-_SHARES_Init
-_SHARES_Free
-_SHARES_GetShareInfo
+_S4Shares_New
+_S4Shares_Free
+_S4Shares_GetPart
+_S4SharesPart_Free
 _SHARES_CombineShareInfo
 _SHARES_GetShareHash
 
 _S4Key_NewKey
 _S4Key_NewSymmetric
 _S4Key_NewTBC
-_S4Key_NewShare
 _S4Key_Free
 _S4Key_Copy
 _S4Key_SerializeToS4Key
+_S4Key_SerializeSharePart
 _S4Key_SerializeToPassPhrase
-_S4Key_SerializeToPassPhrase_WithAlgorithm
 _S4Key_DeserializeKeys
 _S4Key_DeserializeKey
 _S4Key_VerifyPassPhrase
@@ -159,6 +159,9 @@ _kS4KeyProp_SignedDate
 _kS4KeyProp_SigExpire
 _kS4KeyProp_SigID
 _kS4KeyProp_p2kParams
+_kS4KeyProp_EncodedObject
+_kS4KeyProp_ShareOwner
+_kS4KeyProp_ShareID
 
 _S4Key_SerializeToShares
 
@@ -178,4 +181,7 @@ _S4Key_RemoveProperty
 _HASH_NormalizePassPhrase
 _P2K_EncryptKeyToPassPhrase
 _P2K_DecryptKeyFromPassPhrase
-
+_S4Key_SerializeToPassCode
+_S4Key_DecryptFromPassCode
+_S4Key_VerifyPassCode
+_S4Key_RecoverKeyFromShares

@@ -27,6 +27,8 @@
 #	define __NULLABLE_REF_POINTER __nullable * __nullable
 #	define __CONST_CHAR_P_P const char *__nullable* __nullable		/* nullable const char **p */
 #	define __NULLABLE_XFREE_P_P  * __nullable * __nullable				/* nullable pointer to XMALLOC block */
+#	define __NONNULL_ARRAY __nonnull * __nullable
+
 
 #else  // NO SUPPORT FOR nullability
 #   define S4_ASSUME_NONNULL_BEGIN
@@ -37,6 +39,8 @@
 #	define __NULLABLE_REF_POINTER *
 #	define __CONST_CHAR_P_P const char ** 		/* nullable const char **p */
 #	define __NULLABLE_XFREE_P_P  ** 				/* nullable pointer to XMALLOC block */
+#	define __NONNULL_ARRAY *
+
 #endif
 
 
@@ -210,8 +214,10 @@ enum S4Err
     kS4Err_PubPrivKeyNotFound,		// 28
     
     kS4Err_NotEnoughShares,         // 29
-
     kS4Err_PropertyNotFound,        // 30
+	kS4Err_ShareOwnerMismatch,         // 31
+
+
 };
 
 typedef int S4Err;

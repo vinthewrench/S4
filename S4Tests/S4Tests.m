@@ -51,7 +51,7 @@ unsigned int gLogLevel	= OPTESTLOG_LEVEL_ERROR;
     {
         char str[256];
         
-        if(IsntS4Err( S4_GetErrorString(err, sizeof(str), str)))
+        if(IsntS4Err( S4_GetErrorString(err, str)))
         {
             errorStr = [ NSString stringWithFormat:@"Error %d:  %s\n", err, str ];
         }

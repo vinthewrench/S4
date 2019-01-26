@@ -10,7 +10,8 @@
 #define optest_h
 
 #include <stdio.h>
-#include   <s4/s4.h>
+#include <s4/s4.h>
+#include <s4/s4crypto.h>
 
 #ifdef __IPHONE_OS_VERSION_MIN_REQUIRED
 #define OPTEST_IOS_SPECIFIC 1
@@ -96,6 +97,7 @@ int compare2Results(const void* expected, size_t expectedLen,
                     const void* calculated, size_t  calculatedLen,
                     DumpFormatType format, const char* comment );
 
+void createTestOffsets(uint8_t* array, int maxCount);
 
 
 S4Err TestHash(void);

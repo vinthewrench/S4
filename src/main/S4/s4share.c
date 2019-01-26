@@ -218,20 +218,6 @@ typedef struct ShareHeader
 
 } ShareHeader;
 
-
-typedef struct SHARES_Context    SHARES_Context;
-
-struct SHARES_Context
-{
-#define kSHARES_ContextMagic		0x63345353
-    uint32_t                magic;
-    size_t                  shareLen;
-    uint32_t                totalShares;
-    uint32_t                threshold;
-    uint8_t                 shareHash[kS4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
-    uint8_t                 shareData[];
-};
-
 #pragma pack(pop)   /* restore original alignment from stack */
 
 
@@ -242,17 +228,29 @@ static  inline ShareHeader* sGetShareData(void* shareData, size_t shareLen,  uin
 }
 
 
-static bool sSHARES_ContextIsValid( const SHARES_ContextRef  ref)
+bool sS4SharesContextIsValid( const S4SharesContextRef  ref)
 {
     bool	valid	= false;
     
-    valid	= IsntNull( ref ) && ref->magic	 == kSHARES_ContextMagic;
+    valid	= IsntNull( ref ) && ref->magic	 == kS4SharesContextMagic;
     
     return( valid );
 }
 
 #define validateSHARESContext( s )		\
-ValidateParam( sSHARES_ContextIsValid( s ) )
+ValidateParam( sS4SharesContextIsValid( s ) )
+
+bool sS4SharesPartContextIsValid( const S4SharesPartContextRef  ref)
+{
+	bool	valid	= false;
+
+	valid	= IsntNull( ref ) && ref->magic	 == kS4SharesPartContextMagic;
+
+	return( valid );
+}
+
+#define validateSHARESContext( s )		\
+ValidateParam( sS4SharesContextIsValid( s ) )
 
 
 S4Err SHARES_GetShareHash( const uint8_t *key,
@@ -381,14 +379,14 @@ static S4Err sInterpolation(void* shareData, size_t shareLen, uint32_t nShares, 
 
 #define SHARE_DATA(_context_, _shareNum_) (sGetShareData(&_context_->shareData, _context_->shareLen, _shareNum_))
 
-EXPORT_FUNCTION S4Err SHARES_Init( const void       *key,
+EXPORT_FUNCTION S4Err S4Shares_New( const void       *key,
                    size_t           keyLen,
                    uint32_t         totalShares,
                    uint32_t         threshold,
-                   SHARES_ContextRef *ctx)
+                   S4SharesContextRef *ctx)
 {
     S4Err               err = kS4Err_NoErr;
-    SHARES_Context*    shareCTX = NULL;
+    S4SharesContext*    shareCTX = NULL;
     
     size_t          allocSize = 0;
     uint32_t			i, j;
@@ -396,21 +394,23 @@ EXPORT_FUNCTION S4Err SHARES_Init( const void       *key,
    
     ValidateParam(key);
     ValidateParam(ctx);
-    ValidateParam(keyLen <= 64)
+    ValidateParam(keyLen <= kS4ShareInfo_MaxSecretBytes)
     
     *ctx = NULL;
     
-    allocSize = sizeof (SHARES_Context) + ((sizeof(ShareHeader) + keyLen) * totalShares);
+    allocSize = sizeof (S4SharesContext) + ((sizeof(ShareHeader) + keyLen) * totalShares);
     
     shareCTX = XMALLOC( allocSize); CKNULL(shareCTX);
     ZERO(shareCTX, allocSize);
     
-    shareCTX->magic         = kSHARES_ContextMagic;
+    shareCTX->magic         = kS4SharesContextMagic;
     shareCTX->shareLen      = keyLen;
     shareCTX->totalShares   = totalShares;
     shareCTX->threshold     = threshold;
 
-    err = SHARES_GetShareHash(key, keyLen, shareCTX->threshold,  shareCTX->shareHash, kS4ShareInfo_HashBytes ); CKERR;
+    err = SHARES_GetShareHash(key, keyLen,
+							  shareCTX->threshold,
+							  shareCTX->shareID, kS4ShareInfo_HashBytes ); CKERR;
                      
     /* Set X coordinate randomly for each share */
     for( i=0; i<totalShares; ++i )
@@ -506,42 +506,57 @@ done:
 }
 
 
-EXPORT_FUNCTION void  SHARES_Free(SHARES_ContextRef  ctx)
+EXPORT_FUNCTION void  S4Shares_Free(S4SharesContextRef  ctx)
 {
-    if(sSHARES_ContextIsValid(ctx))
+    if(sS4SharesContextIsValid(ctx))
     {
-         size_t allocSize = sizeof (SHARES_Context) + (sizeof(ShareHeader) + ctx->shareLen) * ctx->totalShares;
+         size_t allocSize = sizeof (S4SharesContext) + (sizeof(ShareHeader) + ctx->shareLen) * ctx->totalShares;
         
         ZERO(ctx, allocSize);
         XFREE(ctx);
     }
 }
 
-EXPORT_FUNCTION S4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
+EXPORT_FUNCTION void  S4SharesPart_Free(S4SharesPartContextRef  ctx)
+{
+	if(sS4SharesPartContextIsValid(ctx))
+	{
+		ZERO(ctx, sizeof(S4SharesPartContext));
+ 		XFREE(ctx);
+	}
+}
+
+
+EXPORT_FUNCTION S4Err  S4Shares_GetPart( S4SharesContextRef  ctx,
                            uint32_t            shareNumber,
-                           SHARES_ShareInfo    **shareInfoOut,
-                           size_t              *shareInfoLen)
+                           S4SharesPartContext    **shareInfoOut)
 {
     S4Err               err = kS4Err_NoErr;
     size_t              bufSize = 0;
-    SHARES_ShareInfo*   shareInfo = NULL;
+    S4SharesPartContext*   shareInfo = NULL;
     
     validateSHARESContext(ctx);
     ValidateParam( shareNumber < ctx->totalShares);
     
-    bufSize = sizeof(SHARES_ShareInfo);
+    bufSize = sizeof(S4SharesPartContext);
     
     ShareHeader* hdr =   SHARE_DATA(ctx, shareNumber);
     
     shareInfo = XMALLOC(bufSize); CKNULL(shareInfo);
     ZERO(shareInfo, bufSize);
- 
+
+	shareInfo->magic         = kS4SharesPartContextMagic;
+
 	shareInfo->threshold = ctx->threshold;
-    COPY(ctx->shareHash, shareInfo->shareHash, kS4ShareInfo_HashBytes);
+    COPY(ctx->shareID, shareInfo->shareOwner, kS4ShareInfo_HashBytes);
  
     shareInfo->xCoordinate = hdr->xCoordinate;
     shareInfo->shareSecretLen = hdr->shareDataLen;
     COPY(hdr->data, shareInfo->shareSecret, hdr->shareDataLen);
+
+	err = SHARES_GetShareHash(shareInfo->shareSecret, shareInfo->shareSecretLen,
+							  shareInfo->threshold,
+							  shareInfo->shareID, kS4ShareInfo_HashBytes ); CKERR;
 
 	if(shareInfoOut)
 		*shareInfoOut = shareInfo;
@@ -552,17 +567,16 @@ EXPORT_FUNCTION S4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
 		shareInfo = NULL;
 	}
 
-    if(shareInfoLen)
-        *shareInfoLen = bufSize;
-    
 done:
     
     return err;
    
 }
 
+
+
 EXPORT_FUNCTION S4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
-                           SHARES_ShareInfo*        sharesInfoIn[],
+                           S4SharesPartContext*        sharesInfoIn[],
                            void                     *outData,
                            size_t                   bufSize,
                            size_t                   *outDataLen)
@@ -573,7 +587,7 @@ EXPORT_FUNCTION S4Err  SHARES_CombineShareInfo( uint32_t            numberShares
     uint8_t				threshold = 0;
     uint8_t             *shareTable = NULL;
     size_t              allocSize = 0;
-    uint8_t             shareHash[kS4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
+    uint8_t             shareOwner[kS4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
     uint8_t             calculatedHash[kS4ShareInfo_HashBytes];
 
     uint32_t			i, j;
@@ -585,7 +599,7 @@ EXPORT_FUNCTION S4Err  SHARES_CombineShareInfo( uint32_t            numberShares
     
     for(i = 0; i< numberShares; i++)
     {
-        SHARES_ShareInfo* info = sharesInfoIn[i];
+        S4SharesPartContext* info = sharesInfoIn[i];
         
         // pickup the keylength from first share
         if(i == 0)
@@ -597,7 +611,7 @@ EXPORT_FUNCTION S4Err  SHARES_CombineShareInfo( uint32_t            numberShares
                 RETERR(kS4Err_NotEnoughShares);
             
             // copy the share Hash
-            COPY(info->shareHash, shareHash, kS4ShareInfo_HashBytes);
+            COPY(info->shareOwner, shareOwner, kS4ShareInfo_HashBytes);
             
             ValidateParam(bufSize >= keyLen);
          }
@@ -608,7 +622,7 @@ EXPORT_FUNCTION S4Err  SHARES_CombineShareInfo( uint32_t            numberShares
             // they all need to be the same size
             ValidateParam(info->threshold == threshold);
             // Compare the shareHash
-            ValidateParam(CMP(info->shareHash, shareHash, kS4ShareInfo_HashBytes));
+            ValidateParam(CMP(info->shareOwner, shareOwner, kS4ShareInfo_HashBytes));
         }
     }
     
@@ -619,7 +633,7 @@ EXPORT_FUNCTION S4Err  SHARES_CombineShareInfo( uint32_t            numberShares
     
     for(i = 0; i< numberShares; i++)
     {
-        SHARES_ShareInfo* info = sharesInfoIn[i];
+        S4SharesPartContext* info = sharesInfoIn[i];
          ShareHeader     *hdr = sGetShareData(shareTable, keyLen, i);
         
         hdr->xCoordinate    = info->xCoordinate;
@@ -640,7 +654,7 @@ EXPORT_FUNCTION S4Err  SHARES_CombineShareInfo( uint32_t            numberShares
     // check for valid secret
     err = SHARES_GetShareHash(outData, keyLen, threshold, calculatedHash, kS4ShareInfo_HashBytes ); CKERR;
     
-     if (!CMP(calculatedHash, shareHash, kS4ShareInfo_HashBytes) )
+     if (!CMP(calculatedHash, shareOwner, kS4ShareInfo_HashBytes) )
             RETERR(kS4Err_CorruptData);
 
     if(outDataLen)

@@ -13,8 +13,8 @@
 
 S4_ASSUME_NONNULL_BEGIN
 
-#define S4_BUILD_NUMBER               7
-#define S4_SHORT_VERSION_STRING       "2.1.0"
+#define S4_BUILD_NUMBER               8
+#define S4_SHORT_VERSION_STRING       "2.2.0"
 
 
 #ifdef __clang__
@@ -211,7 +211,10 @@ enum Cipher_Algorithm_
      kCipher_Algorithm_ECC414        =  301, /*  Dan Bernstein Curve3617  */
 	kCipher_Algorithm_ECC41417		=  301,
 	
-    kCipher_Algorithm_Invalid           =  kEnumMaxValue,
+
+	kCipher_Algorithm_Unknown          =  9999,
+
+	kCipher_Algorithm_Invalid           =  kEnumMaxValue,
     
     ENUM_FORCE( Cipher_Algorithm_ )
 };
@@ -528,41 +531,69 @@ S4Err ECC_Sign(ECC_ContextRef  privCtx, void *inData, size_t inDataLen,
 #pragma mark - Shamir Secret Sharing
 #endif
 
-typedef struct SHARES_Context *      SHARES_ContextRef;
+typedef struct S4SharesContext *      S4SharesContextRef;
 
-#define	kInvalidSHARES_ContextRef		((SHARES_ContextRef) NULL)
-
-#define SHARES_ContextRefIsValid( ref )		( (ref) != kInvalidSHARES_ContextRef )
+#define	kInvalidS4SharesContextRef		((S4SharesContextRef) NULL)
+#define S4SharesContextRefIsValid( ref )		( (ref) != kInvalidS4SharesContextRef )
 
 
 #define kS4ShareInfo_HashBytes      8
+#define kS4ShareInfo_MaxSecretBytes      128
 
-typedef struct SHARES_ShareInfo
+typedef struct  S4SharesContext
 {
+#define kS4SharesContextMagic		0x53345343
+	uint32_t                magic;
+	size_t                  shareLen;
+	uint32_t                totalShares;
+	uint32_t                threshold;
+
+	// If the share secret is a encyption key then these are valid
+	Cipher_Algorithm    encyptAlgor;
+	uint8_t             *encrypted;
+	size_t              encryptedLen;
+
+	uint8_t					shareID[kS4ShareInfo_HashBytes];     	 /* Share owner  -serial number */
+	uint8_t                 shareData[];
+} S4SharesContext;
+
+
+typedef struct S4SharesPartContext *      S4SharesPartContextRef;
+
+#define	kInvalidS4SharesPartContextRef		((S4SharesPartContextRef) NULL)
+#define S4SharesPartContextRefIsValid( ref )		( (ref) != kInvalidS4SharesPartContextRef )
+
+typedef struct S4SharesPartContext
+{
+#define kS4SharesPartContextMagic		0x53345350
+	uint32_t        magic;
+
+	uint8_t			shareOwner[kS4ShareInfo_HashBytes];      /* Share owner  - serial number */
+	uint8_t			shareID[kS4ShareInfo_HashBytes];     	 /* Share ID -serial number */
     uint8_t         threshold;                              /* Number of shares needed to combine */
     uint8_t			xCoordinate;                            /* X coordinate of share  AKA the share index */
-    uint8_t			shareHash[kS4ShareInfo_HashBytes];      /* Share data Hash - AKA serial number */
-    
     size_t          shareSecretLen;
-    uint8_t         shareSecret[64];                        /* the actual share secret */
-} SHARES_ShareInfo;
+    uint8_t         shareSecret[kS4ShareInfo_MaxSecretBytes];                        /* the actual share secret */
+} S4SharesPartContext;
 
 
-S4Err SHARES_Init( const void       *key,
+S4Err S4Shares_New( const void       *key,
                   size_t           keyLen,
                   uint32_t         totalShares,
                   uint32_t         threshold,
-                  SHARES_ContextRef __NULLABLE_REF_POINTER ctx);
+                  S4SharesContextRef __NULLABLE_REF_POINTER ctx);
 
-void  SHARES_Free(SHARES_ContextRef  ctx);
 
-S4Err  SHARES_GetShareInfo( SHARES_ContextRef  ctx,
+void  S4Shares_Free(S4SharesContextRef  ctx);
+
+S4Err  S4Shares_GetPart( S4SharesContextRef  ctx,
                             uint32_t            shareNumber,
-                            SHARES_ShareInfo   __NULLABLE_XFREE_P_P shareInfo,
-                            size_t              *shareInfoLen);
+                            S4SharesPartContext   __NULLABLE_XFREE_P_P shareInfo);
+
+void  S4SharesPart_Free(S4SharesPartContextRef  ctx);
 
 S4Err  SHARES_CombineShareInfo( uint32_t            numberShares,
-							   SHARES_ShareInfo* __S4_NONNULL   sharesInfoIn[__S4_NONNULL],
+							   S4SharesPartContext* __S4_NONNULL   sharesInfoIn[__S4_NONNULL],
                                void                     *outData,
                                size_t                   bufSize,
                                size_t                   *outDataLen);

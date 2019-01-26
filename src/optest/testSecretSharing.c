@@ -13,108 +13,68 @@
 #include "optest.h"
 
 
-
-#define PTsize                  32
 #define kNumShares				8
 #define kShareThreshold			6
 
-
-//* create fill this array with unique numbers from 0 to maxCount
-
-void sCreateTestOffsets(uint8_t* array, int maxCount)
-{
-    int i;
-    
-      for(i = 0; i< maxCount; i++) array [i]= 0xff;
-
-    /* pick the shares to test against */
-    for(i = 0; i< maxCount; i++)
-    {
-        uint8_t r =  random() % maxCount;
-        
-        if(i == 0)  array[0] = r;
-        else
-        {
-            int j;
-            bool xOK = false;
-            while (!xOK)
-            {
-                for(j = 0; j <= i; j++)
-                {
-                    if(array[j] == r)  break;
-                    if(j == i)
-                    {
-                        array[i] = r;
-                        xOK = true;
-                    }
-                }
-                 r = random() % maxCount;
-             }
-        }
-    }
-    
-    
-  }
 
 S4Err  TestSecretSharing()
 {
    
     S4Err       err = kS4Err_NoErr;
-    uint8_t     PT[PTsize];
+    uint8_t     PT[kS4ShareInfo_MaxSecretBytes];
     uint8_t     PT1[sizeof (PT)];
     size_t      keyLen      = 0;
 
-    SHARES_ShareInfo*   shareInfo[kNumShares];
-    SHARES_ShareInfo*   testShares[kShareThreshold];
+	S4SharesPartContext*   shareInfo[kNumShares] = {NULL};
+    S4SharesPartContext*   testShares[kShareThreshold];
     uint8_t             testOffset[kShareThreshold];
     
-    SHARES_ContextRef   shareCTX  = kInvalidSHARES_ContextRef;
-    
-      uint32_t 	i;
+    S4SharesContextRef   shareCTX  = kInvalidS4SharesContextRef;
 
-    
     OPTESTLogInfo("\nTesting Shamir Key Spliting\n");
  
     // create a random key
     err = RNG_GetBytes(PT, sizeof(PT)); CKERR;
     
-    OPTESTLogVerbose("\t\tKey Data: (%ld bytes)\n", PTsize);
+    OPTESTLogVerbose("\tKey Data: (%ld bytes)\n", kS4ShareInfo_MaxSecretBytes);
     dumpHex(IF_LOG_DEBUG, PT,  (int)sizeof (PT), 0);
     OPTESTLogDebug("\n");
  
     
-    err = SHARES_Init( PT, sizeof(PT),
+    err = S4Shares_New( PT, sizeof(PT),
                       kNumShares,
                       kShareThreshold,
                       &shareCTX); CKERR;
- 
-    for(i = 0; i < kNumShares; i++)
+
+    for(int i = 0; i < kNumShares; i++)
     {
-        size_t shareLen = 0;
-        
-        err = SHARES_GetShareInfo(shareCTX, i, &shareInfo[i], &shareLen); CKERR;
-      
+
+        err = S4Shares_GetPart(shareCTX, i, &shareInfo[i]); CKERR;
+
+		err = compare2Results(shareInfo[i]->shareOwner, kS4ShareInfo_HashBytes,
+							  shareCTX->shareID, kS4ShareInfo_HashBytes,
+							  kResultFormat_Byte, "Check Share Owner");  //CKERR;
+
         if(IF_LOG_VERBOSE)
         {
-            OPTESTLogVerbose("\t  Share %d: (%d bytes)\n", i,shareLen);
+            OPTESTLogVerbose("\t  Share %d: x = %d\n", i, shareInfo[i]->xCoordinate);
             dumpHex(IF_LOG_DEBUG, shareInfo[i]->shareSecret  , (int)shareInfo[i]->shareSecretLen, 0);
-            OPTESTLogVerbose("\n");
+            OPTESTLogDebug("\n");
         }
-        
-        
-//        OPTESTLogVerbose("\t Check shares for data leakage against known original message...");
-//             /*  check shares for data leakage against known original message */
-//            err = CMP(shareBuf+(shareSize *i) + kSHAMIR_HEADERSIZE,
-//                      PT,  sizeof (PT))
-//            ? kS4Err_SelfTestFailed : kS4Err_NoErr;
-//            CKERR;
-    
-      }
+
+		/*  check shares for data leakage against known original message */
+		if( CMP(shareInfo[i]->shareSecret,  PT,  shareInfo[i]->shareSecretLen ))
+		{
+			OPTESTLogError("\t Share data leakage against known original message...");
+			RETERR(kS4Err_SelfTestFailed);
+		}
+
+	}
     
     // create threshold number of shares to test with
-    sCreateTestOffsets(testOffset, sizeof(testOffset));
+	createTestOffsets(testOffset, sizeof(testOffset));
     
-    for(i = 0; i < kShareThreshold; i++)
+    for(int i = 0; i < kShareThreshold; i++)
           testShares[i] = shareInfo[testOffset[i]];
   
  
@@ -143,13 +103,14 @@ S4Err  TestSecretSharing()
     
 done:
     
-    for(i = 0; i < kNumShares; i++)
+    for(int i = 0; i < kNumShares; i++)
     {
-        if(shareInfo[i]) XFREE(shareInfo[i]);
+        if(shareInfo[i])
+			S4SharesPart_Free(shareInfo[i]);
     }
     
-    if(SHARES_ContextRefIsValid(shareCTX))
-        SHARES_Free(shareCTX);
+    if(S4SharesContextRefIsValid(shareCTX))
+        S4Shares_Free(shareCTX);
     
     return err;
     

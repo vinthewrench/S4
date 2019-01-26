@@ -27,6 +27,7 @@
 #include "s4crypto.h"
 #include "s4keys.h"
 #include "s4bufferutilities.h"
+#include "s4keysinternal.h"
 
 #endif /* S4_h */
 
@@ -65,6 +66,8 @@ const struct ltc_hash_descriptor* sDescriptorForHash(HASH_Algorithm algorithm);
 S4Err sCrypt2S4Err(int t_err);
 
 bool sECC_ContextIsValid( const ECC_ContextRef  ref);
+bool sS4SharesContextIsValid( const S4SharesContextRef  ref);
+bool sS4SharesPartContextIsValid( const S4SharesPartContextRef  ref);
 
 #define validateECCContext( s )		\
 ValidateParam( sECC_ContextIsValid( s ) )

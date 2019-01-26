@@ -20,5 +20,7 @@
 #include "s4crypto.h"
 #include "s4keys.h"
 #include "s4bufferutilities.h"
+#include "s4keysinternal.h"
+
 
 #endif /* S4_h */

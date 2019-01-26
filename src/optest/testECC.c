@@ -61,7 +61,7 @@ static S4Err sTestECC(ECC_Algorithm algorithm)
     for(i = 0; i< PTsize; i++) PT[i]= i;
 
     OPTESTLogVerbose("\t\tGenerate Pub Key (%ld bytes)\n", keyBytes);
-	err = ECC_Init(algorithm, &ecc);
+	err = ECC_Init(algorithm, &ecc);CKERR;
 
     err =  ECC_Export_ANSI_X963( ecc, pubKey, sizeof(pubKey), &pubKeyLen);CKERR;
     OPTESTLogVerbose("\t\tExport Public Key (%ld bytes)\n", pubKeyLen);
@@ -88,7 +88,7 @@ static S4Err sTestECC(ECC_Algorithm algorithm)
 	err = ECC_Import_ANSI_X963(pubKey, pubKeyLen, &eccPub);CKERR;
     
     importKeySize = 0;
-    err =  ECC_KeySize(eccPub, &importKeySize);
+	err =  ECC_KeySize(eccPub, &importKeySize); CKERR;
     OPTESTLogVerbose("\t\tImported %d bit public key\n", (int)importKeySize  );
     
     err = ECC_Encrypt(eccPub, PT, sizeof(PT),  CT, sizeof(CT), &CTlen);CKERR;
@@ -97,7 +97,7 @@ static S4Err sTestECC(ECC_Algorithm algorithm)
     
     err = ECC_Import(privKey, privKeyLen, &ecc);CKERR;
     
-    err =  ECC_KeySize(ecc, &importKeySize);
+	err =  ECC_KeySize(ecc, &importKeySize);CKERR;
     OPTESTLogVerbose("\t\tImported %d bit private key\n", (int)importKeySize  );
     
     err =  ECC_PubKeyHash(ecc, keyHash, sizeof(keyHash), &keyHashLen);CKERR;

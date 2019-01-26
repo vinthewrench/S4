@@ -499,6 +499,10 @@ S4Err  TestKeysToPassPhrase()
 	uint8_t    *passCode = NULL;
 	size_t     passCodeLen = 0;
 
+
+	S4KeyContextRef     *importCtx = NULL;  // typically an array of contexts
+	size_t      keyCount = 0;
+
  	OPTESTLogInfo("\nTesting Keys to PassPhrase\n");
 
 	err = P2K_GetAvailableAlgorithms(&passPhraseAlgorithms, &algorCount); CKERR;
@@ -543,12 +547,27 @@ S4Err  TestKeysToPassPhrase()
 
 			OPTESTLogDebug("\n------\n%s------\n",eskData);
 
+			////////
+			// the following is not a very useful thing to do in in this case,
+			// its icluded for testing only.  the JSON produced above will deserialize into a ESK key
+			// but you will not be able to ecode it this way since no object key is specifified.
+			// you can verify the passcode but to decrypt the orginal key you need
+			// to call P2K_DecryptKeyFromPassPhrase.
+
+			err = S4Key_DeserializeKeys(eskData, eskDataLen, &keyCount, &importCtx ); CKERR;
+			ASSERTERR(keyCount == 1,  kS4Err_SelfTestFailed);
+
+			err = S4Key_VerifyPassCode(importCtx[0], passCode, passCodeLen); CKERR;
+
+			///////
+
 			err = P2K_DecryptKeyFromPassPhrase(eskData, eskDataLen,
 												 passCode, passCodeLen,
 												 &key1, & key1Len); CKERR;
 
 			// compare key and key1
-			err = compare2Results( key, sizeof(key), key1, key1Len , kResultFormat_Byte, "P2K_DecryptKeyFromPassPhrase"); CKERR;
+			err = compare2Results( key, sizeof(key), key1, key1Len ,
+								  kResultFormat_Byte, "P2K_DecryptKeyFromPassPhrase"); CKERR;
 
 
 			if(eskData)
@@ -578,6 +597,16 @@ S4Err  TestKeysToPassPhrase()
 
 done:
 
+	if(importCtx)
+	{
+		if(S4KeyContextRefIsValid(importCtx[0]))
+		{
+			S4Key_Free(importCtx[0]);
+		}
+		XFREE(importCtx);
+	}
+
+
 	if(eskData)
 		XFREE(eskData);
 
@@ -595,7 +624,7 @@ S4Err  TestP2K()
 {
 	S4Err     err = kS4Err_NoErr;
 
-  	err = TestP2KAPI(); CKERR;
+   	err = TestP2KAPI(); CKERR;
 	err = TestKeysToPassPhrase(); CKERR;
 	err = TestARGON2(); CKERR;
 	err = TestPBKDF2(); CKERR;

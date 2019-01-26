@@ -41,6 +41,7 @@ S4_INCLUDES = \
 		src/main/S4/s4keys.h \
 		src/main/S4/s4bufferutilities.h	\
 		src/main/S4/s4internal.h \
+		src/main/S4/s4keysinternal.h \
 		src/main/S4/s4pubtypes.h
 
 CFLAGS= -I. \
@@ -90,6 +91,7 @@ S4_FLAGS = $(CFLAGS) \
 	-Ilibs/sha3 \
 	-Ilibs/yajl/src \
 	-Ilibs/yajl/src/api \
+	-Ilibs/jsmn \
 	-I$(BUILD_DIR)/includes  
 
 TOMCRYPT_SRC = \
@@ -379,6 +381,7 @@ S4_SRCS = \
 	src/main/S4/s4keys.c  \
 	src/main/S4/s4P2K.c \
 	libs/xxHash/xxhash.c \
+	libs/jsmn/jsmn.c \
 	libs/yajl/src/yajl.c \
 	libs/yajl/src/yajl_alloc.c \
 	libs/yajl/src/yajl_buf.c \
@@ -494,6 +497,7 @@ MINITEST_FLAGS = $(CFLAGS) \
 	-Ilibs/xxHash \
 	-Ilibs/argon2 \
 	-Ilibs/sha3 \
+	-Ilibs/jsmn \
 	-I$(BUILD_DIR)/includes  
   
 MINITEST_OBJS = $(MINITEST_SRCS:%.c=$(MINITEST_BUILD_DIR)/%.o)
@@ -531,6 +535,7 @@ EM_S4_FLAGS = $(CFLAGS) \
 	-Ilibs/sha3 \
 	-Ilibs/yajl/src \
 	-Ilibs/yajl/src/api \
+	-Ilibs/jsmn \
 	-I$(BUILD_DIR)/includes  
 	
 EM_S4_OBJS = $(EM_S4_SRCS:%.c=$(EM_S4_BUILD_DIR)/%.bc)
@@ -595,6 +600,7 @@ EM_MINITEST_FLAGS = $(CFLAGS) \
 	-Ilibs/xxHash \
 	-Ilibs/argon2 \
 	-Ilibs/sha3 \
+	-Ilibs/jsmn \
 	-I$(BUILD_DIR)/includes  
 	
 EM_MINITEST_OBJS = $(EM_MINITEST_SRCS:%.c=$(EM_MINITEST_BUILD_DIR)/%.bc)

@@ -388,7 +388,8 @@ const char *key_type_table(S4KeyType type)
         case kS4KeyType_Symmetric: 		return (("Symmetric"));
         case kS4KeyType_Tweekable: 		return (("TBC"));
         case kS4KeyType_PBKDF2: 		return (("Encr-PBKDF2 "));
-		case kS4KeyType_P2K: 			return (("Encr-P2K "));
+ 		case kS4KeyType_Share: 			return (("Share"));
+		case kS4KeyType_P2K_ESK: 		return (("Encr-P2KESK "));
         case kS4KeyType_PublicEncrypted: 		return (("Encr-PubKey"));
         case kS4KeyType_PublicKey:              return (("Public Key"));
         default:				return (("Invalid"));
@@ -397,3 +398,40 @@ const char *key_type_table(S4KeyType type)
 
 
 
+
+//* create fill this array with unique numbers from 0 to maxCount
+
+void createTestOffsets(uint8_t* array, int maxCount)
+{
+	int i;
+
+	for(i = 0; i< maxCount; i++) array [i]= 0xff;
+
+	/* pick the shares to test against */
+	for(i = 0; i< maxCount; i++)
+	{
+		uint8_t r =  random() % maxCount;
+
+		if(i == 0)  array[0] = r;
+		else
+		{
+			int j;
+			bool xOK = false;
+			while (!xOK)
+			{
+				for(j = 0; j <= i; j++)
+				{
+					if(array[j] == r)  break;
+					if(j == i)
+					{
+						array[i] = r;
+						xOK = true;
+					}
+				}
+				r = random() % maxCount;
+			}
+		}
+	}
+
+
+}

@@ -580,6 +580,14 @@
 		2E0E20221BF2696600E1E845 /* yajl_common.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20121BF264CB00E1E845 /* yajl_common.h */; };
 		2E0E20231BF2696600E1E845 /* yajl_gen.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20131BF264CB00E1E845 /* yajl_gen.h */; };
 		2E0E20241BF2696600E1E845 /* yajl_parse.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20141BF264CB00E1E845 /* yajl_parse.h */; };
+		2E1F3CE521F0282D00EB6839 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E1F3CE321F0282C00EB6839 /* jsmn.c */; };
+		2E1F3CE621F0282D00EB6839 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E1F3CE321F0282C00EB6839 /* jsmn.c */; };
+		2E1F3CE721F0282D00EB6839 /* jsmn.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E1F3CE421F0282D00EB6839 /* jsmn.h */; };
+		2E1F3CE821F0282D00EB6839 /* jsmn.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E1F3CE421F0282D00EB6839 /* jsmn.h */; };
+		2E1F3CE921F0286500EB6839 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E1F3CE321F0282C00EB6839 /* jsmn.c */; };
+		2E9947D321FCF0FE00103C0D /* s4keysinternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E9947D221FCF05C00103C0D /* s4keysinternal.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2E9947D421FCF10C00103C0D /* s4keysinternal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E9947D221FCF05C00103C0D /* s4keysinternal.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2E9947D521FCF36600103C0D /* s4keysinternal.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E9947D221FCF05C00103C0D /* s4keysinternal.h */; };
 		2EA8F37A1C8E3BFA007433BB /* zbase32.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8F3781C8E3BFA007433BB /* zbase32.c */; };
 		2EA8F37B1C8E3BFA007433BB /* zbase32.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8F3781C8E3BFA007433BB /* zbase32.c */; };
 		2EAA66191BE7D36E00A0375B /* S4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* S4.framework */; };
@@ -1468,6 +1476,7 @@
 				2E0E1FC11BF1106C00E1E845 /* s4pubtypes.h in CopyFiles */,
 				2E0E1FC21BF1106C00E1E845 /* s4crypto.h in CopyFiles */,
 				2E0E1FC31BF1106C00E1E845 /* s4bufferutilities.h in CopyFiles */,
+				2E9947D521FCF36600103C0D /* s4keysinternal.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1651,6 +1660,9 @@
 		2E0E20131BF264CB00E1E845 /* yajl_gen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yajl_gen.h; path = libs/yajl/src/api/yajl_gen.h; sourceTree = SOURCE_ROOT; };
 		2E0E20141BF264CB00E1E845 /* yajl_parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yajl_parse.h; path = libs/yajl/src/api/yajl_parse.h; sourceTree = SOURCE_ROOT; };
 		2E0E20151BF264CB00E1E845 /* yajl_tree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yajl_tree.h; path = libs/yajl/src/api/yajl_tree.h; sourceTree = SOURCE_ROOT; };
+		2E1F3CE321F0282C00EB6839 /* jsmn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = jsmn.c; path = libs/jsmn/jsmn.c; sourceTree = SOURCE_ROOT; };
+		2E1F3CE421F0282D00EB6839 /* jsmn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = jsmn.h; path = libs/jsmn/jsmn.h; sourceTree = SOURCE_ROOT; };
+		2E9947D221FCF05C00103C0D /* s4keysinternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = s4keysinternal.h; path = src/main/S4/s4keysinternal.h; sourceTree = SOURCE_ROOT; };
 		2EA8F3781C8E3BFA007433BB /* zbase32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zbase32.c; path = src/main/S4/zbase32.c; sourceTree = SOURCE_ROOT; };
 		2EAA660E1BE7D36E00A0375B /* S4.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = S4.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2EAA66181BE7D36E00A0375B /* S4-osx Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "S4-osx Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2266,12 +2278,23 @@
 			name = yajl;
 			sourceTree = "<group>";
 		};
+		2E1F3CE221F0280600EB6839 /* jmsn */ = {
+			isa = PBXGroup;
+			children = (
+				2E1F3CE321F0282C00EB6839 /* jsmn.c */,
+				2E1F3CE421F0282D00EB6839 /* jsmn.h */,
+			);
+			name = jmsn;
+			path = libs/jsmn;
+			sourceTree = SOURCE_ROOT;
+		};
 		2EAA66041BE7D36E00A0375B = {
 			isa = PBXGroup;
 			children = (
 				2EAA662F1BE7D58600A0375B /* headers */,
 				2EAA66281BE7D4C600A0375B /* src */,
 				2EAA66341BE7D79E00A0375B /* scripts */,
+				2E1F3CE221F0280600EB6839 /* jmsn */,
 				2E01B9C9215955290021AEC0 /* sha3 */,
 				2E01B995215954E20021AEC0 /* argon2 */,
 				2EAA66551BE7E73000A0375B /* tommath */,
@@ -2340,6 +2363,7 @@
 				2EAA66301BE7D5E900A0375B /* s4crypto.h */,
 				2EAA6A731BE97AA300A0375B /* s4bufferutilities.h */,
 				2E0E1FE61BF262F500E1E845 /* s4keys.h */,
+				2E9947D221FCF05C00103C0D /* s4keysinternal.h */,
 			);
 			name = headers;
 			sourceTree = "<group>";
@@ -3145,6 +3169,7 @@
 				2E0E20191BF264CB00E1E845 /* yajl_tree.h in Headers */,
 				2E01B9BF2159551D0021AEC0 /* core.h in Headers */,
 				2E0E1FE71BF262F500E1E845 /* s4keys.h in Headers */,
+				2E9947D321FCF0FE00103C0D /* s4keysinternal.h in Headers */,
 				2EAA6A751BE97C9500A0375B /* s4bufferutilities.h in Headers */,
 				2EAA694D1BE7EBB000A0375B /* tomcrypt_math.h in Headers */,
 				2EAA69461BE7EBB000A0375B /* tomcrypt_argchk.h in Headers */,
@@ -3180,6 +3205,7 @@
 				2E0E1FFF1BF264BC00E1E845 /* yajl_buf.h in Headers */,
 				2E01B9C72159551D0021AEC0 /* blamka-round-opt.h in Headers */,
 				2E0E1E531BEC168D00E1E845 /* s4internal.h in Headers */,
+				2E1F3CE721F0282D00EB6839 /* jsmn.h in Headers */,
 				2E01B9A82159551D0021AEC0 /* thread.h in Headers */,
 				2E01B9ED215955520021AEC0 /* KeccakP-1600-SnP.h in Headers */,
 				2E07CCF31C46BCB500824A3A /* xxhash.h in Headers */,
@@ -3211,6 +3237,7 @@
 				DC47D1121FA13230003A160C /* s4keys.h in Headers */,
 				2E01B9C02159551D0021AEC0 /* core.h in Headers */,
 				DC47D1011FA131DA003A160C /* tomcrypt_cfg.h in Headers */,
+				2E9947D421FCF10C00103C0D /* s4keysinternal.h in Headers */,
 				DC47D10B1FA13212003A160C /* aes_tab.h in Headers */,
 				DC47D0F91FA131C5003A160C /* tomcrypt_pk.h in Headers */,
 				DC47D0F11FA13188003A160C /* yajl_buf.h in Headers */,
@@ -3246,6 +3273,7 @@
 				DC47D0ED1FA13178003A160C /* yajl_gen.h in Headers */,
 				2E01B9C82159551D0021AEC0 /* blamka-round-opt.h in Headers */,
 				DC47D1021FA131DD003A160C /* tomcrypt_argchk.h in Headers */,
+				2E1F3CE821F0282D00EB6839 /* jsmn.h in Headers */,
 				2E01B9A92159551D0021AEC0 /* thread.h in Headers */,
 				2E01B9EE215955520021AEC0 /* KeccakP-1600-SnP.h in Headers */,
 				DC47D1081FA131F0003A160C /* brg_types.h in Headers */,
@@ -3832,6 +3860,7 @@
 				2E0E1F401BF1102F00E1E845 /* rsa_encrypt_key.c in Sources */,
 				2E0E1F411BF1102F00E1E845 /* bn_mp_neg.c in Sources */,
 				2E0E1F421BF1102F00E1E845 /* bn_mp_add.c in Sources */,
+				2E1F3CE921F0286500EB6839 /* jsmn.c in Sources */,
 				2E0E1F431BF1102F00E1E845 /* bn_mp_sqrt.c in Sources */,
 				2E0E1F441BF1102F00E1E845 /* ltc_ecc_projective_add_point.c in Sources */,
 				2E0E1F451BF1102F00E1E845 /* bn_mp_set.c in Sources */,
@@ -4211,6 +4240,7 @@
 				2EAA6A3A1BE7EBB000A0375B /* rsa_encrypt_key.c in Sources */,
 				2EAA67131BE7E7F400A0375B /* bn_mp_neg.c in Sources */,
 				2EAA66DB1BE7E7F400A0375B /* bn_mp_add.c in Sources */,
+				2E1F3CE521F0282D00EB6839 /* jsmn.c in Sources */,
 				2EAA67311BE7E7F400A0375B /* bn_mp_sqrt.c in Sources */,
 				2EAA6A1F1BE7EBB000A0375B /* ltc_ecc_projective_add_point.c in Sources */,
 				2EAA672C1BE7E7F400A0375B /* bn_mp_set.c in Sources */,
@@ -4608,6 +4638,7 @@
 				DC96B94C1F9407370001B19A /* rand_prime.c in Sources */,
 				DC96B93C1F9407250001B19A /* sha1.c in Sources */,
 				DC96B9731F94074E0001B19A /* cfb_decrypt.c in Sources */,
+				2E1F3CE621F0282D00EB6839 /* jsmn.c in Sources */,
 				DC96B8C71F9407030001B19A /* bn_mp_dr_setup.c in Sources */,
 				DC96B92B1F9407140001B19A /* ccm_memory_ex.c in Sources */,
 				DC96B9461F9407320001B19A /* hmac_memory.c in Sources */,
@@ -4807,6 +4838,7 @@
 					libs/xxHash,
 					libs/yajl/src,
 					libs/yajl/src/api,
+					libs/jsmn,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				OTHER_LDFLAGS = "-ObjC";
@@ -4833,6 +4865,7 @@
 					libs/xxHash,
 					libs/yajl/src,
 					libs/yajl/src/api,
+					libs/jsmn,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				OTHER_LDFLAGS = "-ObjC";
@@ -4914,6 +4947,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
+					"JSMN_PARENT_LINKS=1",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -4984,6 +5018,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -4991,6 +5026,10 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
 				HEADER_SEARCH_PATHS = (
 					"$(BUILD_DIR)/$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)/",
 					libs/tommath,
@@ -5002,6 +5041,7 @@
 					libs/xxHash,
 					libs/yajl/src,
 					libs/yajl/src/api,
+					libs/jsmn,
 				);
 				INFOPLIST_FILE = src/main/s4/apple/S4.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -5025,6 +5065,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
 				CODE_SIGN_IDENTITY = "";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
@@ -5043,6 +5084,7 @@
 					libs/xxHash,
 					libs/yajl/src,
 					libs/yajl/src/api,
+					libs/jsmn,
 				);
 				INFOPLIST_FILE = src/main/s4/apple/S4.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -5095,6 +5137,7 @@
 		2EAA66461BE7DB5900A0375B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = NO;
 				CODE_SIGN_IDENTITY = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
@@ -5105,6 +5148,7 @@
 		2EAA66471BE7DB5900A0375B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = NO;
 				CODE_SIGN_IDENTITY = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
@@ -5137,6 +5181,7 @@
 					libs/xxHash,
 					libs/yajl/src,
 					libs/yajl/src/api,
+					libs/jsmn,
 				);
 				INFOPLIST_FILE = "S4-ios/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -5176,6 +5221,7 @@
 					libs/xxHash,
 					libs/yajl/src,
 					libs/yajl/src/api,
+					libs/jsmn,
 				);
 				INFOPLIST_FILE = "S4-ios/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";

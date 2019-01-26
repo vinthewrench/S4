@@ -50,7 +50,7 @@ S4Err TestHashKAT(
 	{
 		err = HASH_Update( hash, msg, msgsize); CKERR;
 
-		err = HASH_Export(hash, hashState, sizeof(hashState), &hashStateLen);
+		err = HASH_Export(hash, hashState, sizeof(hashState), &hashStateLen);CKERR;
 		HASH_Free(hash); hash = NULL;
 		err = HASH_Import(hashState, hashStateLen, &hash); CKERR;
 		ZERO(hashState, sizeof(hashState));
