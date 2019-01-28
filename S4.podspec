@@ -14,7 +14,11 @@ S4 is an extensive cross platform library of cryptographic functions that can be
 #	s.tvos.deployment_target = '9.0'
 #	s.watchos.deployment_target = '2.0'
 
-	s.source       = { :git => "https://github.com/4th-ATechnologies/S4.git", :commit => "eba7ce1ea2a7cc3523b5be377e053fc5dc74581b" }
+	s.source = {
+		:git => "https://github.com/4th-ATechnologies/S4.git",
+ 		:tag => s.version.to_s
+	}
+
  	s.source_files  = "src/**/*.{h,m}","libs/**/*.{h,m}"
  	s.public_header_files =  "src/main/S4/{s4.h,s4keys.h,s4pubtypes.h,s4crypto.h,s4bufferutilities.h,s4internal.h,s4keysinternal.h}"
  
