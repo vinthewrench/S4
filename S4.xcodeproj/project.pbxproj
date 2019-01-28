@@ -527,7 +527,7 @@
 		2E0E1FBD1BF1102F00E1E845 /* ecc_ansi_x963_export.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA68A61BE7EBB000A0375B /* ecc_ansi_x963_export.c */; };
 		2E0E1FBE1BF1102F00E1E845 /* bn_mp_reduce_is_2k.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66AD1BE7E7F300A0375B /* bn_mp_reduce_is_2k.c */; };
 		2E0E1FBF1BF1102F00E1E845 /* s4pbkdf2.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1E5E1BEC199800E1E845 /* s4pbkdf2.c */; };
-		2E0E1FC01BF1106C00E1E845 /* s4.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* s4.h */; };
+		2E0E1FC01BF1106C00E1E845 /* S4.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4.h */; };
 		2E0E1FC11BF1106C00E1E845 /* s4pubtypes.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA66311BE7D62B00A0375B /* s4pubtypes.h */; };
 		2E0E1FC21BF1106C00E1E845 /* s4crypto.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4crypto.h */; };
 		2E0E1FC31BF1106C00E1E845 /* s4bufferutilities.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA6A731BE97AA300A0375B /* s4bufferutilities.h */; };
@@ -593,7 +593,7 @@
 		2EAA66191BE7D36E00A0375B /* S4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* S4.framework */; };
 		2EAA661E1BE7D36E00A0375B /* S4Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA661D1BE7D36E00A0375B /* S4Tests.m */; };
 		2EAA662D1BE7D57800A0375B /* s4.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA662B1BE7D57800A0375B /* s4.c */; };
-		2EAA662E1BE7D57800A0375B /* s4.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* s4.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2EAA662E1BE7D57800A0375B /* S4.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		2EAA66321BE7D74F00A0375B /* s4pubtypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66311BE7D62B00A0375B /* s4pubtypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		2EAA66331BE7D75100A0375B /* s4crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		2EAA663D1BE7D92C00A0375B /* git_version_hash.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA663C1BE7D92C00A0375B /* git_version_hash.h */; };
@@ -1007,7 +1007,7 @@
 		DC47D1131FA13233003A160C /* s4bufferutilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA6A731BE97AA300A0375B /* s4bufferutilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC47D1141FA13248003A160C /* s4crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC47D1151FA1324D003A160C /* s4pubtypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66311BE7D62B00A0375B /* s4pubtypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		DC47D1161FA13252003A160C /* s4.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* s4.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		DC47D1161FA13252003A160C /* S4.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC47D1181FA1340B003A160C /* yajl_common.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20121BF264CB00E1E845 /* yajl_common.h */; };
 		DC47D1191FA1340B003A160C /* yajl_gen.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20131BF264CB00E1E845 /* yajl_gen.h */; };
 		DC47D11A1FA1340B003A160C /* yajl_parse.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20141BF264CB00E1E845 /* yajl_parse.h */; };
@@ -1471,7 +1471,7 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
-				2E0E1FC01BF1106C00E1E845 /* s4.h in CopyFiles */,
+				2E0E1FC01BF1106C00E1E845 /* S4.h in CopyFiles */,
 				2E0E1FE81BF2634E00E1E845 /* s4keys.h in CopyFiles */,
 				2E0E1FC11BF1106C00E1E845 /* s4pubtypes.h in CopyFiles */,
 				2E0E1FC21BF1106C00E1E845 /* s4crypto.h in CopyFiles */,
@@ -1671,7 +1671,7 @@
 		2EAA661F1BE7D36E00A0375B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2EAA66291BE7D50800A0375B /* S4.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = S4.exp; path = src/main/S4/S4.exp; sourceTree = SOURCE_ROOT; };
 		2EAA662B1BE7D57800A0375B /* s4.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = s4.c; path = src/main/S4/s4.c; sourceTree = SOURCE_ROOT; };
-		2EAA662C1BE7D57800A0375B /* s4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = s4.h; path = src/main/S4/s4.h; sourceTree = SOURCE_ROOT; };
+		2EAA662C1BE7D57800A0375B /* S4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = S4.h; path = src/main/S4/S4.h; sourceTree = SOURCE_ROOT; };
 		2EAA66301BE7D5E900A0375B /* s4crypto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = s4crypto.h; path = src/main/S4/s4crypto.h; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		2EAA66311BE7D62B00A0375B /* s4pubtypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = s4pubtypes.h; path = src/main/S4/s4pubtypes.h; sourceTree = SOURCE_ROOT; };
 		2EAA663A1BE7D92000A0375B /* fetch_git_commit_hash.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = fetch_git_commit_hash.sh; path = src/main/scripts/fetch_git_commit_hash.sh; sourceTree = SOURCE_ROOT; };
@@ -2360,7 +2360,7 @@
 		2EAA662F1BE7D58600A0375B /* headers */ = {
 			isa = PBXGroup;
 			children = (
-				2EAA662C1BE7D57800A0375B /* s4.h */,
+				2EAA662C1BE7D57800A0375B /* S4.h */,
 				2EAA66311BE7D62B00A0375B /* s4pubtypes.h */,
 				2EAA66301BE7D5E900A0375B /* s4crypto.h */,
 				2EAA6A731BE97AA300A0375B /* s4bufferutilities.h */,
@@ -3202,7 +3202,7 @@
 				2EAA69511BE7EBB000A0375B /* tomcrypt_prng.h in Headers */,
 				2EAA69451BE7EBB000A0375B /* tomcrypt.h in Headers */,
 				2EAA694F1BE7EBB000A0375B /* tomcrypt_pk.h in Headers */,
-				2EAA662E1BE7D57800A0375B /* s4.h in Headers */,
+				2EAA662E1BE7D57800A0375B /* S4.h in Headers */,
 				2EAA66321BE7D74F00A0375B /* s4pubtypes.h in Headers */,
 				2E0E1FFF1BF264BC00E1E845 /* yajl_buf.h in Headers */,
 				2E01B9C72159551D0021AEC0 /* blamka-round-opt.h in Headers */,
@@ -3269,7 +3269,7 @@
 				DC47D0EF1FA1317E003A160C /* yajl_tree.h in Headers */,
 				DC47D0EE1FA1317B003A160C /* yajl_parse.h in Headers */,
 				DC47D0FE1FA131D2003A160C /* tomcrypt_hash.h in Headers */,
-				DC47D1161FA13252003A160C /* s4.h in Headers */,
+				DC47D1161FA13252003A160C /* S4.h in Headers */,
 				DC47D10E1FA13222003A160C /* tommath_superclass.h in Headers */,
 				DC47D0EC1FA13106003A160C /* yajl_common.h in Headers */,
 				DC47D0ED1FA13178003A160C /* yajl_gen.h in Headers */,

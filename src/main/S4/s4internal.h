@@ -34,7 +34,7 @@
 #ifndef s4internal_h
 #define s4internal_h
 
-#include "s4.h"
+#include "S4.h"
 
 #include <tomcrypt.h>
 #include <threefishApi.h>

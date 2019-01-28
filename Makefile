@@ -36,7 +36,7 @@ S4_SHARED_TARGET = $(TARGETDIR)/libs4.dylib
   show
   
 S4_INCLUDES = \
-		src/main/S4/s4.h \
+		src/main/S4/S4.h \
 		src/main/S4/s4crypto.h \
 		src/main/S4/s4keys.h \
 		src/main/S4/s4bufferutilities.h	\
