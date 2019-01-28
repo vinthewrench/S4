@@ -284,7 +284,7 @@ yajl_do_parse(yajl_handle hand, const unsigned char * jsonText,
                         } else if (hand->callbacks->yajl_integer) {
                             long long int i = 0;
                             errno = 0;
-                            i = yajl_parse_integer(buf, bufLen);
+                            i = yajl_parse_integer((unsigned char*)buf, (unsigned int)bufLen);
                             if ((i == LLONG_MIN || i == LLONG_MAX) &&
                                 errno == ERANGE)
                             {
