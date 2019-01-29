@@ -629,12 +629,10 @@ run_em_test:
 
 S4_FRAMEWORK_NAME = S4.framework
 
-S4_OSX_DEBUG =  $(TARGETDIR)/Debug/$(S4_FRAMEWORK_NAME)
-S4_IOS_DEBUG =  $(TARGETDIR)/Debug-iphoneos/$(S4_FRAMEWORK_NAME)
-S4_OSX =  $(TARGETDIR)/Release/$(S4_FRAMEWORK_NAME)
-S4_IOS =  $(TARGETDIR)/Release-iphoneos/$(S4_FRAMEWORK_NAME)
-OPTEST_OSX_DEBUG = $(TARGETDIR)/Debug/S4-optest
-CAVP_OSX_DEBUG = $(TARGETDIR)/Debug/S4-cavp
+S4_OSX_DEBUG =  $(TARGETDIR)/Debug/S4_FRAMEWORK_NAME
+S4_IOS_DEBUG =  $(TARGETDIR)/Debug-iphoneos/S4_FRAMEWORK_NAME
+S4_OSX =  $(TARGETDIR)/Release/S4_FRAMEWORK_NAME
+S4_IOS =  $(TARGETDIR)/Release-iphoneos/S4_FRAMEWORK_NAME
 
 $(S4_OSX_DEBUG) : ${S4_SRCS}
 	xcodebuild -project S4.xcodeproj -target S4-osx -configuration Debug
@@ -649,27 +647,16 @@ $(S4_IOS) : ${S4_SRCS}
 	xcodebuild -project S4.xcodeproj -target S4-ios -configuration Release
 
 s4_osx: $(S4_OSX)
-s4_osx_debug: $(S4_OSX_DEBUG)
+
 s4_ios: $(S4_IOS)
-s4_ios_debug: $(S4_IOS_DEBUG)
 
-$(OPTEST_OSX_DEBUG) :  ${S4_OSX_DEBUG} ${OPTEST_SRCS}
-	xcodebuild -project S4.xcodeproj -target S4-optest -configuration Debug
+s4_cocoapods: $(S4_OSX)  $(S4_IOS)
+ 
+$(S4_IOS_FRAMEWORK) : ${S4_SRCS}
+	xcodebuild -project S4.xcodeproj -target S4-ios -configuration Debug
 
-optest_osx: $(OPTEST_OSX_DEBUG)
-
-run_optest_osx : $(OPTEST_OSX_DEBUG)
-	DYLD_FRAMEWORK_PATH=$(TARGETDIR)/Debug/ $(OPTEST_OSX_DEBUG)
-
-$(CAVP_OSX_DEBUG) :  ${S4_OSX_DEBUG} ${CAVP_SRCS}
-	xcodebuild -project S4.xcodeproj -target S4-cavp -configuration Debug
-
-cavp_osx: $(CAVP_OSX_DEBUG)
-
-run_cavp_osx : $(CAVP_OSX_DEBUG)
-	DYLD_FRAMEWORK_PATH=$(TARGETDIR)/Debug/ $(CAVP_OSX_DEBUG) $(TARGETDIR)/Debug/KAT
-
-
+osx_s4: $(S4_OSX_FRAMEWORK)
+ 
 #################################################################
 
 all: $(S4_TARGET) $(S4_SHARED_TARGET) $(OPTEST_TARGET)
