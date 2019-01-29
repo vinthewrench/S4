@@ -20,6 +20,7 @@ S4 is an extensive cross platform library of cryptographic functions that can be
 	}
 
 	s.prepare_command = 'make s4_cocoapods'
+
 	s.osx.source_files = 'build/Release/S4.framework/Versions/A/Headers/*.h'
  	s.osx.public_header_files =  'build/Release/S4.framework/Versions/A/Headers/*.h'
  	s.osx.vendored_frameworks = 'build/Release/S4.framework'
@@ -27,10 +28,5 @@ S4 is an extensive cross platform library of cryptographic functions that can be
 	s.ios.source_files = 'build/Release-iphoneos/S4.framework/Headers/*.h'
  	s.ios.public_header_files =  'build/Release-iphoneos/S4.framework/Headers/*.h'
  	s.ios.vendored_frameworks = 'build/Release-iphoneos/S4.framework'
-
-# s.xcconfig            = {
-#    'FRAMEWORK_SEARCH_PATHS' => '"${PODS_ROOT}/S4"',
-#    'LD_RUNPATH_SEARCH_PATHS' => '@loader_path/../Frameworks'
-#  } 
-
+ 	
   end
