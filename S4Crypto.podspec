@@ -1,10 +1,10 @@
 Pod::Spec.new do |s|
-  s.name         = "S4"
+  s.name         = "S4Crypto"
 	s.version      = "2.2.0"
 	s.license      = { :type => 'MIT', :file => 'LICENSE.txt' }
-	s.summary      = "S4 - Security Library 4 used by 4th A Technologies, LLC."
+	s.summary      = "S4Crypto - Security Library 4 used by 4th A Technologies, LLC."
 	s.description  = <<-DESC
-S4 is an extensive cross platform library of cryptographic functions that can be called from the C API. It was designed to be portable, such that it can be cross-compiled for different architectures, including OS X, IOS, Linux, Android, and Windows.
+S4Crypto is an extensive cross platform library of cryptographic functions that can be called from the C API. It was designed to be portable, such that it can be cross-compiled for different architectures, including OS X, IOS, Linux, Android, and Windows.
                    DESC
 	s.homepage     = "https://github.com/4th-ATechnologies/S4"
 	s.author    	= "4th-ATechnologies"
