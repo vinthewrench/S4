@@ -39,17 +39,11 @@
 #include <tomcrypt.h>
 #include <threefishApi.h>
 
-
-// disabling the GIT_COMMIT_HASH -- doesnt work in all environments
-/*
 #ifdef __APPLE__
 #import "git_version_hash.h"
 #else
 #define GIT_COMMIT_HASH __DATE__
 #endif
- */
-#define GIT_COMMIT_HASH __DATE__
-
 
 #if _USES_COMMON_CRYPTO_
 #include <CommonCrypto/CommonCrypto.h>
