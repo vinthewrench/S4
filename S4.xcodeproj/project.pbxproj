@@ -574,12 +574,6 @@
 		2E0E20171BF264CB00E1E845 /* yajl_gen.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E0E20131BF264CB00E1E845 /* yajl_gen.h */; };
 		2E0E20181BF264CB00E1E845 /* yajl_parse.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E0E20141BF264CB00E1E845 /* yajl_parse.h */; };
 		2E0E20191BF264CB00E1E845 /* yajl_tree.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E0E20151BF264CB00E1E845 /* yajl_tree.h */; };
-		2E0E201B1BF266A400E1E845 /* yajl_common.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 2E0E20121BF264CB00E1E845 /* yajl_common.h */; };
-		2E0E201C1BF266A400E1E845 /* yajl_gen.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 2E0E20131BF264CB00E1E845 /* yajl_gen.h */; };
-		2E0E201D1BF266A400E1E845 /* yajl_parse.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 2E0E20141BF264CB00E1E845 /* yajl_parse.h */; };
-		2E0E20221BF2696600E1E845 /* yajl_common.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20121BF264CB00E1E845 /* yajl_common.h */; };
-		2E0E20231BF2696600E1E845 /* yajl_gen.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20131BF264CB00E1E845 /* yajl_gen.h */; };
-		2E0E20241BF2696600E1E845 /* yajl_parse.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20141BF264CB00E1E845 /* yajl_parse.h */; };
 		2E1F3CE521F0282D00EB6839 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E1F3CE321F0282C00EB6839 /* jsmn.c */; };
 		2E1F3CE621F0282D00EB6839 /* jsmn.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E1F3CE321F0282C00EB6839 /* jsmn.c */; };
 		2E1F3CE721F0282D00EB6839 /* jsmn.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E1F3CE421F0282D00EB6839 /* jsmn.h */; };
@@ -1008,9 +1002,6 @@
 		DC47D1141FA13248003A160C /* s4crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC47D1151FA1324D003A160C /* s4pubtypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66311BE7D62B00A0375B /* s4pubtypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC47D1161FA13252003A160C /* S4.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		DC47D1181FA1340B003A160C /* yajl_common.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20121BF264CB00E1E845 /* yajl_common.h */; };
-		DC47D1191FA1340B003A160C /* yajl_gen.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20131BF264CB00E1E845 /* yajl_gen.h */; };
-		DC47D11A1FA1340B003A160C /* yajl_parse.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E0E20141BF264CB00E1E845 /* yajl_parse.h */; };
 		DC96B89F1F9406E90001B19A /* s4.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA662B1BE7D57800A0375B /* s4.c */; };
 		DC96B8A01F9406ED0001B19A /* s4bufferutilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A711BE97A0300A0375B /* s4bufferutilities.c */; };
 		DC96B8A11F9406F30001B19A /* s4cipher.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1E581BEC189B00E1E845 /* s4cipher.c */; };
@@ -1477,43 +1468,6 @@
 				2E0E1FC21BF1106C00E1E845 /* s4crypto.h in CopyFiles */,
 				2E0E1FC31BF1106C00E1E845 /* s4bufferutilities.h in CopyFiles */,
 				2E9947D521FCF36600103C0D /* s4keysinternal.h in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2E0E201A1BF2666900E1E845 /* Copy Files */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = yajl;
-			dstSubfolderSpec = 16;
-			files = (
-				2E0E201B1BF266A400E1E845 /* yajl_common.h in Copy Files */,
-				2E0E201C1BF266A400E1E845 /* yajl_gen.h in Copy Files */,
-				2E0E201D1BF266A400E1E845 /* yajl_parse.h in Copy Files */,
-			);
-			name = "Copy Files";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2E0E20211BF2695700E1E845 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = yajl;
-			dstSubfolderSpec = 16;
-			files = (
-				2E0E20221BF2696600E1E845 /* yajl_common.h in CopyFiles */,
-				2E0E20231BF2696600E1E845 /* yajl_gen.h in CopyFiles */,
-				2E0E20241BF2696600E1E845 /* yajl_parse.h in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		DC47D1171FA133E9003A160C /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = yajl;
-			dstSubfolderSpec = 16;
-			files = (
-				DC47D1181FA1340B003A160C /* yajl_common.h in CopyFiles */,
-				DC47D1191FA1340B003A160C /* yajl_gen.h in CopyFiles */,
-				DC47D11A1FA1340B003A160C /* yajl_parse.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2243,15 +2197,7 @@
 				2E07CCEF1C46BCB500824A3A /* xxhash.h */,
 			);
 			name = xxHash;
-			sourceTree = "<group>";
-		};
-		2E0E1FE91BF2648800E1E845 /* submodules */ = {
-			isa = PBXGroup;
-			children = (
-				2E07CCED1C46BC9D00824A3A /* xxHash */,
-				2E0E1FEA1BF2649800E1E845 /* yajl */,
-			);
-			name = submodules;
+			path = libs/xxHash;
 			sourceTree = "<group>";
 		};
 		2E0E1FEA1BF2649800E1E845 /* yajl */ = {
@@ -2277,6 +2223,7 @@
 				2E0E1FF91BF264BC00E1E845 /* yajl.c */,
 			);
 			name = yajl;
+			path = libs/yajl;
 			sourceTree = "<group>";
 		};
 		2E1F3CE221F0280600EB6839 /* jmsn */ = {
@@ -2301,7 +2248,8 @@
 				2E01B995215954E20021AEC0 /* argon2 */,
 				2EAA66551BE7E73000A0375B /* tommath */,
 				2EAA66541BE7E72200A0375B /* tomcrypt */,
-				2E0E1FE91BF2648800E1E845 /* submodules */,
+				2E07CCED1C46BC9D00824A3A /* xxHash */,
+				2E0E1FEA1BF2649800E1E845 /* yajl */,
 				2EAA661C1BE7D36E00A0375B /* xcode tests */,
 				2E01B9F4215958770021AEC0 /* cavp */,
 				2EAA66431BE7DB5900A0375B /* optest */,
@@ -3173,6 +3121,7 @@
 				2E0E1FE71BF262F500E1E845 /* s4keys.h in Headers */,
 				2E9947D321FCF0FE00103C0D /* s4keysinternal.h in Headers */,
 				2EAA6A751BE97C9500A0375B /* s4bufferutilities.h in Headers */,
+				2E07CCF31C46BCB500824A3A /* xxhash.h in Headers */,
 				2EAA694D1BE7EBB000A0375B /* tomcrypt_math.h in Headers */,
 				2EAA69461BE7EBB000A0375B /* tomcrypt_argchk.h in Headers */,
 				2E01B9E4215955520021AEC0 /* KeccakHash.h in Headers */,
@@ -3210,7 +3159,6 @@
 				2E1F3CE721F0282D00EB6839 /* jsmn.h in Headers */,
 				2E01B9A82159551D0021AEC0 /* thread.h in Headers */,
 				2E01B9ED215955520021AEC0 /* KeccakP-1600-SnP.h in Headers */,
-				2E07CCF31C46BCB500824A3A /* xxhash.h in Headers */,
 				2EAA69481BE7EBB000A0375B /* tomcrypt_cipher.h in Headers */,
 				2E01B9B82159551D0021AEC0 /* ref.h in Headers */,
 				2E0E1FFC1BF264BC00E1E845 /* yajl_alloc.h in Headers */,
@@ -3324,7 +3272,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2E0E1E6E1BF10FB300E1E845 /* Build configuration list for PBXNativeTarget "S4-ios static" */;
 			buildPhases = (
-				2E0E20211BF2695700E1E845 /* CopyFiles */,
 				2E0E20201BF2693F00E1E845 /* ShellScript */,
 				2E0E1E641BF10FB300E1E845 /* Sources */,
 				2E0E1E651BF10FB300E1E845 /* Frameworks */,
@@ -3361,7 +3308,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2EAA66221BE7D36E00A0375B /* Build configuration list for PBXNativeTarget "S4-osx" */;
 			buildPhases = (
-				2E0E201A1BF2666900E1E845 /* Copy Files */,
 				2EAA66391BE7D82700A0375B /* Run Script */,
 				2EAA66091BE7D36E00A0375B /* Sources */,
 				2EAA660A1BE7D36E00A0375B /* Frameworks */,
@@ -3417,7 +3363,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DC96B89E1F9406680001B19A /* Build configuration list for PBXNativeTarget "S4-ios" */;
 			buildPhases = (
-				DC47D1171FA133E9003A160C /* CopyFiles */,
 				DC47D11B1FA13425003A160C /* ShellScript */,
 				DC96B8921F9406680001B19A /* Sources */,
 				DC96B8931F9406680001B19A /* Frameworks */,

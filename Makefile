@@ -2,7 +2,7 @@
 LOCAL_DIR := $(shell pwd)
 
 MODULE_NAME    := s4
-MODULE_VERSION := 1.5.0
+MODULE_VERSION := 2.2.0
 MODULE_BRANCH  := develop
 
 CC = clang
@@ -17,6 +17,7 @@ TARGETDIR =  build
 S4_BUILD_DIR =  $(BUILD_DIR)/s4
 S4_TARGET = $(TARGETDIR)/libs4.a
 S4_SHARED_TARGET = $(TARGETDIR)/libs4.dylib
+
 
 .PHONY=\
   clean \
@@ -624,7 +625,51 @@ endif
 run_em_test:
 	$(EMRUN) $(EM_MINITEST_TARGET)
 
- 
+#################################################################
+
+S4_FRAMEWORK_NAME = S4.framework
+
+S4_OSX_DEBUG =  $(TARGETDIR)/Debug/$(S4_FRAMEWORK_NAME)
+S4_IOS_DEBUG =  $(TARGETDIR)/Debug-iphoneos/$(S4_FRAMEWORK_NAME)
+S4_OSX =  $(TARGETDIR)/Release/$(S4_FRAMEWORK_NAME)
+S4_IOS =  $(TARGETDIR)/Release-iphoneos/$(S4_FRAMEWORK_NAME)
+OPTEST_OSX_DEBUG = $(TARGETDIR)/Debug/S4-optest
+CAVP_OSX_DEBUG = $(TARGETDIR)/Debug/S4-cavp
+
+$(S4_OSX_DEBUG) : ${S4_SRCS}
+	xcodebuild -project S4.xcodeproj -target S4-osx -configuration Debug
+
+$(S4_IOS_DEBUG) : ${S4_SRCS}
+	xcodebuild -project S4.xcodeproj -target S4-ios -configuration Debug
+
+$(S4_OSX) : ${S4_SRCS}
+	xcodebuild -project S4.xcodeproj -target S4-osx -configuration Release
+
+$(S4_IOS) : ${S4_SRCS}
+	xcodebuild -project S4.xcodeproj -target S4-ios -configuration Release
+
+s4_osx: $(S4_OSX)
+s4_osx_debug: $(S4_OSX_DEBUG)
+s4_ios: $(S4_IOS)
+s4_ios_debug: $(S4_IOS_DEBUG)
+
+$(OPTEST_OSX_DEBUG) :  ${S4_OSX_DEBUG} ${OPTEST_SRCS}
+	xcodebuild -project S4.xcodeproj -target S4-optest -configuration Debug
+
+optest_osx: $(OPTEST_OSX_DEBUG)
+
+run_optest_osx : $(OPTEST_OSX_DEBUG)
+	DYLD_FRAMEWORK_PATH=$(TARGETDIR)/Debug/ $(OPTEST_OSX_DEBUG)
+
+$(CAVP_OSX_DEBUG) :  ${S4_OSX_DEBUG} ${CAVP_SRCS}
+	xcodebuild -project S4.xcodeproj -target S4-cavp -configuration Debug
+
+cavp_osx: $(CAVP_OSX_DEBUG)
+
+run_cavp_osx : $(CAVP_OSX_DEBUG)
+	DYLD_FRAMEWORK_PATH=$(TARGETDIR)/Debug/ $(CAVP_OSX_DEBUG) $(TARGETDIR)/Debug/KAT
+
+
 #################################################################
 
 all: $(S4_TARGET) $(S4_SHARED_TARGET) $(OPTEST_TARGET)
