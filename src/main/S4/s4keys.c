@@ -26,10 +26,10 @@
 
 // Libraries
 
-#include <jsmn.h>
-#include <yajl_parse.h>
-#include <yajl_gen.h>
-#include <yajl_parser.h>
+#include "jsmn.h"
+#include "yajl_parse.h"
+#include "yajl_gen.h"
+#include "yajl_parser.h"
 
 
 #ifdef __clang__

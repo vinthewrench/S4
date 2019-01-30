@@ -1,4 +1,4 @@
-#include <tomcrypt.h>
+#include "tomcrypt.h"
 
 /**
   @file ecc_decrypt_key.c

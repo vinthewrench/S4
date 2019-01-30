@@ -15,7 +15,7 @@
 #endif
 
 #if _USES_SHA3_
-#include   <KeccakHash.h>
+#include   "KeccakHash.h"
 #endif
 
 #ifdef __clang__

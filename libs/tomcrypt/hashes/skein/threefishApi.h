@@ -72,8 +72,6 @@ extern "C"
      *
      * @param keyCtx
      *     Pointer to a Threefish key structure.
-     * @param size
-     *     Which Skein size to use.
      * @param keyData
      *     Pointer to the key words (word has 64 bits).
      * @param tweak

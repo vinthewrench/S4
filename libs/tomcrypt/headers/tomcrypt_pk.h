@@ -423,7 +423,6 @@ int ecc_bl_shared_secret(ecc_key *private_key, ecc_key *public_key,
  Make a new ECC key
  @param prng         An active PRNG state
  @param wprng        The index of the PRNG you wish to use
- @param keysize      The keysize for the new key (in octets from 20 to 65 bytes)
  @param key          [out] Destination of the newly created key
  @return CRYPT_OK if successful, upon error all allocated memory will be freed
  */
@@ -440,9 +439,7 @@ extern const ltc_ecc_set_type ltc_ecc_bl_sets[];
  * For other curves it computes the equation and compares the left hand and
  * the right handresults. If they are equal the point is on the curve.
  *
- * @param curve the curve to use.
- *
- * @param pub the public key to check.
+* @param pub the public key to check.
  *
  * @returns true (!0) if the check was ok, false (0) otherwise.
  *

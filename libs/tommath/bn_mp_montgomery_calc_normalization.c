@@ -1,4 +1,4 @@
-#include <tommath.h>
+#include "tommath.h"
 #ifdef BN_MP_MONTGOMERY_CALC_NORMALIZATION_C
 /* LibTomMath, multiple-precision integer library -- Tom St Denis
  *

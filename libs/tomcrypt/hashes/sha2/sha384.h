@@ -9,7 +9,6 @@
  * Tom St Denis, tomstdenis@gmail.com, http://libtom.org
  */
 /** 
-   @param sha384.c
    LTC_SHA384 hash included in sha512.c, Tom St Denis
 */
 

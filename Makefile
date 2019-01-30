@@ -41,7 +41,6 @@ S4_INCLUDES = \
 		src/main/S4/s4crypto.h \
 		src/main/S4/s4keys.h \
 		src/main/S4/s4bufferutilities.h	\
-		src/main/S4/s4internal.h \
 		src/main/S4/s4keysinternal.h \
 		src/main/S4/s4pubtypes.h
 
@@ -649,9 +648,7 @@ $(S4_IOS) : ${S4_SRCS}
 s4_osx: $(S4_OSX)
 
 s4_ios: $(S4_IOS)
-
-s4_cocoapods: $(S4_OSX)  $(S4_IOS)
- 
+  
 $(S4_IOS_FRAMEWORK) : ${S4_SRCS}
 	xcodebuild -project S4.xcodeproj -target S4-ios -configuration Debug
 

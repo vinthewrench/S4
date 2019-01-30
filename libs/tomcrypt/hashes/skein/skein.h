@@ -27,7 +27,7 @@
 **                                1: return SKEIN_FAIL to flag errors
 **
 ***************************************************************************/
-#include <tomcrypt.h>
+#include "tomcrypt.h"
 
 
 #ifdef __cplusplus
@@ -36,7 +36,7 @@ extern "C"
 #endif
 
 #include <stddef.h>                          /* get size_t definition */
-#include <skein_port.h>               /* get platform-specific definitions */
+#include "skein_port.h"               /* get platform-specific definitions */
 
 enum
     {

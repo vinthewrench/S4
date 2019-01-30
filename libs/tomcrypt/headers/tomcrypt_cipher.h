@@ -5,7 +5,7 @@
  */
 #ifndef TOMCRYPT_CIPHER_H_
 #define TOMCRYPT_CIPHER_H_
-#include <tomcrypt_hash.h>
+#include "tomcrypt_hash.h"
 #include <stdint.h>
 
 #ifdef LTC_BLOWFISH

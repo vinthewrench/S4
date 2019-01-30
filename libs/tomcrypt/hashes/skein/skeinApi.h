@@ -78,7 +78,7 @@ OTHER DEALINGS IN THE SOFTWARE.
  * 
  */
 
-#include <skein.h>
+#include "skein.h"
 #include <stdint.h>
 
 #ifdef __cplusplus

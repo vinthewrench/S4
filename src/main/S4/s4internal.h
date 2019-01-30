@@ -36,14 +36,17 @@
 
 #include "S4.h"
 
-#include <tomcrypt.h>
-#include <threefishApi.h>
+#include "tomcrypt.h"
+#include "threefishApi.h"
 
+/*
 #ifdef __APPLE__
 #import "git_version_hash.h"
 #else
 #define GIT_COMMIT_HASH __DATE__
 #endif
+ */
+#define GIT_COMMIT_HASH __DATE__
 
 #if _USES_COMMON_CRYPTO_
 #include <CommonCrypto/CommonCrypto.h>

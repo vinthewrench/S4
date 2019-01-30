@@ -1,4 +1,4 @@
-#include <tommath.h>
+#include "tommath.h"
 #ifdef BN_MP_PRIME_MILLER_RABIN_C
 /* LibTomMath, multiple-precision integer library -- Tom St Denis
  *

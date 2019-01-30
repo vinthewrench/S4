@@ -14,7 +14,7 @@
 
 #ifdef LTM_DESC
 
-#include <tommath.h>
+#include "tommath.h"
 
 #pragma clang diagnostic ignored "-Wconversion"
 
