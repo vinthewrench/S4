@@ -277,7 +277,7 @@
 		2E0E1EC31BF1102F00E1E845 /* bn_mp_init_copy.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA667F1BE7E7F300A0375B /* bn_mp_init_copy.c */; };
 		2E0E1EC41BF1102F00E1E845 /* pkcs_1_mgf1.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA68CF1BE7EBB000A0375B /* pkcs_1_mgf1.c */; };
 		2E0E1EC51BF1102F00E1E845 /* bn_mp_is_square.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66871BE7E7F300A0375B /* bn_mp_is_square.c */; };
-		2E0E1EC61BF1102F00E1E845 /* twofish_tab.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67641BE7EBB000A0375B /* twofish_tab.c */; };
+		2E0E1EC61BF1102F00E1E845 /* twofish_tab.h in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67641BE7EBB000A0375B /* twofish_tab.h */; };
 		2E0E1EC71BF1102F00E1E845 /* crypt_find_hash_id.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA680A1BE7EBB000A0375B /* crypt_find_hash_id.c */; };
 		2E0E1EC81BF1102F00E1E845 /* ecc.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA68A51BE7EBB000A0375B /* ecc.c */; };
 		2E0E1EC91BF1102F00E1E845 /* crypt_unregister_prng.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA68181BE7EBB000A0375B /* crypt_unregister_prng.c */; };
@@ -719,7 +719,7 @@
 		2EAA68EA1BE7EBB000A0375B /* aes.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA674E1BE7EBB000A0375B /* aes.c */; };
 		2EAA68EB1BE7EBB000A0375B /* aes_tab.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA674F1BE7EBB000A0375B /* aes_tab.h */; };
 		2EAA68FD1BE7EBB000A0375B /* twofish.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67631BE7EBB000A0375B /* twofish.c */; };
-		2EAA68FE1BE7EBB000A0375B /* twofish_tab.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67641BE7EBB000A0375B /* twofish_tab.c */; };
+		2EAA68FE1BE7EBB000A0375B /* twofish_tab.h in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67641BE7EBB000A0375B /* twofish_tab.h */; };
 		2EAA69001BE7EBB000A0375B /* ccm_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67681BE7EBB000A0375B /* ccm_memory.c */; };
 		2EAA69011BE7EBB000A0375B /* ccm_memory_ex.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67691BE7EBB000A0375B /* ccm_memory_ex.c */; };
 		2EAA69021BE7EBB000A0375B /* ccm_test.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA676A1BE7EBB000A0375B /* ccm_test.c */; };
@@ -1139,7 +1139,7 @@
 		DC96B9261F9407080001B19A /* threefishApi.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A4F1BE7EC1900A0375B /* threefishApi.c */; };
 		DC96B9271F94070B0001B19A /* aes.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA674E1BE7EBB000A0375B /* aes.c */; };
 		DC96B9281F9407100001B19A /* twofish.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67631BE7EBB000A0375B /* twofish.c */; };
-		DC96B9291F9407100001B19A /* twofish_tab.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67641BE7EBB000A0375B /* twofish_tab.c */; };
+		DC96B9291F9407100001B19A /* twofish_tab.h in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67641BE7EBB000A0375B /* twofish_tab.h */; };
 		DC96B92A1F9407140001B19A /* ccm_memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67681BE7EBB000A0375B /* ccm_memory.c */; };
 		DC96B92B1F9407140001B19A /* ccm_memory_ex.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA67691BE7EBB000A0375B /* ccm_memory_ex.c */; };
 		DC96B92C1F9407150001B19A /* ccm_test.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA676A1BE7EBB000A0375B /* ccm_test.c */; };
@@ -1759,7 +1759,7 @@
 		2EAA674E1BE7EBB000A0375B /* aes.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aes.c; sourceTree = "<group>"; };
 		2EAA674F1BE7EBB000A0375B /* aes_tab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes_tab.h; sourceTree = "<group>"; };
 		2EAA67631BE7EBB000A0375B /* twofish.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = twofish.c; sourceTree = "<group>"; };
-		2EAA67641BE7EBB000A0375B /* twofish_tab.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = twofish_tab.c; sourceTree = "<group>"; };
+		2EAA67641BE7EBB000A0375B /* twofish_tab.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = twofish_tab.h; sourceTree = "<group>"; };
 		2EAA67681BE7EBB000A0375B /* ccm_memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ccm_memory.c; sourceTree = "<group>"; };
 		2EAA67691BE7EBB000A0375B /* ccm_memory_ex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ccm_memory_ex.c; sourceTree = "<group>"; };
 		2EAA676A1BE7EBB000A0375B /* ccm_test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ccm_test.c; sourceTree = "<group>"; };
@@ -2518,7 +2518,7 @@
 			isa = PBXGroup;
 			children = (
 				2EAA67631BE7EBB000A0375B /* twofish.c */,
-				2EAA67641BE7EBB000A0375B /* twofish_tab.c */,
+				2EAA67641BE7EBB000A0375B /* twofish_tab.h */,
 			);
 			path = twofish;
 			sourceTree = "<group>";
@@ -3675,7 +3675,7 @@
 				2E0E1FE11BF12C2700E1E845 /* s4keys.c in Sources */,
 				2E0E1EC41BF1102F00E1E845 /* pkcs_1_mgf1.c in Sources */,
 				2E0E1EC51BF1102F00E1E845 /* bn_mp_is_square.c in Sources */,
-				2E0E1EC61BF1102F00E1E845 /* twofish_tab.c in Sources */,
+				2E0E1EC61BF1102F00E1E845 /* twofish_tab.h in Sources */,
 				2E0E1EC71BF1102F00E1E845 /* crypt_find_hash_id.c in Sources */,
 				2E0E1EC81BF1102F00E1E845 /* ecc.c in Sources */,
 				2E0E20051BF264BC00E1E845 /* yajl_gen.c in Sources */,
@@ -4055,7 +4055,7 @@
 				2E0E1FE01BF12C2700E1E845 /* s4keys.c in Sources */,
 				2EAA6A311BE7EBB000A0375B /* pkcs_1_mgf1.c in Sources */,
 				2EAA67011BE7E7F400A0375B /* bn_mp_is_square.c in Sources */,
-				2EAA68FE1BE7EBB000A0375B /* twofish_tab.c in Sources */,
+				2EAA68FE1BE7EBB000A0375B /* twofish_tab.h in Sources */,
 				2EAA698C1BE7EBB000A0375B /* crypt_find_hash_id.c in Sources */,
 				2EAA6A0A1BE7EBB000A0375B /* ecc.c in Sources */,
 				2E0E20041BF264BC00E1E845 /* yajl_gen.c in Sources */,
@@ -4692,7 +4692,7 @@
 				DC96B96F1F94074A0001B19A /* cbc_encrypt.c in Sources */,
 				DC96B9DA1F9407DB0001B19A /* pkcs_1_mgf1.c in Sources */,
 				DC96B99E1F9407B90001B19A /* der_decode_sequence_multi.c in Sources */,
-				DC96B9291F9407100001B19A /* twofish_tab.c in Sources */,
+				DC96B9291F9407100001B19A /* twofish_tab.h in Sources */,
 				DC96B9CD1F9407D20001B19A /* ltc_ecc_mulmod_timing.c in Sources */,
 				DC96B9361F94071A0001B19A /* gcm_test.c in Sources */,
 				DC96B93D1F9407280001B19A /* sha256.c in Sources */,
