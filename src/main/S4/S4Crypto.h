@@ -17,7 +17,7 @@
 #define _USES_SHA3_ 	1
 
 #include "s4pubtypes.h"
-#include "s4crypto.h"
+#include "s4cryptography.h"
 #include "s4keys.h"
 #include "s4bufferutilities.h"
 #include "s4keysinternal.h"

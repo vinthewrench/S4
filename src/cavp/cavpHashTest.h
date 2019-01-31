@@ -9,7 +9,7 @@
 #ifndef cavpTest_h
 #define cavpTest_h
 
-#include   <s4/s4.h>
+#include <S4Crypto/S4Crypto.h>
 
 S4Err cavpHashTestFile(char* filePath);
 S4Err cavpHashMonteTestFile(char* filePath);

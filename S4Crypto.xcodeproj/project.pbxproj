@@ -66,7 +66,7 @@
 		2E01B9EC215955520021AEC0 /* KeccakSponge-common.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E01B9D3215955520021AEC0 /* KeccakSponge-common.h */; };
 		2E01B9ED215955520021AEC0 /* KeccakP-1600-SnP.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E01B9D4215955520021AEC0 /* KeccakP-1600-SnP.h */; };
 		2E01B9EE215955520021AEC0 /* KeccakP-1600-SnP.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E01B9D4215955520021AEC0 /* KeccakP-1600-SnP.h */; };
-		2E01BA2C215958C50021AEC0 /* S4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* S4.framework */; };
+		2E01BA2C215958C50021AEC0 /* S4Crypto.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* S4Crypto.framework */; };
 		2E01BA31215958DF0021AEC0 /* cavp.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E01B9F5215958770021AEC0 /* cavp.c */; };
 		2E01BA32215958E10021AEC0 /* cavpHashTest.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E01B9F7215958770021AEC0 /* cavpHashTest.c */; };
 		2E01BA33215958E40021AEC0 /* cavputilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E01B9F8215958770021AEC0 /* cavputilities.c */; };
@@ -105,42 +105,6 @@
 		2E01BA56215984FE0021AEC0 /* testUtilties.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E01BA5421597D420021AEC0 /* testUtilties.c */; };
 		2E01BA57215985000021AEC0 /* testUtilties.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E01BA5421597D420021AEC0 /* testUtilties.c */; };
 		2E01BA5A215AE4D70021AEC0 /* cavpCipherTest.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E01BA59215AE4D70021AEC0 /* cavpCipherTest.c */; };
-		2E01BA7F215AE6950021AEC0 /* CBCMMT128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA5B215AE68F0021AEC0 /* CBCMMT128.rsp */; };
-		2E01BA80215AE6950021AEC0 /* ECBKeySbox192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA5C215AE68F0021AEC0 /* ECBKeySbox192.rsp */; };
-		2E01BA81215AE6950021AEC0 /* CBCMCT192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA5D215AE68F0021AEC0 /* CBCMCT192.rsp */; };
-		2E01BA82215AE6950021AEC0 /* ECBMCT192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA5E215AE68F0021AEC0 /* ECBMCT192.rsp */; };
-		2E01BA83215AE6950021AEC0 /* ECBKeySbox256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA5F215AE68F0021AEC0 /* ECBKeySbox256.rsp */; };
-		2E01BA84215AE6950021AEC0 /* ECBVarKey128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA60215AE6900021AEC0 /* ECBVarKey128.rsp */; };
-		2E01BA85215AE6950021AEC0 /* CBCGFSbox192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA61215AE6900021AEC0 /* CBCGFSbox192.rsp */; };
-		2E01BA86215AE6950021AEC0 /* ECBMMT192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA62215AE6900021AEC0 /* ECBMMT192.rsp */; };
-		2E01BA87215AE6950021AEC0 /* ECBVarKey256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA63215AE6900021AEC0 /* ECBVarKey256.rsp */; };
-		2E01BA88215AE6950021AEC0 /* CBCVarTxt192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA64215AE6900021AEC0 /* CBCVarTxt192.rsp */; };
-		2E01BA89215AE6950021AEC0 /* ECBVarKey192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA65215AE6900021AEC0 /* ECBVarKey192.rsp */; };
-		2E01BA8A215AE6950021AEC0 /* ECBMMT256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA66215AE6910021AEC0 /* ECBMMT256.rsp */; };
-		2E01BA8B215AE6950021AEC0 /* CBCKeySbox128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA67215AE6910021AEC0 /* CBCKeySbox128.rsp */; };
-		2E01BA8C215AE6950021AEC0 /* CBCMCT256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA68215AE6910021AEC0 /* CBCMCT256.rsp */; };
-		2E01BA8D215AE6950021AEC0 /* CBCGFSbox128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA69215AE6910021AEC0 /* CBCGFSbox128.rsp */; };
-		2E01BA8E215AE6950021AEC0 /* ECBVarTxt128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA6A215AE6910021AEC0 /* ECBVarTxt128.rsp */; };
-		2E01BA8F215AE6950021AEC0 /* CBCVarKey256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA6B215AE6910021AEC0 /* CBCVarKey256.rsp */; };
-		2E01BA90215AE6950021AEC0 /* ECBVarTxt192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA6C215AE6910021AEC0 /* ECBVarTxt192.rsp */; };
-		2E01BA91215AE6950021AEC0 /* CBCVarKey192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA6D215AE6920021AEC0 /* CBCVarKey192.rsp */; };
-		2E01BA92215AE6950021AEC0 /* CBCMMT256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA6E215AE6920021AEC0 /* CBCMMT256.rsp */; };
-		2E01BA93215AE6950021AEC0 /* CBCMMT192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA6F215AE6920021AEC0 /* CBCMMT192.rsp */; };
-		2E01BA94215AE6950021AEC0 /* ECBGFSbox128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA70215AE6920021AEC0 /* ECBGFSbox128.rsp */; };
-		2E01BA95215AE6950021AEC0 /* CBCVarTxt256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA71215AE6920021AEC0 /* CBCVarTxt256.rsp */; };
-		2E01BA96215AE6950021AEC0 /* ECBGFSbox256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA72215AE6920021AEC0 /* ECBGFSbox256.rsp */; };
-		2E01BA97215AE6950021AEC0 /* ECBMCT128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA73215AE6930021AEC0 /* ECBMCT128.rsp */; };
-		2E01BA98215AE6950021AEC0 /* CBCVarKey128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA74215AE6930021AEC0 /* CBCVarKey128.rsp */; };
-		2E01BA99215AE6950021AEC0 /* ECBMCT256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA75215AE6930021AEC0 /* ECBMCT256.rsp */; };
-		2E01BA9A215AE6950021AEC0 /* ECBKeySbox128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA76215AE6940021AEC0 /* ECBKeySbox128.rsp */; };
-		2E01BA9B215AE6950021AEC0 /* CBCVarTxt128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA77215AE6940021AEC0 /* CBCVarTxt128.rsp */; };
-		2E01BA9C215AE6950021AEC0 /* ECBMMT128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA78215AE6940021AEC0 /* ECBMMT128.rsp */; };
-		2E01BA9D215AE6950021AEC0 /* ECBVarTxt256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA79215AE6940021AEC0 /* ECBVarTxt256.rsp */; };
-		2E01BA9E215AE6950021AEC0 /* CBCKeySbox256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA7A215AE6940021AEC0 /* CBCKeySbox256.rsp */; };
-		2E01BA9F215AE6950021AEC0 /* CBCKeySbox192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA7B215AE6940021AEC0 /* CBCKeySbox192.rsp */; };
-		2E01BAA0215AE6950021AEC0 /* CBCGFSbox256.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA7C215AE6950021AEC0 /* CBCGFSbox256.rsp */; };
-		2E01BAA1215AE6950021AEC0 /* CBCMCT128.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA7D215AE6950021AEC0 /* CBCMCT128.rsp */; };
-		2E01BAA2215AE6950021AEC0 /* ECBGFSbox192.rsp in Resources */ = {isa = PBXBuildFile; fileRef = 2E01BA7E215AE6950021AEC0 /* ECBGFSbox192.rsp */; };
 		2E01BAA3215AE6C30021AEC0 /* CBCGFSbox128.rsp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E01BA69215AE6910021AEC0 /* CBCGFSbox128.rsp */; };
 		2E01BAA4215AE6C30021AEC0 /* CBCGFSbox192.rsp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E01BA61215AE6900021AEC0 /* CBCGFSbox192.rsp */; };
 		2E01BAA5215AE6C30021AEC0 /* CBCGFSbox256.rsp in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E01BA7C215AE6950021AEC0 /* CBCGFSbox256.rsp */; };
@@ -527,11 +491,11 @@
 		2E0E1FBD1BF1102F00E1E845 /* ecc_ansi_x963_export.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA68A61BE7EBB000A0375B /* ecc_ansi_x963_export.c */; };
 		2E0E1FBE1BF1102F00E1E845 /* bn_mp_reduce_is_2k.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66AD1BE7E7F300A0375B /* bn_mp_reduce_is_2k.c */; };
 		2E0E1FBF1BF1102F00E1E845 /* s4pbkdf2.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1E5E1BEC199800E1E845 /* s4pbkdf2.c */; };
-		2E0E1FC01BF1106C00E1E845 /* S4.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4.h */; };
+		2E0E1FC01BF1106C00E1E845 /* S4Crypto.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4Crypto.h */; };
 		2E0E1FC11BF1106C00E1E845 /* s4pubtypes.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA66311BE7D62B00A0375B /* s4pubtypes.h */; };
-		2E0E1FC21BF1106C00E1E845 /* s4crypto.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4crypto.h */; };
+		2E0E1FC21BF1106C00E1E845 /* s4cryptography.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4cryptography.h */; };
 		2E0E1FC31BF1106C00E1E845 /* s4bufferutilities.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2EAA6A731BE97AA300A0375B /* s4bufferutilities.h */; };
-		2E0E1FCD1BF111D400E1E845 /* libS4.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E0E1E681BF10FB300E1E845 /* libS4.a */; };
+		2E0E1FCD1BF111D400E1E845 /* libS4Crypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E0E1E681BF10FB300E1E845 /* libS4Crypto.a */; };
 		2E0E1FD31BF1120D00E1E845 /* S4Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA661D1BE7D36E00A0375B /* S4Tests.m */; };
 		2E0E1FD51BF1133100E1E845 /* testHash.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A571BE7EF7200A0375B /* testHash.c */; };
 		2E0E1FD61BF1133100E1E845 /* testHMAC.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A5A1BE7F8F000A0375B /* testHMAC.c */; };
@@ -584,15 +548,15 @@
 		2E9947D521FCF36600103C0D /* s4keysinternal.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E9947D221FCF05C00103C0D /* s4keysinternal.h */; };
 		2EA8F37A1C8E3BFA007433BB /* zbase32.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8F3781C8E3BFA007433BB /* zbase32.c */; };
 		2EA8F37B1C8E3BFA007433BB /* zbase32.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8F3781C8E3BFA007433BB /* zbase32.c */; };
-		2EAA66191BE7D36E00A0375B /* S4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* S4.framework */; };
+		2EAA66191BE7D36E00A0375B /* S4Crypto.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* S4Crypto.framework */; };
 		2EAA661E1BE7D36E00A0375B /* S4Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA661D1BE7D36E00A0375B /* S4Tests.m */; };
 		2EAA662D1BE7D57800A0375B /* s4.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA662B1BE7D57800A0375B /* s4.c */; };
-		2EAA662E1BE7D57800A0375B /* S4.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2EAA662E1BE7D57800A0375B /* S4Crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4Crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		2EAA66321BE7D74F00A0375B /* s4pubtypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66311BE7D62B00A0375B /* s4pubtypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		2EAA66331BE7D75100A0375B /* s4crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		2EAA66331BE7D75100A0375B /* s4cryptography.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4cryptography.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		2EAA663D1BE7D92C00A0375B /* git_version_hash.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA663C1BE7D92C00A0375B /* git_version_hash.h */; };
 		2EAA664D1BE7DC6100A0375B /* optest.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA664B1BE7DC6100A0375B /* optest.c */; };
-		2EAA66501BE7DFDB00A0375B /* S4.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* S4.framework */; };
+		2EAA66501BE7DFDB00A0375B /* S4Crypto.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2EAA660E1BE7D36E00A0375B /* S4Crypto.framework */; };
 		2EAA66531BE7E27B00A0375B /* optestutilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66511BE7E27B00A0375B /* optestutilities.c */; };
 		2EAA66D21BE7E7F400A0375B /* bn_error.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66581BE7E7F300A0375B /* bn_error.c */; };
 		2EAA66D31BE7E7F400A0375B /* bn_fast_mp_invmod.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA66591BE7E7F300A0375B /* bn_fast_mp_invmod.c */; };
@@ -999,9 +963,9 @@
 		DC47D1111FA1322D003A160C /* s4internal.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E0E1E521BEC168D00E1E845 /* s4internal.h */; };
 		DC47D1121FA13230003A160C /* s4keys.h in Headers */ = {isa = PBXBuildFile; fileRef = 2E0E1FE61BF262F500E1E845 /* s4keys.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC47D1131FA13233003A160C /* s4bufferutilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA6A731BE97AA300A0375B /* s4bufferutilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		DC47D1141FA13248003A160C /* s4crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		DC47D1141FA13248003A160C /* s4cryptography.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66301BE7D5E900A0375B /* s4cryptography.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC47D1151FA1324D003A160C /* s4pubtypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA66311BE7D62B00A0375B /* s4pubtypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		DC47D1161FA13252003A160C /* S4.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		DC47D1161FA13252003A160C /* S4Crypto.h in Headers */ = {isa = PBXBuildFile; fileRef = 2EAA662C1BE7D57800A0375B /* S4Crypto.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DC96B89F1F9406E90001B19A /* s4.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA662B1BE7D57800A0375B /* s4.c */; };
 		DC96B8A01F9406ED0001B19A /* s4bufferutilities.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EAA6A711BE97A0300A0375B /* s4bufferutilities.c */; };
 		DC96B8A11F9406F30001B19A /* s4cipher.c in Sources */ = {isa = PBXBuildFile; fileRef = 2E0E1E581BEC189B00E1E845 /* s4cipher.c */; };
@@ -1462,10 +1426,10 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
-				2E0E1FC01BF1106C00E1E845 /* S4.h in CopyFiles */,
+				2E0E1FC01BF1106C00E1E845 /* S4Crypto.h in CopyFiles */,
 				2E0E1FE81BF2634E00E1E845 /* s4keys.h in CopyFiles */,
 				2E0E1FC11BF1106C00E1E845 /* s4pubtypes.h in CopyFiles */,
-				2E0E1FC21BF1106C00E1E845 /* s4crypto.h in CopyFiles */,
+				2E0E1FC21BF1106C00E1E845 /* s4cryptography.h in CopyFiles */,
 				2E0E1FC31BF1106C00E1E845 /* s4bufferutilities.h in CopyFiles */,
 				2E9947D521FCF36600103C0D /* s4keysinternal.h in CopyFiles */,
 			);
@@ -1536,7 +1500,7 @@
 		2E01BA182159589E0021AEC0 /* SHA384LongMsg.rsp */ = {isa = PBXFileReference; lastKnownFileType = text; path = SHA384LongMsg.rsp; sourceTree = "<group>"; };
 		2E01BA192159589E0021AEC0 /* SHA3_256ShortMsg.rsp */ = {isa = PBXFileReference; lastKnownFileType = text; path = SHA3_256ShortMsg.rsp; sourceTree = "<group>"; };
 		2E01BA1A2159589E0021AEC0 /* - SHA3_224Monte.rsp */ = {isa = PBXFileReference; lastKnownFileType = text; path = "- SHA3_224Monte.rsp"; sourceTree = "<group>"; };
-		2E01BA30215958C50021AEC0 /* S4-cavp */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "S4-cavp"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E01BA30215958C50021AEC0 /* S4Crypto-cavp */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "S4Crypto-cavp"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E01BA5421597D420021AEC0 /* testUtilties.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testUtilties.c; path = src/optest/testUtilties.c; sourceTree = "<group>"; };
 		2E01BA58215AE4D70021AEC0 /* cavpCipherTest.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cavpCipherTest.h; sourceTree = "<group>"; };
 		2E01BA59215AE4D70021AEC0 /* cavpCipherTest.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cavpCipherTest.c; sourceTree = "<group>"; };
@@ -1591,11 +1555,11 @@
 		2E0E1E5E1BEC199800E1E845 /* s4pbkdf2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = s4pbkdf2.c; path = src/main/S4/s4pbkdf2.c; sourceTree = SOURCE_ROOT; };
 		2E0E1E601BEC1A4A00E1E845 /* s4share.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = s4share.c; path = src/main/S4/s4share.c; sourceTree = SOURCE_ROOT; };
 		2E0E1E621BEC1AC100E1E845 /* s4hashword.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = s4hashword.c; path = src/main/S4/s4hashword.c; sourceTree = SOURCE_ROOT; };
-		2E0E1E681BF10FB300E1E845 /* libS4.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libS4.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		2E0E1FC81BF111D400E1E845 /* S4-ios Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "S4-ios Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E0E1E681BF10FB300E1E845 /* libS4Crypto.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libS4Crypto.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E0E1FC81BF111D400E1E845 /* S4Crypto-ios Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "S4Crypto-ios Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E0E1FDF1BF12C2700E1E845 /* s4keys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; name = s4keys.c; path = src/main/S4/s4keys.c; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		2E0E1FE21BF1373700E1E845 /* testKeys.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; name = testKeys.c; path = src/optest/testKeys.c; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.c; };
-		2E0E1FE61BF262F500E1E845 /* s4keys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = s4keys.h; path = src/main/S4/s4keys.h; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		2E0E1FE61BF262F500E1E845 /* s4keys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = s4keys.h; path = src/main/S4/s4keys.h; sourceTree = SOURCE_ROOT; };
 		2E0E1FEB1BF264BC00E1E845 /* yajl_alloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = yajl_alloc.c; path = libs/yajl/src/yajl_alloc.c; sourceTree = SOURCE_ROOT; };
 		2E0E1FEC1BF264BC00E1E845 /* yajl_alloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = yajl_alloc.h; path = libs/yajl/src/yajl_alloc.h; sourceTree = SOURCE_ROOT; };
 		2E0E1FED1BF264BC00E1E845 /* yajl_buf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = yajl_buf.c; path = libs/yajl/src/yajl_buf.c; sourceTree = SOURCE_ROOT; };
@@ -1619,18 +1583,18 @@
 		2E9947D221FCF05C00103C0D /* s4keysinternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = s4keysinternal.h; path = src/main/S4/s4keysinternal.h; sourceTree = SOURCE_ROOT; };
 		2E9947D621FD3BE300103C0D /* makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = makefile; sourceTree = "<group>"; };
 		2EA8F3781C8E3BFA007433BB /* zbase32.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zbase32.c; path = src/main/S4/zbase32.c; sourceTree = SOURCE_ROOT; };
-		2EAA660E1BE7D36E00A0375B /* S4.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = S4.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		2EAA66181BE7D36E00A0375B /* S4-osx Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "S4-osx Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2EAA660E1BE7D36E00A0375B /* S4Crypto.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = S4Crypto.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		2EAA66181BE7D36E00A0375B /* S4Crypto-osx Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "S4Crypto-osx Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2EAA661D1BE7D36E00A0375B /* S4Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = S4Tests.m; sourceTree = "<group>"; };
 		2EAA661F1BE7D36E00A0375B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2EAA66291BE7D50800A0375B /* S4.exp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.exports; name = S4.exp; path = src/main/S4/S4.exp; sourceTree = SOURCE_ROOT; };
 		2EAA662B1BE7D57800A0375B /* s4.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = s4.c; path = src/main/S4/s4.c; sourceTree = SOURCE_ROOT; };
-		2EAA662C1BE7D57800A0375B /* S4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = S4.h; path = src/main/S4/S4.h; sourceTree = SOURCE_ROOT; };
-		2EAA66301BE7D5E900A0375B /* s4crypto.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = s4crypto.h; path = src/main/S4/s4crypto.h; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		2EAA662C1BE7D57800A0375B /* S4Crypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = S4Crypto.h; path = src/main/S4/S4Crypto.h; sourceTree = SOURCE_ROOT; };
+		2EAA66301BE7D5E900A0375B /* s4cryptography.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = s4cryptography.h; path = src/main/S4/s4cryptography.h; sourceTree = SOURCE_ROOT; };
 		2EAA66311BE7D62B00A0375B /* s4pubtypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = s4pubtypes.h; path = src/main/S4/s4pubtypes.h; sourceTree = SOURCE_ROOT; };
 		2EAA663A1BE7D92000A0375B /* fetch_git_commit_hash.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = fetch_git_commit_hash.sh; path = src/main/scripts/fetch_git_commit_hash.sh; sourceTree = SOURCE_ROOT; };
 		2EAA663C1BE7D92C00A0375B /* git_version_hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = git_version_hash.h; path = src/main/scripts/git_version_hash.h; sourceTree = SOURCE_ROOT; };
-		2EAA66421BE7DB5900A0375B /* S4-optest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "S4-optest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2EAA66421BE7DB5900A0375B /* S4Crypto-optest */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "S4Crypto-optest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2EAA664B1BE7DC6100A0375B /* optest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = optest.c; path = src/optest/optest.c; sourceTree = SOURCE_ROOT; };
 		2EAA664C1BE7DC6100A0375B /* optest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; name = optest.h; path = src/optest/optest.h; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		2EAA66511BE7E27B00A0375B /* optestutilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; name = optestutilities.c; path = src/optest/optestutilities.c; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -1989,12 +1953,12 @@
 		2EAA6A5C1BE7FB6E00A0375B /* testCiphers.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testCiphers.c; path = src/optest/testCiphers.c; sourceTree = SOURCE_ROOT; };
 		2EAA6A5E1BE8198500A0375B /* testECC.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testECC.c; path = src/optest/testECC.c; sourceTree = SOURCE_ROOT; };
 		2EAA6A611BE81D2B00A0375B /* testP2K.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testP2K.c; path = src/optest/testP2K.c; sourceTree = SOURCE_ROOT; };
-		2EAA6A6A1BE928F600A0375B /* S4.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = S4.plist; path = src/main/S4/apple/S4.plist; sourceTree = SOURCE_ROOT; };
+		2EAA6A6A1BE928F600A0375B /* S4Crypto.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = S4Crypto.plist; path = src/main/S4/apple/S4Crypto.plist; sourceTree = SOURCE_ROOT; };
 		2EAA6A6D1BE9663300A0375B /* testTBC.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; lineEnding = 0; name = testTBC.c; path = src/optest/testTBC.c; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.c; };
 		2EAA6A711BE97A0300A0375B /* s4bufferutilities.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = s4bufferutilities.c; path = src/main/S4/s4bufferutilities.c; sourceTree = SOURCE_ROOT; };
 		2EAA6A731BE97AA300A0375B /* s4bufferutilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = s4bufferutilities.h; path = src/main/S4/s4bufferutilities.h; sourceTree = SOURCE_ROOT; };
 		2EAA6A771BEBEAE100A0375B /* testSecretSharing.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = testSecretSharing.c; path = src/optest/testSecretSharing.c; sourceTree = SOURCE_ROOT; };
-		DC96B8971F9406680001B19A /* S4.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = S4.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC96B8971F9406680001B19A /* S4Crypto.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = S4Crypto.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC96B89A1F9406680001B19A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -2003,7 +1967,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2E01BA2C215958C50021AEC0 /* S4.framework in Frameworks */,
+				2E01BA2C215958C50021AEC0 /* S4Crypto.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2018,7 +1982,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2E0E1FCD1BF111D400E1E845 /* libS4.a in Frameworks */,
+				2E0E1FCD1BF111D400E1E845 /* libS4Crypto.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2033,7 +1997,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2EAA66191BE7D36E00A0375B /* S4.framework in Frameworks */,
+				2EAA66191BE7D36E00A0375B /* S4Crypto.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2041,7 +2005,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2EAA66501BE7DFDB00A0375B /* S4.framework in Frameworks */,
+				2EAA66501BE7DFDB00A0375B /* S4Crypto.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2261,13 +2225,13 @@
 		2EAA660F1BE7D36E00A0375B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2EAA660E1BE7D36E00A0375B /* S4.framework */,
-				2EAA66181BE7D36E00A0375B /* S4-osx Tests.xctest */,
-				2EAA66421BE7DB5900A0375B /* S4-optest */,
-				2E0E1E681BF10FB300E1E845 /* libS4.a */,
-				2E0E1FC81BF111D400E1E845 /* S4-ios Tests.xctest */,
-				DC96B8971F9406680001B19A /* S4.framework */,
-				2E01BA30215958C50021AEC0 /* S4-cavp */,
+				2EAA660E1BE7D36E00A0375B /* S4Crypto.framework */,
+				2EAA66181BE7D36E00A0375B /* S4Crypto-osx Tests.xctest */,
+				2EAA66421BE7DB5900A0375B /* S4Crypto-optest */,
+				2E0E1E681BF10FB300E1E845 /* libS4Crypto.a */,
+				2E0E1FC81BF111D400E1E845 /* S4Crypto-ios Tests.xctest */,
+				DC96B8971F9406680001B19A /* S4Crypto.framework */,
+				2E01BA30215958C50021AEC0 /* S4Crypto-cavp */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2287,7 +2251,7 @@
 			children = (
 				2EAA662B1BE7D57800A0375B /* s4.c */,
 				2EAA66291BE7D50800A0375B /* S4.exp */,
-				2EAA6A6A1BE928F600A0375B /* S4.plist */,
+				2EAA6A6A1BE928F600A0375B /* S4Crypto.plist */,
 				2EAA6A711BE97A0300A0375B /* s4bufferutilities.c */,
 				2E0E1E581BEC189B00E1E845 /* s4cipher.c */,
 				2E0E1E5C1BEC194700E1E845 /* s4ecc.c */,
@@ -2308,9 +2272,9 @@
 		2EAA662F1BE7D58600A0375B /* headers */ = {
 			isa = PBXGroup;
 			children = (
-				2EAA662C1BE7D57800A0375B /* S4.h */,
+				2EAA662C1BE7D57800A0375B /* S4Crypto.h */,
 				2EAA66311BE7D62B00A0375B /* s4pubtypes.h */,
-				2EAA66301BE7D5E900A0375B /* s4crypto.h */,
+				2EAA66301BE7D5E900A0375B /* s4cryptography.h */,
 				2EAA6A731BE97AA300A0375B /* s4bufferutilities.h */,
 				2E0E1FE61BF262F500E1E845 /* s4keys.h */,
 				2E9947D221FCF05C00103C0D /* s4keysinternal.h */,
@@ -3151,7 +3115,7 @@
 				2EAA69511BE7EBB000A0375B /* tomcrypt_prng.h in Headers */,
 				2EAA69451BE7EBB000A0375B /* tomcrypt.h in Headers */,
 				2EAA694F1BE7EBB000A0375B /* tomcrypt_pk.h in Headers */,
-				2EAA662E1BE7D57800A0375B /* S4.h in Headers */,
+				2EAA662E1BE7D57800A0375B /* S4Crypto.h in Headers */,
 				2EAA66321BE7D74F00A0375B /* s4pubtypes.h in Headers */,
 				2E0E1FFF1BF264BC00E1E845 /* yajl_buf.h in Headers */,
 				2E01B9C72159551D0021AEC0 /* blamka-round-opt.h in Headers */,
@@ -3169,7 +3133,7 @@
 				2E0E20171BF264CB00E1E845 /* yajl_gen.h in Headers */,
 				2EAA68EB1BE7EBB000A0375B /* aes_tab.h in Headers */,
 				2EAA69491BE7EBB000A0375B /* tomcrypt_custom.h in Headers */,
-				2EAA66331BE7D75100A0375B /* s4crypto.h in Headers */,
+				2EAA66331BE7D75100A0375B /* s4cryptography.h in Headers */,
 				2E0E200B1BF264BC00E1E845 /* yajl_parser.h in Headers */,
 				2EAA69321BE7EBB000A0375B /* brg_endian.h in Headers */,
 				2EAA693B1BE7EBB000A0375B /* skeinApi.h in Headers */,
@@ -3200,7 +3164,7 @@
 				DC47D0FB1FA131CA003A160C /* tomcrypt_math.h in Headers */,
 				2E01B9E7215955520021AEC0 /* align.h in Headers */,
 				DC47D0FA1FA131C8003A160C /* tomcrypt_misc.h in Headers */,
-				DC47D1141FA13248003A160C /* s4crypto.h in Headers */,
+				DC47D1141FA13248003A160C /* s4cryptography.h in Headers */,
 				DC47D0F01FA13184003A160C /* yajl_alloc.h in Headers */,
 				2E01B9D8215955520021AEC0 /* KeccakP-1600-reference.h in Headers */,
 				DC47D10F1FA13225003A160C /* tommath_class.h in Headers */,
@@ -3217,7 +3181,7 @@
 				DC47D0EF1FA1317E003A160C /* yajl_tree.h in Headers */,
 				DC47D0EE1FA1317B003A160C /* yajl_parse.h in Headers */,
 				DC47D0FE1FA131D2003A160C /* tomcrypt_hash.h in Headers */,
-				DC47D1161FA13252003A160C /* S4.h in Headers */,
+				DC47D1161FA13252003A160C /* S4Crypto.h in Headers */,
 				DC47D10E1FA13222003A160C /* tommath_superclass.h in Headers */,
 				DC47D0EC1FA13106003A160C /* yajl_common.h in Headers */,
 				DC47D0ED1FA13178003A160C /* yajl_gen.h in Headers */,
@@ -3249,9 +3213,9 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		2E01BA1B215958C50021AEC0 /* S4-cavp */ = {
+		2E01BA1B215958C50021AEC0 /* S4Crypto-cavp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2E01BA2D215958C50021AEC0 /* Build configuration list for PBXNativeTarget "S4-cavp" */;
+			buildConfigurationList = 2E01BA2D215958C50021AEC0 /* Build configuration list for PBXNativeTarget "S4Crypto-cavp" */;
 			buildPhases = (
 				2E01BA1E215958C50021AEC0 /* ShellScript */,
 				2E01BA1F215958C50021AEC0 /* Sources */,
@@ -3263,14 +3227,14 @@
 			dependencies = (
 				2E01BA1C215958C50021AEC0 /* PBXTargetDependency */,
 			);
-			name = "S4-cavp";
+			name = "S4Crypto-cavp";
 			productName = S4_Optest;
-			productReference = 2E01BA30215958C50021AEC0 /* S4-cavp */;
+			productReference = 2E01BA30215958C50021AEC0 /* S4Crypto-cavp */;
 			productType = "com.apple.product-type.tool";
 		};
-		2E0E1E671BF10FB300E1E845 /* S4-ios static */ = {
+		2E0E1E671BF10FB300E1E845 /* S4Crypto-ios static */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2E0E1E6E1BF10FB300E1E845 /* Build configuration list for PBXNativeTarget "S4-ios static" */;
+			buildConfigurationList = 2E0E1E6E1BF10FB300E1E845 /* Build configuration list for PBXNativeTarget "S4Crypto-ios static" */;
 			buildPhases = (
 				2E0E20201BF2693F00E1E845 /* ShellScript */,
 				2E0E1E641BF10FB300E1E845 /* Sources */,
@@ -3281,14 +3245,14 @@
 			);
 			dependencies = (
 			);
-			name = "S4-ios static";
+			name = "S4Crypto-ios static";
 			productName = "S4-ios static";
-			productReference = 2E0E1E681BF10FB300E1E845 /* libS4.a */;
+			productReference = 2E0E1E681BF10FB300E1E845 /* libS4Crypto.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		2E0E1FC71BF111D400E1E845 /* S4-ios Tests */ = {
+		2E0E1FC71BF111D400E1E845 /* S4Crypto-ios Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2E0E1FD01BF111D400E1E845 /* Build configuration list for PBXNativeTarget "S4-ios Tests" */;
+			buildConfigurationList = 2E0E1FD01BF111D400E1E845 /* Build configuration list for PBXNativeTarget "S4Crypto-ios Tests" */;
 			buildPhases = (
 				2E0E1FC41BF111D400E1E845 /* Sources */,
 				2E0E1FC51BF111D400E1E845 /* Frameworks */,
@@ -3299,14 +3263,14 @@
 			dependencies = (
 				2E0E1FCF1BF111D400E1E845 /* PBXTargetDependency */,
 			);
-			name = "S4-ios Tests";
+			name = "S4Crypto-ios Tests";
 			productName = "S4-ios Tests";
-			productReference = 2E0E1FC81BF111D400E1E845 /* S4-ios Tests.xctest */;
+			productReference = 2E0E1FC81BF111D400E1E845 /* S4Crypto-ios Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		2EAA660D1BE7D36E00A0375B /* S4-osx */ = {
+		2EAA660D1BE7D36E00A0375B /* S4Crypto-osx */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2EAA66221BE7D36E00A0375B /* Build configuration list for PBXNativeTarget "S4-osx" */;
+			buildConfigurationList = 2EAA66221BE7D36E00A0375B /* Build configuration list for PBXNativeTarget "S4Crypto-osx" */;
 			buildPhases = (
 				2EAA66391BE7D82700A0375B /* Run Script */,
 				2EAA66091BE7D36E00A0375B /* Sources */,
@@ -3318,14 +3282,14 @@
 			);
 			dependencies = (
 			);
-			name = "S4-osx";
+			name = "S4Crypto-osx";
 			productName = S4;
-			productReference = 2EAA660E1BE7D36E00A0375B /* S4.framework */;
+			productReference = 2EAA660E1BE7D36E00A0375B /* S4Crypto.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		2EAA66171BE7D36E00A0375B /* S4-osx Tests */ = {
+		2EAA66171BE7D36E00A0375B /* S4Crypto-osx Tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2EAA66251BE7D36E00A0375B /* Build configuration list for PBXNativeTarget "S4-osx Tests" */;
+			buildConfigurationList = 2EAA66251BE7D36E00A0375B /* Build configuration list for PBXNativeTarget "S4Crypto-osx Tests" */;
 			buildPhases = (
 				2EAA66141BE7D36E00A0375B /* Sources */,
 				2EAA66151BE7D36E00A0375B /* Frameworks */,
@@ -3336,14 +3300,14 @@
 			dependencies = (
 				2EAA661B1BE7D36E00A0375B /* PBXTargetDependency */,
 			);
-			name = "S4-osx Tests";
+			name = "S4Crypto-osx Tests";
 			productName = S4Tests;
-			productReference = 2EAA66181BE7D36E00A0375B /* S4-osx Tests.xctest */;
+			productReference = 2EAA66181BE7D36E00A0375B /* S4Crypto-osx Tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		2EAA66411BE7DB5900A0375B /* S4-optest */ = {
+		2EAA66411BE7DB5900A0375B /* S4Crypto-optest */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2EAA66481BE7DB5900A0375B /* Build configuration list for PBXNativeTarget "S4-optest" */;
+			buildConfigurationList = 2EAA66481BE7DB5900A0375B /* Build configuration list for PBXNativeTarget "S4Crypto-optest" */;
 			buildPhases = (
 				2E1931341C03A10900655552 /* ShellScript */,
 				2EAA663E1BE7DB5900A0375B /* Sources */,
@@ -3354,14 +3318,14 @@
 			dependencies = (
 				2EAA664F1BE7DF7900A0375B /* PBXTargetDependency */,
 			);
-			name = "S4-optest";
+			name = "S4Crypto-optest";
 			productName = S4_Optest;
-			productReference = 2EAA66421BE7DB5900A0375B /* S4-optest */;
+			productReference = 2EAA66421BE7DB5900A0375B /* S4Crypto-optest */;
 			productType = "com.apple.product-type.tool";
 		};
-		DC96B8961F9406680001B19A /* S4-ios */ = {
+		DC96B8961F9406680001B19A /* S4Crypto-ios */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = DC96B89E1F9406680001B19A /* Build configuration list for PBXNativeTarget "S4-ios" */;
+			buildConfigurationList = DC96B89E1F9406680001B19A /* Build configuration list for PBXNativeTarget "S4Crypto-ios" */;
 			buildPhases = (
 				DC47D11B1FA13425003A160C /* ShellScript */,
 				DC96B8921F9406680001B19A /* Sources */,
@@ -3373,9 +3337,9 @@
 			);
 			dependencies = (
 			);
-			name = "S4-ios";
+			name = "S4Crypto-ios";
 			productName = "S4-ios";
-			productReference = DC96B8971F9406680001B19A /* S4.framework */;
+			productReference = DC96B8971F9406680001B19A /* S4Crypto.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -3410,7 +3374,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 2EAA66081BE7D36E00A0375B /* Build configuration list for PBXProject "S4" */;
+			buildConfigurationList = 2EAA66081BE7D36E00A0375B /* Build configuration list for PBXProject "S4Crypto" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -3422,13 +3386,13 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2EAA660D1BE7D36E00A0375B /* S4-osx */,
-				2EAA66171BE7D36E00A0375B /* S4-osx Tests */,
-				2EAA66411BE7DB5900A0375B /* S4-optest */,
-				2E0E1E671BF10FB300E1E845 /* S4-ios static */,
-				2E0E1FC71BF111D400E1E845 /* S4-ios Tests */,
-				DC96B8961F9406680001B19A /* S4-ios */,
-				2E01BA1B215958C50021AEC0 /* S4-cavp */,
+				2EAA660D1BE7D36E00A0375B /* S4Crypto-osx */,
+				2EAA66171BE7D36E00A0375B /* S4Crypto-osx Tests */,
+				2EAA66411BE7DB5900A0375B /* S4Crypto-optest */,
+				2E0E1E671BF10FB300E1E845 /* S4Crypto-ios static */,
+				2E0E1FC71BF111D400E1E845 /* S4Crypto-ios Tests */,
+				DC96B8961F9406680001B19A /* S4Crypto-ios */,
+				2E01BA1B215958C50021AEC0 /* S4Crypto-cavp */,
 			);
 		};
 /* End PBXProject section */
@@ -3445,42 +3409,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2E01BA9F215AE6950021AEC0 /* CBCKeySbox192.rsp in Resources */,
-				2E01BA89215AE6950021AEC0 /* ECBVarKey192.rsp in Resources */,
-				2E01BA8E215AE6950021AEC0 /* ECBVarTxt128.rsp in Resources */,
-				2E01BA8D215AE6950021AEC0 /* CBCGFSbox128.rsp in Resources */,
-				2E01BA9C215AE6950021AEC0 /* ECBMMT128.rsp in Resources */,
-				2E01BA92215AE6950021AEC0 /* CBCMMT256.rsp in Resources */,
-				2E01BA81215AE6950021AEC0 /* CBCMCT192.rsp in Resources */,
-				2E01BA7F215AE6950021AEC0 /* CBCMMT128.rsp in Resources */,
-				2E01BA85215AE6950021AEC0 /* CBCGFSbox192.rsp in Resources */,
-				2E01BA93215AE6950021AEC0 /* CBCMMT192.rsp in Resources */,
-				2E01BA98215AE6950021AEC0 /* CBCVarKey128.rsp in Resources */,
-				2E01BA84215AE6950021AEC0 /* ECBVarKey128.rsp in Resources */,
-				2E01BA91215AE6950021AEC0 /* CBCVarKey192.rsp in Resources */,
-				2E01BA8C215AE6950021AEC0 /* CBCMCT256.rsp in Resources */,
-				2E01BA97215AE6950021AEC0 /* ECBMCT128.rsp in Resources */,
-				2E01BA86215AE6950021AEC0 /* ECBMMT192.rsp in Resources */,
-				2E01BA82215AE6950021AEC0 /* ECBMCT192.rsp in Resources */,
-				2E01BA83215AE6950021AEC0 /* ECBKeySbox256.rsp in Resources */,
-				2E01BA8B215AE6950021AEC0 /* CBCKeySbox128.rsp in Resources */,
-				2E01BA80215AE6950021AEC0 /* ECBKeySbox192.rsp in Resources */,
-				2E01BA8A215AE6950021AEC0 /* ECBMMT256.rsp in Resources */,
-				2E01BA94215AE6950021AEC0 /* ECBGFSbox128.rsp in Resources */,
-				2E01BAA2215AE6950021AEC0 /* ECBGFSbox192.rsp in Resources */,
-				2E01BA9B215AE6950021AEC0 /* CBCVarTxt128.rsp in Resources */,
-				2E01BA95215AE6950021AEC0 /* CBCVarTxt256.rsp in Resources */,
-				2E01BA99215AE6950021AEC0 /* ECBMCT256.rsp in Resources */,
-				2E01BA96215AE6950021AEC0 /* ECBGFSbox256.rsp in Resources */,
-				2E01BAA1215AE6950021AEC0 /* CBCMCT128.rsp in Resources */,
-				2E01BA88215AE6950021AEC0 /* CBCVarTxt192.rsp in Resources */,
-				2E01BA9D215AE6950021AEC0 /* ECBVarTxt256.rsp in Resources */,
-				2E01BA8F215AE6950021AEC0 /* CBCVarKey256.rsp in Resources */,
-				2E01BAA0215AE6950021AEC0 /* CBCGFSbox256.rsp in Resources */,
-				2E01BA90215AE6950021AEC0 /* ECBVarTxt192.rsp in Resources */,
-				2E01BA9A215AE6950021AEC0 /* ECBKeySbox128.rsp in Resources */,
-				2E01BA9E215AE6950021AEC0 /* CBCKeySbox256.rsp in Resources */,
-				2E01BA87215AE6950021AEC0 /* ECBVarKey256.rsp in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4728,22 +4656,22 @@
 /* Begin PBXTargetDependency section */
 		2E01BA1C215958C50021AEC0 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2EAA660D1BE7D36E00A0375B /* S4-osx */;
+			target = 2EAA660D1BE7D36E00A0375B /* S4Crypto-osx */;
 			targetProxy = 2E01BA1D215958C50021AEC0 /* PBXContainerItemProxy */;
 		};
 		2E0E1FCF1BF111D400E1E845 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2E0E1E671BF10FB300E1E845 /* S4-ios static */;
+			target = 2E0E1E671BF10FB300E1E845 /* S4Crypto-ios static */;
 			targetProxy = 2E0E1FCE1BF111D400E1E845 /* PBXContainerItemProxy */;
 		};
 		2EAA661B1BE7D36E00A0375B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2EAA660D1BE7D36E00A0375B /* S4-osx */;
+			target = 2EAA660D1BE7D36E00A0375B /* S4Crypto-osx */;
 			targetProxy = 2EAA661A1BE7D36E00A0375B /* PBXContainerItemProxy */;
 		};
 		2EAA664F1BE7DF7900A0375B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 2EAA660D1BE7D36E00A0375B /* S4-osx */;
+			target = 2EAA660D1BE7D36E00A0375B /* S4Crypto-osx */;
 			targetProxy = 2EAA664E1BE7DF7900A0375B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -4789,7 +4717,7 @@
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = S4;
+				PRODUCT_NAME = S4Crypto;
 				S4_BASE = ./;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -4816,7 +4744,7 @@
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = S4;
+				PRODUCT_NAME = S4Crypto;
 				S4_BASE = ./;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -4990,7 +4918,7 @@
 					libs/yajl/src/api,
 					libs/jsmn,
 				);
-				INFOPLIST_FILE = src/main/s4/apple/S4.plist;
+				INFOPLIST_FILE = src/main/s4/apple/S4Crypto.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
@@ -4998,9 +4926,9 @@
 					"-exported_symbols_list",
 					src/main/S4/S4.exp,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.4th-a.S4";
-				PRODUCT_MODULE_NAME = S4;
-				PRODUCT_NAME = S4;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.4th-a.S4Crypto";
+				PRODUCT_MODULE_NAME = S4Crypto;
+				PRODUCT_NAME = S4Crypto;
 				PROVISIONING_PROFILE = "";
 				S4_BASE = ./;
 				SKIP_INSTALL = YES;
@@ -5033,7 +4961,7 @@
 					libs/yajl/src/api,
 					libs/jsmn,
 				);
-				INFOPLIST_FILE = src/main/s4/apple/S4.plist;
+				INFOPLIST_FILE = src/main/s4/apple/S4Crypto.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
@@ -5041,9 +4969,9 @@
 					"-exported_symbols_list",
 					src/main/S4/S4.exp,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.4th-a.S4";
-				PRODUCT_MODULE_NAME = S4;
-				PRODUCT_NAME = S4;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.4th-a.S4Crypto";
+				PRODUCT_MODULE_NAME = S4Crypto;
+				PRODUCT_NAME = S4Crypto;
 				PROVISIONING_PROFILE = "";
 				S4_BASE = ./;
 				SKIP_INSTALL = YES;
@@ -5135,7 +5063,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.4th-a.S4-ios";
-				PRODUCT_NAME = S4;
+				PRODUCT_NAME = S4Crypto;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -5175,7 +5103,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.2;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.4th-a.S4-ios";
-				PRODUCT_NAME = S4;
+				PRODUCT_NAME = S4Crypto;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -5187,7 +5115,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2E01BA2D215958C50021AEC0 /* Build configuration list for PBXNativeTarget "S4-cavp" */ = {
+		2E01BA2D215958C50021AEC0 /* Build configuration list for PBXNativeTarget "S4Crypto-cavp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E01BA2E215958C50021AEC0 /* Debug */,
@@ -5196,7 +5124,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2E0E1E6E1BF10FB300E1E845 /* Build configuration list for PBXNativeTarget "S4-ios static" */ = {
+		2E0E1E6E1BF10FB300E1E845 /* Build configuration list for PBXNativeTarget "S4Crypto-ios static" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E0E1E6F1BF10FB300E1E845 /* Debug */,
@@ -5205,7 +5133,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2E0E1FD01BF111D400E1E845 /* Build configuration list for PBXNativeTarget "S4-ios Tests" */ = {
+		2E0E1FD01BF111D400E1E845 /* Build configuration list for PBXNativeTarget "S4Crypto-ios Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E0E1FD11BF111D400E1E845 /* Debug */,
@@ -5214,7 +5142,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2EAA66081BE7D36E00A0375B /* Build configuration list for PBXProject "S4" */ = {
+		2EAA66081BE7D36E00A0375B /* Build configuration list for PBXProject "S4Crypto" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2EAA66201BE7D36E00A0375B /* Debug */,
@@ -5223,7 +5151,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2EAA66221BE7D36E00A0375B /* Build configuration list for PBXNativeTarget "S4-osx" */ = {
+		2EAA66221BE7D36E00A0375B /* Build configuration list for PBXNativeTarget "S4Crypto-osx" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2EAA66231BE7D36E00A0375B /* Debug */,
@@ -5232,7 +5160,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2EAA66251BE7D36E00A0375B /* Build configuration list for PBXNativeTarget "S4-osx Tests" */ = {
+		2EAA66251BE7D36E00A0375B /* Build configuration list for PBXNativeTarget "S4Crypto-osx Tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2EAA66261BE7D36E00A0375B /* Debug */,
@@ -5241,7 +5169,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2EAA66481BE7DB5900A0375B /* Build configuration list for PBXNativeTarget "S4-optest" */ = {
+		2EAA66481BE7DB5900A0375B /* Build configuration list for PBXNativeTarget "S4Crypto-optest" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2EAA66461BE7DB5900A0375B /* Debug */,
@@ -5250,7 +5178,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		DC96B89E1F9406680001B19A /* Build configuration list for PBXNativeTarget "S4-ios" */ = {
+		DC96B89E1F9406680001B19A /* Build configuration list for PBXNativeTarget "S4Crypto-ios" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				DC96B89C1F9406680001B19A /* Debug */,

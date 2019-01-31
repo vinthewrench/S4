@@ -21,7 +21,7 @@
 #include "cavpCipherTest.h"
 #include "cavpHMACtest.h"
 
-#include   <s4/s4.h>
+#include   <S4Crypto/S4Crypto.h>
 
 S4Err cavpTestFile(char* path)
 {

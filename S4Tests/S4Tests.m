@@ -23,7 +23,7 @@
 
 #import <XCTest/XCTest.h>
 #include  "optest.h"
-#include  "S4.h"
+#include  <S4Crypto/S4Crypto.h>
 
 #if TARGET_OS_IPHONE
 

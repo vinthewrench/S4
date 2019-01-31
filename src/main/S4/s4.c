@@ -6,7 +6,7 @@
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#include "S4.h"
+#include "S4Crypto.h"
 #include "s4internal.h"
   
 

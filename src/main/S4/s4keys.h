@@ -11,6 +11,7 @@
 
 
 #include "s4pubtypes.h"
+#include "s4cryptography.h"
 
 #ifdef __clang__
 #pragma mark - Key import Export.

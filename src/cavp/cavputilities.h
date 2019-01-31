@@ -9,7 +9,7 @@
 #ifndef cavputilities_h
 #define cavputilities_h
 
-#include   <s4/s4.h>
+#include   <S4Crypto/S4Crypto.h>
 
 #define	ishex(c)	(((uint8_t)(c)) >= '0' && ((uint8_t)(c)) <= '9' || ((uint8_t)(c)) >= 'a' && ((uint8_t)(c)) <= 'f')
 

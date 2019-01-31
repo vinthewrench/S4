@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "DC96B8961F9406680001B19A"
-               BuildableName = "S4.framework"
-               BlueprintName = "S4-ios"
-               ReferencedContainer = "container:S4.xcodeproj">
+               BlueprintIdentifier = "2EAA660D1BE7D36E00A0375B"
+               BuildableName = "S4Crypto.framework"
+               BlueprintName = "S4Crypto-osx"
+               ReferencedContainer = "container:S4Crypto.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -28,7 +28,26 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2EAA66171BE7D36E00A0375B"
+               BuildableName = "S4Crypto-osx Tests.xctest"
+               BlueprintName = "S4Crypto-osx Tests"
+               ReferencedContainer = "container:S4Crypto.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "2EAA660D1BE7D36E00A0375B"
+            BuildableName = "S4Crypto.framework"
+            BlueprintName = "S4Crypto-osx"
+            ReferencedContainer = "container:S4Crypto.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -45,10 +64,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "DC96B8961F9406680001B19A"
-            BuildableName = "S4.framework"
-            BlueprintName = "S4-ios"
-            ReferencedContainer = "container:S4.xcodeproj">
+            BlueprintIdentifier = "2EAA660D1BE7D36E00A0375B"
+            BuildableName = "S4Crypto.framework"
+            BlueprintName = "S4Crypto-osx"
+            ReferencedContainer = "container:S4Crypto.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -63,10 +82,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "DC96B8961F9406680001B19A"
-            BuildableName = "S4.framework"
-            BlueprintName = "S4-ios"
-            ReferencedContainer = "container:S4.xcodeproj">
+            BlueprintIdentifier = "2EAA660D1BE7D36E00A0375B"
+            BuildableName = "S4Crypto.framework"
+            BlueprintName = "S4Crypto-osx"
+            ReferencedContainer = "container:S4Crypto.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

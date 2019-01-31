@@ -10,7 +10,7 @@
 #define cavpCipherTest_h
 
 #include <stdio.h>
-#include   <s4/s4.h>
+#include <S4Crypto/S4Crypto.h>
 
 S4Err cavpCipherCBCTestFile(char* filePath);
 S4Err cavpCipherTestFile(char* filePath);

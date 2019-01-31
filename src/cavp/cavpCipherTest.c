@@ -19,7 +19,7 @@
 
 #include "cavputilities.h"
 
-#include   <s4/s4.h>
+#include   <S4Crypto/S4Crypto.h>
 
 enum  CAVPTest_
 {

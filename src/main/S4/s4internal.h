@@ -13,28 +13,10 @@
 //  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
 //
 
-#ifndef S4_h
-#define S4_h
-
-#ifdef __APPLE__
-//#define _USES_COMMON_CRYPTO_ 1
-#endif
-
-#define _USES_XXHASH_ 1
-#define _USES_SHA3_ 	1
-
-#include "s4pubtypes.h"
-#include "s4crypto.h"
-#include "s4keys.h"
-#include "s4bufferutilities.h"
-#include "s4keysinternal.h"
-
-#endif /* S4_h */
-
 #ifndef s4internal_h
 #define s4internal_h
 
-#include "S4.h"
+#include "S4Crypto.h"
 
 #include "tomcrypt.h"
 #include "threefishApi.h"

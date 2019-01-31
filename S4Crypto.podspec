@@ -22,10 +22,10 @@ S4Crypto is an extensive cross platform library of cryptographic functions that 
 	s.compiler_flags = '-fno-objc-arc'
 
 	s.public_header_files =  [
-		'src/main/S4/s4.h',
+		'src/main/S4/S4Crypto.h',
 		'src/main/S4/s4keys.h',
 		'src/main/S4/s4pubtypes.h',
-		'src/main/S4/s4crypto.h',
+		'src/main/S4/s4cryptography.h',
 		'src/main/S4/s4bufferutilities.h',
 		'src/main/S4/s4keysinternal.h',
 		]

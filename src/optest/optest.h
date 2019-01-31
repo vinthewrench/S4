@@ -10,8 +10,8 @@
 #define optest_h
 
 #include <stdio.h>
-#include <s4/s4.h>
-#include <s4/s4crypto.h>
+#include <S4Crypto/S4Crypto.h>
+
 
 #ifdef __IPHONE_OS_VERSION_MIN_REQUIRED
 #define OPTEST_IOS_SPECIFIC 1

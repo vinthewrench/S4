@@ -37,8 +37,8 @@ S4_SHARED_TARGET = $(TARGETDIR)/libs4.dylib
   show
   
 S4_INCLUDES = \
-		src/main/S4/S4.h \
-		src/main/S4/s4crypto.h \
+		src/main/S4/S4Crypto.h \
+		src/main/S4/s4cryptography.h \
 		src/main/S4/s4keys.h \
 		src/main/S4/s4bufferutilities.h	\
 		src/main/S4/s4keysinternal.h \
@@ -415,8 +415,8 @@ s4: $(S4_TARGET) $(S4_SHARED_TARGET)
 #  OPTEST 
 #################################################################
 
-OPTEST_BUILD_DIR  =  $(BUILD_DIR)/optest
-OPTEST_TARGET = $(TARGETDIR)/optest
+#OPTEST_BUILD_DIR  =  $(BUILD_DIR)/optest
+#OPTEST_TARGET = $(TARGETDIR)/optest
 
 OPTEST_SRCS = \
 	src/optest/testECC.c \
@@ -431,22 +431,22 @@ OPTEST_SRCS = \
 	src/optest/testCiphers.c \
 	src/optest/testP2K.c 
 
-OPTEST_OBJS = $(OPTEST_SRCS:%.c=$(OPTEST_BUILD_DIR)/%.o)
+#OPTEST_OBJS = $(OPTEST_SRCS:%.c=$(OPTEST_BUILD_DIR)/%.o)
 
-$(OPTEST_BUILD_DIR)/%.o: %.c  | init 
-	$(CC) -o $(addprefix $(OPTEST_BUILD_DIR)/, $(notdir $(@))) -c $(CFLAGS) \
-		-mmacosx-version-min=10.10 \
-		-I$(TARGETDIR) $<
+#$(OPTEST_BUILD_DIR)/%.o: %.c  | init 
+#	$(CC) -o $(addprefix $(OPTEST_BUILD_DIR)/, $(notdir $(@))) -c $(CFLAGS) \
+#		-mmacosx-version-min=10.10 \
+#		-I$(TARGETDIR) $<
 
-$(OPTEST_TARGET): $(OPTEST_OBJS)  init 
-	clang $(OPTEST_BUILD_DIR)/*.o -L$(TARGETDIR) $(TARGETDIR)/libs4.dylib \
-	-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
-	-o $(OPTEST_TARGET) 
+#$(OPTEST_TARGET): $(OPTEST_OBJS)  init 
+#	clang $(OPTEST_BUILD_DIR)/*.o -L$(TARGETDIR) $(TARGETDIR)/libs4.dylib \
+#	-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
+#	-o $(OPTEST_TARGET) 
 
-optest: $(OPTEST_TARGET)
+#optest: $(OPTEST_TARGET)
 
-run_optest : optest
-	DYLD_LIBRARY_PATH=$(TARGETDIR) $(OPTEST_TARGET)
+#run_optest : optest
+#	DYLD_LIBRARY_PATH=$(TARGETDIR) $(OPTEST_TARGET)
 
 #################################################################
 #  CAVP 
@@ -462,22 +462,22 @@ CAVP_SRCS = \
 	src/cavp/cavpHMACtest.c \
 	src/cavp/cavputilities.c 
  
-CAVP_OBJS = $(CAVP_SRCS:%.c=$(CAVP_BUILD_DIR)/%.o)
+#CAVP_OBJS = $(CAVP_SRCS:%.c=$(CAVP_BUILD_DIR)/%.o)
 
-$(CAVP_BUILD_DIR)/%.o: %.c  | init 
-	$(CC) -o $(addprefix $(CAVP_BUILD_DIR)/, $(notdir $(@))) -c $(CFLAGS)  \
-		-mmacosx-version-min=10.10 \
-		-I$(TARGETDIR) $<
+#$(CAVP_BUILD_DIR)/%.o: %.c  | init 
+#	$(CC) -o $(addprefix $(CAVP_BUILD_DIR)/, $(notdir $(@))) -c $(CFLAGS)  \
+#		-mmacosx-version-min=10.10 \
+#		-I$(TARGETDIR) $<
 
-$(CAVP_TARGET): $(CAVP_OBJS) init 
-	clang $(CAVP_BUILD_DIR)/*.o -L$(TARGETDIR) $(TARGETDIR)/libs4.dylib \
-	-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
-	-o $(CAVP_TARGET) 
+#$(CAVP_TARGET): $(CAVP_OBJS) init 
+#	clang $(CAVP_BUILD_DIR)/*.o -L$(TARGETDIR) $(TARGETDIR)/libs4.dylib \
+#	-isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk \
+#	-o $(CAVP_TARGET) 
 
-cavp: $(CAVP_TARGET)
+#cavp: $(CAVP_TARGET)
 
-run_cavp : cavp
-	DYLD_LIBRARY_PATH=$(TARGETDIR) $(CAVP_TARGET)  $(TARGETDIR)/KAT
+#run_cavp : cavp
+#	DYLD_LIBRARY_PATH=$(TARGETDIR) $(CAVP_TARGET)  $(TARGETDIR)/KAT
 
 #################################################################
 #  minittest 
@@ -626,34 +626,48 @@ run_em_test:
 
 #################################################################
 
-S4_FRAMEWORK_NAME = S4.framework
+S4_FRAMEWORK_NAME = S4Crypto.framework
 
-S4_OSX_DEBUG =  $(TARGETDIR)/Debug/S4_FRAMEWORK_NAME
-S4_IOS_DEBUG =  $(TARGETDIR)/Debug-iphoneos/S4_FRAMEWORK_NAME
-S4_OSX =  $(TARGETDIR)/Release/S4_FRAMEWORK_NAME
-S4_IOS =  $(TARGETDIR)/Release-iphoneos/S4_FRAMEWORK_NAME
+S4_OSX_DEBUG =  $(TARGETDIR)/Debug/$(S4_FRAMEWORK_NAME)
+S4_IOS_DEBUG =  $(TARGETDIR)/Debug-iphoneos/$(S4_FRAMEWORK_NAME)
+S4_OSX =  $(TARGETDIR)/Release/$(S4_FRAMEWORK_NAME)
+S4_IOS =  $(TARGETDIR)/Release-iphoneos/$(S4_FRAMEWORK_NAME)
 
-$(S4_OSX_DEBUG) : ${S4_SRCS}
-	xcodebuild -project S4.xcodeproj -target S4-osx -configuration Debug
+OPTEST_OSX =  $(TARGETDIR)/Debug/S4Crypto-optest
+CAVP_OSX =  $(TARGETDIR)/Debug/S4Crypto-cavp
 
-$(S4_IOS_DEBUG) : ${S4_SRCS}
-	xcodebuild -project S4.xcodeproj -target S4-ios -configuration Debug
+$(S4_OSX_DEBUG) : $(S4_SRCS)
+	xcodebuild -project S4Crypto.xcodeproj -target S4Crypto-osx -configuration Debug
+
+$(S4_IOS_DEBUG) : $(S4_SRCS)
+	xcodebuild -project S4Crypto.xcodeproj -target S4Crypto-ios -configuration Debug
 
 $(S4_OSX) : ${S4_SRCS}
-	xcodebuild -project S4.xcodeproj -target S4-osx -configuration Release
+	xcodebuild -project S4Crypto.xcodeproj -target S4Crypto-osx -configuration Release
 
 $(S4_IOS) : ${S4_SRCS}
-	xcodebuild -project S4.xcodeproj -target S4-ios -configuration Release
+	xcodebuild -project S4Crypto.xcodeproj -target S4Crypto-ios -configuration Release
 
-s4_osx: $(S4_OSX)
+$(OPTEST_OSX) : $(S4_OSX_DEBUG) $(OPTEST_SRCS)
+	xcodebuild -project S4Crypto.xcodeproj -target S4Crypto-optest -configuration Debug
 
-s4_ios: $(S4_IOS)
-  
-$(S4_IOS_FRAMEWORK) : ${S4_SRCS}
-	xcodebuild -project S4.xcodeproj -target S4-ios -configuration Debug
+$(CAVP_OSX) : $(S4_OSX_DEBUG) #$(OPTEST_SRCS)
+	xcodebuild -project S4Crypto.xcodeproj -target S4Crypto-cavp -configuration Debug
 
-osx_s4: $(S4_OSX_FRAMEWORK)
- 
+S4Crypto_osx: $(S4_OSX)
+
+S4Crypto_ios: $(S4_IOS)
+
+optest_osx: $(OPTEST_OSX)
+
+cavp_osx: $(CAVP_OSX)
+
+run_optest : $(OPTEST_OSX)
+	DYLD_FRAMEWORK_PATH=$(TARGETDIR)/Debug/ $(TARGETDIR)/Debug/S4Crypto-optest
+
+run_cavp : $(CAVP_OSX) 
+	DYLD_FRAMEWORK_PATH=$(TARGETDIR)/Debug/ $(TARGETDIR)/Debug/S4Crypto-cavp  $(TARGETDIR)/Debug/KAT
+
 #################################################################
 
 all: $(S4_TARGET) $(S4_SHARED_TARGET) $(OPTEST_TARGET)

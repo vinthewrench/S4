@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "2EAA66411BE7DB5900A0375B"
-               BuildableName = "S4-optest"
-               BlueprintName = "S4-optest"
-               ReferencedContainer = "container:S4.xcodeproj">
+               BlueprintIdentifier = "2E0E1E671BF10FB300E1E845"
+               BuildableName = "libS4Crypto.a"
+               BlueprintName = "S4Crypto-ios static"
+               ReferencedContainer = "container:S4Crypto.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -28,14 +28,24 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "2E0E1FC71BF111D400E1E845"
+               BuildableName = "S4Crypto-ios Tests.xctest"
+               BlueprintName = "S4Crypto-ios Tests"
+               ReferencedContainer = "container:S4Crypto.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2EAA66411BE7DB5900A0375B"
-            BuildableName = "S4-optest"
-            BlueprintName = "S4-optest"
-            ReferencedContainer = "container:S4.xcodeproj">
+            BlueprintIdentifier = "2E0E1E671BF10FB300E1E845"
+            BuildableName = "libS4Crypto.a"
+            BlueprintName = "S4Crypto-ios static"
+            ReferencedContainer = "container:S4Crypto.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -45,50 +55,21 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      enableASanStackUseAfterReturn = "YES"
-      disableMainThreadChecker = "YES"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2EAA66411BE7DB5900A0375B"
-            BuildableName = "S4-optest"
-            BlueprintName = "S4-optest"
-            ReferencedContainer = "container:S4.xcodeproj">
+            BlueprintIdentifier = "2E0E1E671BF10FB300E1E845"
+            BuildableName = "libS4Crypto.a"
+            BlueprintName = "S4Crypto-ios static"
+            ReferencedContainer = "container:S4Crypto.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
-      <CommandLineArguments>
-         <CommandLineArgument
-            argument = "--utilties"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--verbose"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--share"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--P2K"
-            isEnabled = "YES">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--debug"
-            isEnabled = "NO">
-         </CommandLineArgument>
-         <CommandLineArgument
-            argument = "--keys"
-            isEnabled = "NO">
-         </CommandLineArgument>
-      </CommandLineArguments>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -98,16 +79,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "2EAA66411BE7DB5900A0375B"
-            BuildableName = "S4-optest"
-            BlueprintName = "S4-optest"
-            ReferencedContainer = "container:S4.xcodeproj">
+            BlueprintIdentifier = "2E0E1E671BF10FB300E1E845"
+            BuildableName = "libS4Crypto.a"
+            BlueprintName = "S4Crypto-ios static"
+            ReferencedContainer = "container:S4Crypto.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
