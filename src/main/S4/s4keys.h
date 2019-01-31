@@ -3,7 +3,7 @@
 //  S4
 //
 //  Created by vincent Moscaritolo on 11/10/15.
-//  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
+//  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
 #ifndef s4Keys_h
@@ -11,7 +11,6 @@
 
 
 #include "s4pubtypes.h"
-#include "s4cryptography.h"
 
 #ifdef __clang__
 #pragma mark - Key import Export.

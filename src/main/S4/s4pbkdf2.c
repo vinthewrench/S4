@@ -30,7 +30,7 @@ EXPORT_FUNCTION S4Err PASS_TO_KEY_SETUP(   unsigned long  password_len,
     uint8_t     *key        = NULL;
     uint32_t    rounds = MIN_ROUNDS;
     
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
     
     rounds = CCCalibratePBKDF(kCCPBKDF2,password_len, salt_len, kCCPRFHmacAlgSHA256, key_len, 100 );
     
@@ -96,7 +96,7 @@ EXPORT_FUNCTION S4Err PASS_TO_KEY (const uint8_t  *password,
 {
     S4Err    err     = kS4Err_NoErr;
     
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
     
     if( CCKeyDerivationPBKDF( kCCPBKDF2, (const char*)password,  password_len,
                              salt, salt_len,

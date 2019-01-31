@@ -1,13 +1,17 @@
 //
 //  s4pubtypes.h
-//  S4
+//  S4Crypto
 //
 //  Created by vincent Moscaritolo on 11/2/15.
-//  Copyright © 2015 4th-A Technologies, LLC. All rights reserved.
+//  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
 #ifndef s4pubtypes_h
 #define s4pubtypes_h
+
+#define S4_BUILD_NUMBER               8
+#define S4_SHORT_VERSION_STRING       "2.2.0"
+
 
 #include <limits.h>
 #include <stdint.h>
@@ -28,6 +32,7 @@
 #	define __CONST_CHAR_P_P const char *__nullable* __nullable		/* nullable const char **p */
 #	define __NULLABLE_XFREE_P_P  * __nullable * __nullable				/* nullable pointer to XMALLOC block */
 #	define __NONNULL_ARRAY __nonnull * __nullable
+#	define __NONNULL_PP * __nonnull * __nonnull
 
 
 #else  // NO SUPPORT FOR nullability
@@ -40,6 +45,7 @@
 #	define __CONST_CHAR_P_P const char ** 		/* nullable const char **p */
 #	define __NULLABLE_XFREE_P_P  ** 				/* nullable pointer to XMALLOC block */
 #	define __NONNULL_ARRAY *
+#	define __NONNULL_PP **
 
 #endif
 
@@ -216,8 +222,6 @@ enum S4Err
     kS4Err_NotEnoughShares,         // 29
     kS4Err_PropertyNotFound,        // 30
 	kS4Err_ShareOwnerMismatch,         // 31
-
-
 };
 
 typedef int S4Err;

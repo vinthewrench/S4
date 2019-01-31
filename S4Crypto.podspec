@@ -23,11 +23,18 @@ S4Crypto is an extensive cross platform library of cryptographic functions that 
 
 	s.public_header_files =  [
 		'src/main/S4/S4Crypto.h',
-		'src/main/S4/s4keys.h',
 		'src/main/S4/s4pubtypes.h',
-		'src/main/S4/s4cryptography.h',
-		'src/main/S4/s4bufferutilities.h',
-		'src/main/S4/s4keysinternal.h',
+		'src/main/S4/s4rng.h',
+		'src/main/S4/s4hash.h',
+		'src/main/S4/s4mac.h',
+		'src/main/S4/s4cipher.h',
+		'src/main/S4/s4p2k.h',
+		'src/main/S4/s4tbc.h',
+		'src/main/S4/s4ecc.h',
+		'src/main/S4/s4share.h',
+		'src/main/S4/s4keys.h',
+		'src/main/S4/s4utilities.h',
+		'src/main/S4/s4keysinternal.h'
 		]
 
 	s.xcconfig = { "HEADER_SEARCH_PATHS" => '${PODS_TARGET_SRCROOT}/libs/tomcrypt/headers ${PODS_TARGET_SRCROOT}/libs/tommath ${PODS_TARGET_SRCROOT}/libs/sha3 ${PODS_TARGET_SRCROOT}/libs/argon2 ${PODS_TARGET_SRCROOT}/libs/tomcrypt/hashes/skein ${PODS_TARGET_SRCROOT}/src/main/scripts ${PODS_TARGET_SRCROOT}/libs/xxHash ${PODS_TARGET_SRCROOT}/libs/yajl/src ${PODS_TARGET_SRCROOT}/libs/yajl/src/api ${PODS_TARGET_SRCROOT}/libs/jsmn' }
@@ -35,6 +42,7 @@ S4Crypto is an extensive cross platform library of cryptographic functions that 
  
 	s.source_files = [
 		'src/main/S4/**/*.{h,inc}',
+		'libs/common/**/*.{h,inc}',
 		'libs/tomcrypt/**/*.{h,inc}',
 		'libs/tommath/**/*.{h,inc}',
 		'libs/sha3/**/*.{h,inc}',

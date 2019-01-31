@@ -37,12 +37,20 @@ S4_SHARED_TARGET = $(TARGETDIR)/libs4.dylib
   show
   
 S4_INCLUDES = \
-		src/main/S4/S4Crypto.h \
-		src/main/S4/s4cryptography.h \
-		src/main/S4/s4keys.h \
-		src/main/S4/s4bufferutilities.h	\
-		src/main/S4/s4keysinternal.h \
-		src/main/S4/s4pubtypes.h
+	src/main/S4/S4Crypto.h \
+	src/main/S4/s4pubtypes.h \
+	src/main/S4/s4rng.h \
+	src/main/S4/s4hash.h \
+	src/main/S4/s4mac.h \
+	src/main/S4/s4cipher.h \
+	src/main/S4/s4p2k.h \
+	src/main/S4/s4tbc.h \
+	src/main/S4/s4ecc.h \
+	src/main/S4/s4share.h \
+	src/main/S4/s4keys.h \
+	src/main/S4/s4utilities.h	\
+	src/main/S4/s4keysinternal.h  
+
 
 CFLAGS= -I. \
 	-Wnon-modular-include-in-framework-module\
@@ -498,6 +506,7 @@ MINITEST_FLAGS = $(CFLAGS) \
 	-Ilibs/argon2 \
 	-Ilibs/sha3 \
 	-Ilibs/jsmn \
+	-Ilibs/common \
 	-I$(BUILD_DIR)/includes  
   
 MINITEST_OBJS = $(MINITEST_SRCS:%.c=$(MINITEST_BUILD_DIR)/%.o)
@@ -536,6 +545,7 @@ EM_S4_FLAGS = $(CFLAGS) \
 	-Ilibs/yajl/src \
 	-Ilibs/yajl/src/api \
 	-Ilibs/jsmn \
+	-Ilibs/common \
 	-I$(BUILD_DIR)/includes  
 	
 EM_S4_OBJS = $(EM_S4_SRCS:%.c=$(EM_S4_BUILD_DIR)/%.bc)
@@ -601,6 +611,7 @@ EM_MINITEST_FLAGS = $(CFLAGS) \
 	-Ilibs/argon2 \
 	-Ilibs/sha3 \
 	-Ilibs/jsmn \
+	-Ilibs/common \
 	-I$(BUILD_DIR)/includes  
 	
 EM_MINITEST_OBJS = $(EM_MINITEST_SRCS:%.c=$(EM_MINITEST_BUILD_DIR)/%.bc)

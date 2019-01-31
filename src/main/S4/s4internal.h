@@ -17,7 +17,7 @@
 #define s4internal_h
 
 #include "S4Crypto.h"
-
+#include "s4keysinternal.h"
 #include "tomcrypt.h"
 #include "threefishApi.h"
 
@@ -30,7 +30,7 @@
  */
 #define GIT_COMMIT_HASH __DATE__
 
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
 #include <CommonCrypto/CommonCrypto.h>
 #include <CommonCrypto/CommonRandom.h>
 

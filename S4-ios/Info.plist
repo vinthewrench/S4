@@ -18,6 +18,8 @@
 	<string>2.1</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2019 4th-A Technologies, LLC. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
 	<string></string>
 </dict>

@@ -302,7 +302,7 @@ static S4Err s4calculatePBKDF2Params(   size_t  password_len,
 	uint8_t     *salt        = NULL;
 	uint32_t    rounds = MIN_ROUNDS;
 
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
 
 	rounds = CCCalibratePBKDF(kCCPBKDF2,password_len, salt_len, kCCPRFHmacAlgSHA256, key_len, 100 );
 
@@ -415,11 +415,11 @@ static S4Err sCalculateKey(P2K_ContextRef	ctx,
 	{
 		case kP2K_Algorithm_PBKDF2:
 		{
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
 
 			if( CCKeyDerivationPBKDF( kCCPBKDF2, (const char*)password,  password_len,
-									 salt, salt_len,
-									 kCCPRFHmacAlgSHA256, rounds,
+									 ctx->salt, ctx->saltLen,
+									 kCCPRFHmacAlgSHA256, ctx->pbkdf2.rounds,
 									 key_buf,   key_len)
 			   != kCCSuccess)
 				err = kS4Err_BadParams;

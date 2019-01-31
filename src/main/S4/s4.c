@@ -166,7 +166,7 @@ EXPORT_FUNCTION S4Err  S4_GetVersionString(char outString[256])
     
     snprintf(version_string, sizeof(version_string), "%s%s (%03d) %s",
              S4_SHORT_VERSION_STRING,
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
              "CC",
 #else
              "",
@@ -298,7 +298,7 @@ EXPORT_FUNCTION S4Err RNG_GetBytes(     void *         out,
 {
     S4Err             err = kS4Err_NoErr;
 
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
    
    if(  CCRandomGenerateBytes(out, outLen) != kCCSuccess)
        err =  kS4Err_ResourceUnavailable;

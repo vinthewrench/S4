@@ -31,14 +31,14 @@ struct HASH_Context
     HASH_Algorithm          algor;
     size_t                  hashsize;
     
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
     CCHmacAlgorithm         ccAlgor;
 #endif
     
     union
     {
         hash_state              tc_state;
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
         CC_MD5_CTX              ccMD5_state;
         CC_SHA1_CTX             ccSHA1_state;
         CC_SHA256_CTX           ccSHA256_state;
@@ -131,7 +131,7 @@ done:
 }
 
 
-#if  _USES_COMMON_CRYPTO_
+#if  _S4_USES_COMMON_CRYPTO_
 
 int sCCHashUpdateMD5(void *ctx, const unsigned char *in, unsigned long inlen)
 {
@@ -536,7 +536,7 @@ EXPORT_FUNCTION S4Err HASH_Init(HASH_Algorithm algorithm, HASH_ContextRef * ctx)
 #endif
 
     {
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
     
     switch(algorithm)
     {
@@ -774,7 +774,7 @@ EXPORT_FUNCTION S4Err HASH_Reset(HASH_ContextRef ctx)
 	}
 #endif
 
-#if _USES_COMMON_CRYPTO_
+#if _S4_USES_COMMON_CRYPTO_
 	if(!handled)
 	{
 		switch(ctx->algor)
@@ -842,7 +842,7 @@ EXPORT_FUNCTION S4Err HASH_DO(HASH_Algorithm algorithm, const void *in, size_t i
     uint8_t             *p = (outLen < sizeof(hashBuf))?hashBuf:out;
     
     
-#if  _USES_COMMON_CRYPTO_
+#if  _S4_USES_COMMON_CRYPTO_
     
     /* use apple algorithms if possible*/
     switch(algorithm)

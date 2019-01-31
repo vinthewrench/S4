@@ -22,7 +22,7 @@ struct MAC_Context
     uint32_t                magic;
     MAC_Algorithm           macAlgor;
     
-#if  _USES_COMMON_CRYPTO_
+#if  _S4_USES_COMMON_CRYPTO_
     CCHmacAlgorithm         ccAlgor;
 #endif
     
@@ -32,7 +32,7 @@ struct MAC_Context
     {
         hmac_state              hmac;
         skeinmac_state          skeinmac;
-#if  _USES_COMMON_CRYPTO_
+#if  _S4_USES_COMMON_CRYPTO_
         CCHmacContext           ccMac;
 #endif
     }state;
@@ -60,7 +60,7 @@ static bool sMAC_ContextIsValid( const MAC_ContextRef  ref)
 #define validateMACContext( s )		\
 ValidateParam( sMAC_ContextIsValid( s ) )
 
-#if  _USES_COMMON_CRYPTO_
+#if  _S4_USES_COMMON_CRYPTO_
 
 
 int sCCMacUpdate(CCHmacContext *ctx, const unsigned char *in, unsigned long inlen)
@@ -170,7 +170,7 @@ EXPORT_FUNCTION S4Err MAC_Init(MAC_Algorithm mac, HASH_Algorithm hash, const voi
     {
         case  kMAC_Algorithm_HMAC:
             
-#if  _USES_COMMON_CRYPTO_
+#if  _S4_USES_COMMON_CRYPTO_
             
        switch(hash)
         {
