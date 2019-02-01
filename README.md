@@ -57,7 +57,8 @@ The following public key algorithms are supported:
 ##### S4Crypto Keys API
 
 S4Crypto also provides a higher level API to manage and process symmetric, public and split cryptographic keys using a JSON representation. 
-The following is an example of keys encoded using S4Crypto
+
+Example of keys encoded using S4Crypto:
 
 ```JSON
 #AES-128 key wrapped by Argon2 encoded passphrase
@@ -82,12 +83,12 @@ The following is an example of keys encoded using S4Crypto
     "keyID": "I0zFCdE4foQamhXa/f1u4Q==",
     "keySuite": "AES-256",
     "mac": "wHgedFID0nQ=",
-    "encrypted": "MIGkBglghkgBZQMEAgEEdTBzAwIHAAIBNAI0Ash59Esy79QfsM/wgeCkW6NzVKlDQBt3I/MEyyUEqIHKT9xVc5C4pJwSRhoNCDM1mD2YvgI0I5pUH10p+JfV1u73brI/Stt2cE9ZoJ82N5D6rr62taU/00Xwl8JOzGkPHtDsgIErRXO2xgQgLqmBDVQun+2EkoGSfrsPqvtdB+wVgNQcufVkoork3mY="
+    "encrypted": "MIGkBglghkgBZQMEAgEE...vtdB+wVgNQcufVkoork3mY="
  }
  ```
 
 ```JSON
-#AES-128 key split payload and one of the shares
+#AES-128 key split into 8 shares with payload and one of the shares
 { 
     "version": 1,
     "encoding": "Shamir-AES256",
@@ -120,6 +121,28 @@ The following is an example of keys encoded using S4Crypto
 } 
 ```
 
+```JSON
+#Curve41417 self-signed public key 
+{
+	"version":1,
+	"keySuite":"Curve41417",
+	"keyID":"k/Ot8M1rrE9gsAQ52wfatQ==",
+	"pubKey":"BB1oTbiIzXvKAeoEGGpDNs1L25++9fD...eENIcVdgbFSnN0U1n1r",
+	"start-date":"2018-10-31T16:51:11Z",
+	"signable-properties":["keyID","keySuite","pubKey","start-date"],
+	"signatures":[
+		{
+			"sigID":"rGXAFobko5RCinIFBRkMoA==",
+			"hashAlgorithm":"SHA-256",
+			"signature":"MGwCNAUY8MbJv0XnvB0C...8xDradimCNzVpTr+sr54=",
+			"issuer":"k/Ot8M1rrE9gsAQ52wfatQ==",
+			"issue-date":"2018-10-31T16:51:11Z",
+			"sig-expire":0,
+			"signed-properties":["keyID","keySuite","pubKey","start-date"]
+		}
+	]
+}
+```
 
 
 ### Getting Started
