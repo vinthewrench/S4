@@ -6,6 +6,13 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4uilities_h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Utility functions
+ *
+ */
+
 #ifndef s4utilities_h
 #define s4utilities_h
 

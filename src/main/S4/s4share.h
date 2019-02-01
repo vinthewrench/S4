@@ -6,6 +6,13 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4share.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Low level Shamir key splitting functions
+ *
+ */
+
 #ifndef s4share_h
 #define s4share_h
 #include "s4pubtypes.h"

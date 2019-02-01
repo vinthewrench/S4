@@ -6,6 +6,13 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4keys.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Key Management functions
+ *
+ */
+
 #ifndef s4Keys_h
 #define s4Keys_h
 

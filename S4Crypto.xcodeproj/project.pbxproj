@@ -1991,6 +1991,8 @@
 		2ECF7E8D22038D7A00DF08B5 /* S4Crypto.podspec */ = {isa = PBXFileReference; lastKnownFileType = text; path = S4Crypto.podspec; sourceTree = "<group>"; };
 		2ECF7E972203934000DF08B5 /* brg_endian.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = brg_endian.h; path = libs/common/brg_endian.h; sourceTree = SOURCE_ROOT; };
 		2ECF7E982203934000DF08B5 /* brg_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = brg_types.h; path = libs/common/brg_types.h; sourceTree = SOURCE_ROOT; };
+		2ECF7E9D2204C3CD00DF08B5 /* Doxyfile */ = {isa = PBXFileReference; lastKnownFileType = text; path = Doxyfile; sourceTree = "<group>"; };
+		2ECF7E9E2204CCA600DF08B5 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		DC96B8971F9406680001B19A /* S4Crypto.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = S4Crypto.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC96B89A1F9406680001B19A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -2235,6 +2237,8 @@
 		2EAA66041BE7D36E00A0375B = {
 			isa = PBXGroup;
 			children = (
+				2ECF7E9E2204CCA600DF08B5 /* README.md */,
+				2ECF7E9D2204C3CD00DF08B5 /* Doxyfile */,
 				2E9947D621FD3BE300103C0D /* makefile */,
 				2ECF7E8D22038D7A00DF08B5 /* S4Crypto.podspec */,
 				2EAA662F1BE7D58600A0375B /* headers */,

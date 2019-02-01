@@ -6,6 +6,14 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+
+/**
+ * @file s4pubtypes.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto public types and macros
+ *
+ */
+
 #ifndef s4pubtypes_h
 #define s4pubtypes_h
 
@@ -20,6 +28,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+
+/**
+ * @brief Nullability macros to satisfy clang nullabilty warnings
+ *
+*/
 
 
 #if !defined(EMSCRIPTEN) && defined(__has_feature) && __has_feature(nullability)
@@ -49,6 +62,10 @@
 
 #endif
 
+/**
+ * @brief DEPRECATED macros for clang warning
+ *
+ */
 
 #ifndef __AVAILABILITYMACROS__
 
@@ -80,11 +97,10 @@
 #endif
 #endif
 
-#if ( DEBUG == 1 )
-#define STATUS_LOG(...)	 printf(__VA_ARGS__)
-#else
-#define STATUS_LOG(...)
-#endif
+/**
+ * @brief Misc ENUM macros
+ *
+ */
 
 #define kEnumMaxValue		INT_MAX
 
@@ -101,29 +117,24 @@ k ## enumName ## force = kEnumMaxValue
 #define MAX(a,b) (a >= b ? a : b)
 #endif
 
+/**
+ * @brief Error testing and convenience macros
+ *
+ */
+
 #define IsS4Err(_err_)  (_err_ != kS4Err_NoErr)
 #define IsntS4Err(_err_)  (_err_ == kS4Err_NoErr)
-
-#define CKERR  if((err != kS4Err_NoErr)) {\
-STATUS_LOG("ERROR %d  %s:%d \n",  err, __FILE__, __LINE__); \
-goto done; }
-
-#define ASSERTERR( _a_ , _err_ )  if(!(_a_))  { \
-err = _err_; \
-STATUS_LOG("ERROR %d  %s:%d \n",  err, __FILE__, __LINE__); \
-goto done; }
-
 
 #ifndef IsntNull
 #define IsntNull( p )	( (int) ( (p) != NULL ) )
 #endif
-
 
 #ifndef IsNull
 #define IsNull( p )		( (int) ( (p) == NULL ) )
 #endif
 
 #define RETERR(x)	do { err = x; goto done; } while(0)
+
 
 #define COPY(b1, b2, len)							\
 memcpy((void *)(b2), (void *)b1, (int)(len) )
@@ -169,6 +180,27 @@ goto done; }
 #define BitFlp(arg,val) ((arg) ^= (val))
 #define BitTst(arg,val) BOOLVAL((arg) & (val))
 
+/**
+ * @brief Debug macros
+ *
+ */
+
+#if ( DEBUG == 1 )
+#define STATUS_LOG(...)	 printf(__VA_ARGS__)
+#else
+#define STATUS_LOG(...)
+#endif
+
+#define CKERR  if((err != kS4Err_NoErr)) {\
+STATUS_LOG("ERROR %d  %s:%d \n",  err, __FILE__, __LINE__); \
+goto done; }
+
+#define ASSERTERR( _a_ , _err_ )  if(!(_a_))  { \
+err = _err_; \
+STATUS_LOG("ERROR %d  %s:%d \n",  err, __FILE__, __LINE__); \
+goto done; }
+
+
 #define ValidateParam( expr )	\
 if ( ! (expr ) )	\
 {\
@@ -179,6 +211,10 @@ return( kS4Err_BadParams );\
 #define ValidatePtr( ptr )	\
 ValidateParam( (ptr) != NULL )
 
+/**
+ * @brief S4Err - status returned by most functions.
+ *
+ */
 
 enum S4Err
 {
@@ -223,7 +259,6 @@ enum S4Err
     kS4Err_PropertyNotFound,        // 30
 	kS4Err_ShareOwnerMismatch,         // 31
 };
-
 typedef int S4Err;
 
 #endif /* s4pubtypes_h */

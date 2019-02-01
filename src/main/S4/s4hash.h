@@ -6,8 +6,16 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4Hash.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Hash functions
+ *
+ */
+
 #ifndef s4Hash_h
 #define s4Hash_h
+
 
 #include "s4pubtypes.h"
 
@@ -18,6 +26,12 @@ S4_ASSUME_NONNULL_BEGIN
 #pragma mark - HASH function wrappers
 #endif
 
+/**
+ * @brief HASH_Context
+ *
+ *	HASH_Context is the object passed around by various hash functions.
+ *
+ */
 
 typedef struct HASH_Context *      HASH_ContextRef;
 

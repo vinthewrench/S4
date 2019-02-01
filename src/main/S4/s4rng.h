@@ -11,6 +11,13 @@
 
 #include "s4pubtypes.h"
 
+/**
+ * @file s4rng.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Random Number/String Generation
+ *
+ */
+
 S4_ASSUME_NONNULL_BEGIN
 
 #ifdef __clang__

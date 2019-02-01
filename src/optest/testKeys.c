@@ -1808,10 +1808,6 @@ S4Err  TestKeys()
     
     asprintf(&exported_keys,"[" );
 
-#if 0
-	err = sTest_SharedS4Keys(); CKERR;
-#else
-
 	err = sTestSymmetricKeys(); CKERR;
 	err = sTestTBCKeys(); CKERR;
 
@@ -1865,9 +1861,7 @@ S4Err  TestKeys()
     }
     
     OPTESTLogInfo("\n");
-#endif
-
-    
+ 
 done:
     
     if(encodedCtx)

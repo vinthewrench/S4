@@ -6,6 +6,13 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4ecc.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Low level elliptic curve public key functions
+ *
+ */
+
 #ifndef s4ecc_h
 #define s4ecc_h
 #include "s4pubtypes.h"

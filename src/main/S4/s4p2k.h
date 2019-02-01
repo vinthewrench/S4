@@ -6,6 +6,13 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4p2k.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Password to key encoding functions
+ *
+ */
+
 #ifndef s4p2k_h
 #define s4p2k_h
 

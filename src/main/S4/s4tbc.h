@@ -6,6 +6,13 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4tbc.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Tweekable Block Cipher functions
+ *
+ */
+
 #ifndef s4tbc_h
 #define s4tbc_h
 

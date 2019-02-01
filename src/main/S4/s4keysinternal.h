@@ -6,6 +6,13 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4keysinternal.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Key Management data structure internals
+ *
+ */
+
 #ifndef s4keysinternal_h
 #define s4keysinternal_h
 

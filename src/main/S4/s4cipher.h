@@ -6,9 +6,17 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4cipher.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Low level symmetric encryption functions
+ *
+ */
+
 #ifndef s4cipher_h
 #define s4cipher_h
 #include "s4pubtypes.h"
+
 
 S4_ASSUME_NONNULL_BEGIN
 

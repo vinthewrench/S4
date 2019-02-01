@@ -1,165 +1,191 @@
-# libs4
+# [S4Crypto](https://github.com/4th-ATechnologies/S4)
 
-S4 is an extensive cross platform library of cryptographic functions that can be called 
-from the C API. It was designed to be portable, such that it can be cross-compiled 
-for different architectures,  including OS X, IOS,  Linux, Android, and Windows.
+S4Crypto is a modern extensive cross platform library of cryptographic functions that can be called 
+from the C API as well as JavaScript. It was designed to be portable, such that it can be cross-compiled for different architectures,  including macOS, iOS,  Linux, Android, and Windows.
 
+S4Crypto also builds as a JavaScript  [webassembly](https://webassembly.org)  library.
 
-# Building for OS X
+S4Crypto also comes with a complete set of FIPS-140 compatible operation and [CAVP](https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program)  tests. 
 
-The OS X version of S4 is built using Xcode 7.1. and uses the S4-osx target. This will
- produce the S4.Framework  in the build/osx/Debug or build/osx/Release directory.  
- Both Xcode tests and Operational tests have been provided. The Operational tests can
-  be built and run using the S4-optest Xcode target.
+S4Crypto  is the crypto library  used by [storm4](https://https://www.storm4.cloud)  and zerodark.cloud
 
-# Building for IOS
-
-The IOS  version of S4 is built using Xcode 7.1. and uses the 'S4-ios static' target.
- This will produce the libS4.a in the build/ios/Debug or build/ios/Release directory. 
-  Only the Xcode tests which calls the Operational tests have been provided. The Xcode
-   test Operational tests can be built and run using the S4-ios Test  target.
-
-
-# Building for the unix OS (Linux)
-
-The simplest way to build this project is simply to run `make host`. This will
-perform a build for the host OS, and should work out-of-the-box on most operating
-systems, assuming standard C build tools are available.
-
-
-# Features
+### Features
 
 S4 allows the programmer to make high level C calls without having to have expertise 
 in the low level cryptography algorithms. It presents the interface in a consistant 
 usable structure.
 
-#HASH algorithms 
+##### HASH algorithms 
 
 The following Hash Algorithms are supported:
 
 - MD5
-- SHA-1, 224, 256, 384, 512, 512/256
+
+- SHA-1
+- SHA-2 224/256/384/512  
+- SHA-3 224/256/384/512
+- KECCAK_256  (as seen in Ethereum)
 - SKEIN-256, 512, 1024 
- 
- The following Hash API
+- xxHash 32/64
 
-- HASH_Init
-- HASH_Free 
-- HASH_Update
-- HASH_Final 
-- HASH_GetSize 
-- HASH_Export 
-- HASH_Import 
-- HASH_DO 
-
-#Message Authentication Code
+##### Message Authentication Code
 
 Both HMAC and SKEIN version of MAC is supported. Across all the appropriate hash algorithms.
- 
-- MAC_Init
-- MAC_Free
-- MAC_Update
-- MAC_Final
-- MAC_HashSize
 
-There is also a MAC_KDF utility function that is helpful for doing key derivation 
- 
-#Symmetric Cryptography functions
+#####  Symmetric Cryptography functions
 
-The following ciphers are supported:	AES-128, AES-192, AES-256, 2FISH-256
-   
-EBC mode calls include
-- ECB_Encrypt
-- ECB_Decrypt 
+The following ciphers are supported:	
+- AES 128/192/256
+- 2FISH-256
 
-CBC mode is available via:
+Modes supported include EBC, CBC and a CBC encode/decode with padding  
 
-- CBC_Init
-- CBC_Free
-- CBC_Encrypt
-- CBC_Decrypt 
-
-and a  higher level CBC encode/decode with padding  
-
-- CBC_EncryptPAD
-- CBC_DecryptPAD
-
-#Tweekable Block cipher
+##### Tweekable Block cipher
 
 Threefish is supported in 256, 512 and 1024 bit mode.
 
-- TBC_Init 
-- TBC_Free
-- TBC_SetTweek
-- TBC_Encrypt
-- TBC_Decrypt 
+##### Public Key functions
+The following public key algorithms are supported:	
+- ECC-384
+- Curve41417  ([Bernstien/Lange Curve41417](https://safecurves.cr.yp.to)) 
 
-#ECC Public Key functions
+##### Key Splitting
 
-supported Keysizes are ECC-384 and 414 (Bernstien/Lange Curve41417) 
-
-- ECC_Init
-- ECC_Free
-- ECC_Generate
-- ECC_isPrivate
-- ECC_Export 
-- ECC_Export_ANSI_X963
-- ECC_Import_Info
-- ECC_Import
-- ECC_Import_ANSI_X963
-- ECC_CurveName
-- ECC_KeySize
-- ECC_PubKeyHash
-- ECC_SharedSecret 
-- ECC_Encrypt
-- ECC_Decrypt
-- ECC_Verify
-- ECC_Sign
-
-# Shamir secret Splitting 
-
-- SHARES_Init
-- SHARES_Free
-- SHARES_GetShareInfo
-- SHARES_CombineShareInfo
-
-# Generate PGP hash codes
-- PGPWordEncode
-- PGPWordEncode64
-
-#S4 Keys API
-
-S4 also provides a higher level API to take cryptographic keys and convert back and forth
-from a JSON representation.
-
-Keys are maintained in an internal S4KeyContextRef format and can be created and manipulated
-using the following API calls.
-
-- S4Key_NewSymmetric
-- S4Key_NewTBC
-- S4Key_NewShare
-- S4Key_Free
-- S4Key_SetProperty
-- S4Key_GetProperty, SCKeyGetAllocatedProperty
-
-Keys pointed to by the S4KeyContextRef can be converted back and forth to JSON using
-
-- S4Key_SerializeToPubKey
-- S4Key_SerializeToPassPhrase
-- S4Key_DeserializeKeys
-
-and can be decoded back to original format using
-
-- S4Key_DecryptFromPassPhrase
-- S4Key_DecryptFromPubKey 
-- S4Key_VerifyPassPhrase
+- Splitting and reassembling  keys using [Shamir's Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)  up to 1024 bits 
 
 
+##### S4Crypto Keys API
 
+S4Crypto also provides a higher level API to manage and process symmetric, public and split cryptographic keys using a JSON representation. 
+The following is an example of keys encoded using S4Crypto
+
+```JSON
+#AES-128 key wrapped by Argon2 encoded passphrase
+"{
+    "version": 1,
+    "encoding": "p2k",
+    "keySuite": "AES-128",
+    "p2k-params": "$Argon2d$m=65536,t=2,p=1,k=16$wzXNtftfk/s=",
+    "mac": "YqEnigy+Y78=",
+    "esk": "mC564p9mn7AXP/qmFI9l6A==",
+    "iv": "FplyP4pAdcBoAkLgbIOGng==",
+    "encrypted": "GktZqypxDbZUuCW5WfhGcw==",
+    "encodedObject": "AES-128"
+}
+```
+
+```JSON
+#AES-256 key wrapped by ECC public key
+ { 
+     "version": 1,
+    "encoding": "Curve41417",
+    "keyID": "I0zFCdE4foQamhXa/f1u4Q==",
+    "keySuite": "AES-256",
+    "mac": "wHgedFID0nQ=",
+    "encrypted": "MIGkBglghkgBZQMEAgEEdTBzAwIHAAIBNAI0Ash59Esy79QfsM/wgeCkW6NzVKlDQBt3I/MEyyUEqIHKT9xVc5C4pJwSRhoNCDM1mD2YvgI0I5pUH10p+JfV1u73brI/Stt2cE9ZoJ82N5D6rr62taU/00Xwl8JOzGkPHtDsgIErRXO2xgQgLqmBDVQun+2EkoGSfrsPqvtdB+wVgNQcufVkoork3mY="
+ }
+ ```
+
+```JSON
+#AES-128 key split payload and one of the shares
+{ 
+    "version": 1,
+    "encoding": "Shamir-AES256",
+    "keySuite": "AES-128",
+    "mac": "POStvPXgTXA=",
+    "threshold": 6,
+    "totalShares": 8,
+    "shareOwner": "qRiYlopAc3w=",
+    "iv": "xsbKvBr8bh3BprWy+pZnqhO6Gwj035RyNKgOcpmHiuE=",
+    "encrypted": "t/L35MhILRR2cBh2QHeKqw==",
+    "shareIDs": [
+        "/uVqyD/TCw8=",
+        "MN9PaXCEMug=",
+        "Te/h6RWNV+A=",
+        "HY7veIQBRwQ=",
+        "bF20c6keLJQ=",
+        "R4i5eWjeGIs=",
+        "DDnQNZhnCHk=",
+        "kUuV20lxNvM="
+    ],
+}
+{
+    "version": 1,
+    "keySuite": "Shamir",
+    "shareOwner": "qRiYlopAc3w=",
+    "shareID": "/uVqyD/TCw8=",
+    "threshold": 6,
+    "index": 5,
+    "encrypted": "mkfi6TjyBi1lGzFEwZ9+dJJoKXpWz2Xk6SxMX6t/Vos=",
+} 
+```
+
+
+
+### Getting Started
+
+The minimum deployment target is iOS 9.2 / macOS 10.10 / tvOS 9.0 / watchOS 2.0.
+
+#### CocoaPods
+
+The easiest way to install `S4Crypto` is using CocoaPods.
+
+```ruby
+use_frameworks!
+pod 'S4Crypto', :git=>'https://github.com/4th-ATechnologies/S4'
+
+```
+
+After `pod install` open your `.xcworkspace` and import:
+
+```objc
+// Swift
+import S4Crypto     
+// Objective-C on iOS 8+ with `use_frameworks!`
+@import S4Crypto;
+```
+
+#### Carthage
+
+The `S4Crypto.xcodeproj` project contains framework targets for iOS, macOS, tvOS, and watchOS.
+
+### Building  S4Crypto
+
+If you wish to build the frameworks yourself you can either use the makefile or the   'S4Crypto.xcodeproj' file
+
+#### Building for macOS
+
+The macOS version of S4Crypto is built using Xcode 10.1. and uses the S4Crypto-osx target. This will  produce the S4Crypto.Framework  in the build/osx/Debug or build/osx/Release directory.  Both Xcode tests and Operational tests have been provided. The Operational tests can  be built and run using the S4-optest Xcode target.
+
+#### Building for iOS
+
+The iOS  version of S4Crypto is built using Xcode Xcode 10.1.. and  can produce either a static  library or a framework. Only the Xcode tests which calls the Operational tests have been provided. The Xcode  test Operational tests can be built and run using the S4Crypto-ios-static  test  target.
+
+
+#### Building for JavaScript using Web Assembly
+
+S4Crypto can be built for JavaScript  using the [emsdk](https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html)
+The simplest way to build this project is simply to run `make em_s4`.  This will produce  libS4.js, libS4.wasm, and libS4.bc files.
+
+
+
+### Operational Tests
+
+S4Crypto includes a complete set of operational tests that exercises all of the logical interfaces and  can be used as part of a [FIPS-140](https://csrc.nist.gov/csrc/media/projects/cryptographic-module-validation-program/documents/fips140-2/fips1402dtr.pdf) validation. 
+
+On macOS the operation tests can be created  by `make optest_osx` and then run by make `make run_optest_osx`.
+
+### CAVP Tests
+
+S4Crypto has the ability to process the follow test vectors produced by the [CAVP](https://csrc.nist.gov/Projects/cryptographic-algorithm-validation-program)  
+- AES block cipher in ECB, CBC modes
+- Secure Hashing SHA-1, SHA-2 and SHA-3
+- Message Authentication (HMAC)
+
+On macOS the operation tests can be created  by `make cavp_osx` and then run by make `make run_cavp`.  A set of known answer tests (KAT) are provided.
 
 
 
  
-
 
 

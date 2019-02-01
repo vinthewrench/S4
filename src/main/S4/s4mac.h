@@ -6,6 +6,13 @@
 //  Copyright © 2019 4th-A Technologies, LLC. All rights reserved.
 //
 
+/**
+ * @file s4mac.h
+ * @author 4th-A Technologies, LLC
+ * @brief S4Crypto Message Athentication Code Functions
+ *
+ */
+
 #ifndef s4Mac_h
 #define s4Mac_h
 
