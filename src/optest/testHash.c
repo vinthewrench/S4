@@ -64,7 +64,7 @@ S4Err TestHashKAT(
 	/* quick HASH API */
 	if(passes == 1)
 	{
-		err = HASH_DO(algor, msg, msgsize, sizeof(hashBuf), hashBuf); CKERR;
+		err = HASH_DO(algor, msg, msgsize,  hashBuf, sizeof(hashBuf)); CKERR;
 		err = ( compareResults( expected, hashBuf, expectedLen , kResultFormat_Byte, "Quick HASH")); CKERR;
 	}
 

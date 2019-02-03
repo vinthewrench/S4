@@ -833,7 +833,11 @@ done:
 }
 
 
-EXPORT_FUNCTION S4Err HASH_DO(HASH_Algorithm algorithm, const void *in, size_t inlen, size_t outLen, void *out)
+EXPORT_FUNCTION S4Err HASH_DO(HASH_Algorithm algorithm,
+											const void *__S4_NONNULL in,
+											size_t inlen,
+											void * __S4_NONNULL out,
+											size_t outLen)
 {
     
     S4Err             err         = kS4Err_NoErr;

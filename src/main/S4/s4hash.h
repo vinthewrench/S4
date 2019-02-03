@@ -108,7 +108,11 @@ S4Err HASH_Export(HASH_ContextRef ctx, void *outData, size_t bufSize, size_t *da
 S4Err HASH_Import(void *inData, size_t bufSize,
 				  HASH_ContextRef __NULLABLE_REF_POINTER  ctx);
 
-S4Err HASH_DO(HASH_Algorithm algorithm, const void *in, size_t inlen, size_t outLen, void *out);
+S4Err HASH_DO(HASH_Algorithm algorithm,
+			  const void *__S4_NONNULL in,
+			  size_t inlen,
+			  void * __S4_NONNULL out,
+			  size_t outLen);
 
 S4Err HASH_NormalizePassPhrase(const uint8_t    *passphrase,
 							   size_t           passphraseLen,
