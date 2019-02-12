@@ -40,7 +40,7 @@ S4Err S4_GetVersionString(char outString[__S4_NONNULL 256]);
 
 /* Functions to load and store in network (big) endian format */
 
-S4Err S4_LoadArray( void *val, size_t len,  uint8_t __NONNULL_PP ptr, uint8_t* limit);
+S4Err S4_LoadArray( void *val, size_t len,  uint8_t __NONNULL_PP ptr, uint8_t* __S4_NULLABLE limit);
 
 uint64_t S4_Load64( uint8_t __NONNULL_PP ptr );
 
