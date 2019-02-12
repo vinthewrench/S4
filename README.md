@@ -12,7 +12,7 @@ S4Crypto  is the crypto library  used by [storm4](https://https://www.storm4.clo
 ### Features
 
 S4 allows the programmer to make high level C calls without having to have expertise 
-in the low level cryptography algorithms. It presents the interface in a consistant 
+in the low level cryptography algorithms. It presents the interface in a consistent 
 usable structure.
 
 ##### HASH algorithms 
