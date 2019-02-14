@@ -69,7 +69,19 @@ EXPORT_FUNCTION S4Err S4_Init()
     return err;
 }
 
+#ifdef __clang__
 
+__attribute__((constructor)) static void S4Initializer()
+{
+	static bool initialized = false;
+	if (!initialized)
+	{
+		S4_Init();
+		initialized = true;
+	}
+}
+
+#endif
 
 
 #ifdef __clang__
