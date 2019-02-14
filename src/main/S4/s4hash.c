@@ -340,13 +340,13 @@ static S4HashInfo sHashInfoTable[] = {
 #if _USES_SHA3_
 	{ "SHA3-224",    	kHASH_Algorithm_SHA3_224, 	224,	true},
 	{ "SHA3-256",    	kHASH_Algorithm_SHA3_256, 	256,	true},
-	{ "SHA3-284",    	kHASH_Algorithm_SHA3_384, 	384,	true},
+	{ "SHA3-384",    	kHASH_Algorithm_SHA3_384, 	384,	true},
 	{ "SHA3-512",    	kHASH_Algorithm_SHA3_512, 	512,	true},
 	{ "KECCAK-256",    	kHASH_Algorithm_KECCAK_256, 256,	true},
 #else
 	{ "SHA3-224",    	kHASH_Algorithm_SHA3_224, 	224,	false},
 	{ "SHA3-256",    	kHASH_Algorithm_SHA3_256, 	256,	false},
-	{ "SHA3-284",    	kHASH_Algorithm_SHA3_384, 	384,	false},
+	{ "SHA3-384",    	kHASH_Algorithm_SHA3_384, 	384,	false},
 	{ "SHA3-512",    	kHASH_Algorithm_SHA3_512, 	512,	false},
 	{ "KECCAK-256",    	kHASH_Algorithm_KECCAK_256, 256,	false},
 #endif
@@ -648,7 +648,11 @@ EXPORT_FUNCTION S4Err HASH_Update(HASH_ContextRef ctx, const void *data, size_t 
     //    const struct    ltc_hash_descriptor* desc = NULL;
     
     validateHASHContext(ctx);
-    ValidateParam(data);
+
+	if(!data && dataLength == 0)
+		return kS4Err_NoErr;
+
+	ValidateParam(data);
     
     if(ctx->process)
         err = (ctx->process)(&ctx->state,  data, dataLength );
