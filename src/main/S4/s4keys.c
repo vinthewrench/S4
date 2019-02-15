@@ -4217,6 +4217,15 @@ EXPORT_FUNCTION S4Err S4Key_Copy(S4KeyContextRef ctx, S4KeyContextRef *ctxOut)
             
 		case kS4KeyType_P2K_ESK:
 			keyCTX->esk = ctx->esk;
+			if(ctx->esk.encrypted && ctx->esk.encryptedLen > 0)
+			{
+				keyCTX->esk.encrypted = XMALLOC(ctx->esk.encryptedLen);
+				COPY(ctx->esk.encrypted,keyCTX->esk.encrypted, ctx->esk.encryptedLen);
+			}
+
+			if(ctx->esk.p2kParams)
+				keyCTX->esk.p2kParams = strdup(ctx->esk.p2kParams);
+
 			break;
 
         case kS4KeyType_PBKDF2:
