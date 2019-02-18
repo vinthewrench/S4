@@ -56,12 +56,14 @@ static S4Err RunCipherKAT(  katvector *kat)
         
         OPTESTLogInfo("%4s", "ECB");
         
-        err = ECB_Encrypt(kat->algor, kat->key, kat->PT,kat->PTlen, out); CKERR;
+        err = ECB_Encrypt(kat->algor, kat->key, kat->PT,kat->PTlen,
+						  out, kat->PTlen); CKERR;
         
         /* check against know-answer */
         err = compareResults( kat->EBC, out, kat->EBClen , kResultFormat_Byte, "Symmetric Encrypt"); CKERR;
         
-        err = ECB_Decrypt(kat->algor, kat->key, out,kat->PTlen, out); CKERR;
+        err = ECB_Decrypt(kat->algor, kat->key, out,kat->PTlen,
+						  out, kat->PTlen); CKERR;
         
         /* check against orginal plain-text  */
         err = compareResults( kat->PT, out, kat->PTlen , kResultFormat_Byte, "Symmetric Decrypt"); CKERR;
@@ -74,7 +76,8 @@ static S4Err RunCipherKAT(  katvector *kat)
         OPTESTLogInfo("%4s", "CBC");
         err = CBC_Init(kat->algor, kat->key, kat->IV,   &CBC ); CKERR;
         
-        err = CBC_Encrypt(CBC, kat->PT, kat->PTlen, out); CKERR;
+        err = CBC_Encrypt(CBC, kat->PT, kat->PTlen,
+						  out,kat->PTlen); CKERR;
         
         /* check against know-answer */
         err = compareResults( kat->CBC, out, kat->CBClen , kResultFormat_Byte, "CBC Encrypt"); CKERR;
@@ -84,7 +87,8 @@ static S4Err RunCipherKAT(  katvector *kat)
         
         err = CBC_Init(kat->algor, kat->key, kat->IV,   &CBC ); CKERR;
         
-        err = CBC_Decrypt(CBC,out, kat->PTlen, out); CKERR;
+        err = CBC_Decrypt(CBC,out, kat->PTlen,
+						  out,kat->PTlen); CKERR;
         
         /* check against orginal plain-text  */
         err = compareResults( kat->PT, out, kat->PTlen , kResultFormat_Byte, "CBC Decrypt"); CKERR;

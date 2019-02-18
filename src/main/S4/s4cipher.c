@@ -16,9 +16,10 @@
 EXPORT_FUNCTION
 S4Err ECB_Encrypt(Cipher_Algorithm algorithm,
                   const void *	key,
-                  const void *	in,
-                  size_t         bytesIn,
-                  void *         out )
+				  const void *	in,
+				  size_t         inSize,
+				  void *         out,
+				  size_t         outSize)
 {
     int             err = kS4Err_NoErr;
     int             status  =  CRYPT_OK;
@@ -26,7 +27,9 @@ S4Err ECB_Encrypt(Cipher_Algorithm algorithm,
     
     int             keylen  = 0;
     int             cipher  = -1;
-    
+
+	ValidateParam(inSize == outSize);
+
     switch(algorithm)
     {
         case kCipher_Algorithm_AES128:
@@ -55,7 +58,7 @@ S4Err ECB_Encrypt(Cipher_Algorithm algorithm,
     
     status  = ecb_start(cipher, key, keylen, 0, &ECB ); CKSTAT;
     
-    status  = ecb_encrypt(in, out, bytesIn, &ECB); CKSTAT;
+    status  = ecb_encrypt(in, out, inSize, &ECB); CKSTAT;
     
     
 done:
@@ -71,10 +74,11 @@ done:
 
 EXPORT_FUNCTION
 S4Err ECB_Decrypt(Cipher_Algorithm algorithm,
-                  const void *	key,
-                  const void *	in,
-                  size_t         bytesIn,
-                  void *         out )
+				  const void *	key,
+				  const void *	in,
+				  size_t         inSize,
+				  void *         out,
+				  size_t         outSize)
 {
     int             err = kS4Err_NoErr;
     int             status  =  CRYPT_OK;
@@ -82,7 +86,9 @@ S4Err ECB_Decrypt(Cipher_Algorithm algorithm,
     
     int             keylen  = 0;
     int             cipher  = -1;
-    
+
+	ValidateParam(inSize == outSize);
+
     switch(algorithm)
     {
         case kCipher_Algorithm_AES128:
@@ -111,7 +117,7 @@ S4Err ECB_Decrypt(Cipher_Algorithm algorithm,
     
     status  = ecb_start(cipher, key, keylen, 0, &ECB ); CKSTAT;
     
-    status  = ecb_decrypt(in, out, bytesIn, &ECB); CKSTAT;
+    status  = ecb_decrypt(in, out, inSize, &ECB); CKSTAT;
     
     
 done:
@@ -236,17 +242,18 @@ EXPORT_FUNCTION S4Err CBC_GetAlgorithm(CBC_ContextRef ctx, Cipher_Algorithm *alg
 }
 
 EXPORT_FUNCTION S4Err CBC_Encrypt(CBC_ContextRef ctx,
-                  const void *	in,
-                  size_t         bytesIn,
-                  void *         out )
+								  const void *	in,
+								  size_t         inSize,
+								  void *         out,
+								  size_t         outSize)
 {
     S4Err           err = kS4Err_NoErr;
     int             status  =  CRYPT_OK;
     
     validateCBCContext(ctx);
-    
-    
-    status = cbc_encrypt(in, out, bytesIn, &ctx->state);
+	ValidateParam(inSize == outSize);
+
+    status = cbc_encrypt(in, out, inSize, &ctx->state);
     
     err = sCrypt2S4Err(status);
     
@@ -255,17 +262,18 @@ EXPORT_FUNCTION S4Err CBC_Encrypt(CBC_ContextRef ctx,
 }
 
 EXPORT_FUNCTION S4Err CBC_Decrypt(CBC_ContextRef ctx,
-                  const void *	in,
-                  size_t         bytesIn,
-                  void *         out )
+								  const void *	in,
+								  size_t         inSize,
+								  void *         out,
+								  size_t         outSize)
 {
     S4Err           err = kS4Err_NoErr;
     int             status  =  CRYPT_OK;
     
     validateCBCContext(ctx);
-    
-    
-    status = cbc_decrypt(in, out, bytesIn, &ctx->state);
+	ValidateParam(inSize == outSize);
+
+     status = cbc_decrypt(in, out, inSize, &ctx->state);
     
     err = sCrypt2S4Err(status);
     
@@ -323,7 +331,7 @@ CBC_EncryptPAD(Cipher_Algorithm algorithm,
     
     err = CBC_Init(algorithm, key, iv,  &cbc);CKERR;
     
-    err = CBC_Encrypt(cbc, buffer, buffLen, buffer); CKERR;
+    err = CBC_Encrypt(cbc, buffer, buffLen, buffer, buffLen); CKERR;
 
 	if(outSize)
 		*outSize = buffLen;
@@ -376,7 +384,7 @@ CBC_DecryptPAD(Cipher_Algorithm algorithm,
     
     err = CBC_Init(algorithm, key, iv,  &cbc);CKERR;
     
-    err = CBC_Decrypt(cbc, in, buffLen, buffer); CKERR;
+    err = CBC_Decrypt(cbc, in, buffLen, buffer, buffLen); CKERR;
     
     bytes2Pad = *(buffer+buffLen-1);
     

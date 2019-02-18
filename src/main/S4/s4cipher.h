@@ -65,17 +65,25 @@ S4Err Cipher_GetKeySize(Cipher_Algorithm algorithm, size_t *keyBits);
 
 S4Err Cipher_GetBlockSize(Cipher_Algorithm algorithm, size_t *blockSizeBytes);
 
+/*  inSize must = outSize and the  number of octets to process
+ must be multiple of the cipher block size */
+
 S4Err ECB_Encrypt(Cipher_Algorithm algorithm,
 				  const void *	key,
 				  const void *	in,
-				  size_t         bytesIn,
-				  void *         out );
+				  size_t         inSize,
+				  void *         out,
+				  size_t         outSize);
+
+/*  bytesIn must = bytesOut and the  number of octets to process
+ must be multiple of the cipher block size */
 
 S4Err ECB_Decrypt(Cipher_Algorithm algorithm,
 				  const void *	key,
 				  const void *	in,
-				  size_t         bytesIn,
-				  void *         out );
+				  size_t         inSize,
+				  void *         out,
+				  size_t         outSize);
 
 typedef struct CBC_Context *      CBC_ContextRef;
 
@@ -93,13 +101,16 @@ S4Err CBC_GetAlgorithm(CBC_ContextRef ctx, Cipher_Algorithm *algorithm);
 
 S4Err CBC_Encrypt(CBC_ContextRef ctx,
 				  const void *	in,
-				  size_t         bytesIn,
-				  void *         out );
+				  size_t         inSize,
+				  void *         out,
+				  size_t         outSize);
+
 
 S4Err CBC_Decrypt(CBC_ContextRef ctx,
 				  const void *	in,
-				  size_t         bytesIn,
-				  void *         out );
+				  size_t         inSize,
+				  void *         out,
+				  size_t         outSize);
 
 void CBC_Free(CBC_ContextRef  ctx);
 

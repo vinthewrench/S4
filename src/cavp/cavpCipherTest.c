@@ -85,7 +85,8 @@ S4Err encryptMCT(Cipher_Algorithm algor,
 				buf  = j&1?LAST:OUTVAL;
 				buf1  = j&1?OUTVAL:LAST;
 
-				err = ECB_Encrypt(algor, KEY, buf,  INlen, buf1); CKERR;
+				err = ECB_Encrypt(algor, KEY, buf,  INlen,
+								  buf1, INlen); CKERR;
 
 				if( j == 9997) COPY(OUTVAL,  &KEYMASK[16], 8);
 				if( j == 9998) COPY(LAST, 	 &KEYMASK[8],  8);
@@ -134,11 +135,11 @@ S4Err processCipher(Cipher_Algorithm algor,
 				break;
 
 			case kCAVPTest_Encrypt:
-				err = ECB_Encrypt(algor, KEY, IN, INlen, CAL); CKERR;
+				err = ECB_Encrypt(algor, KEY, IN, INlen, CAL, INlen); CKERR;
 				break;
 
 			case kCAVPTest_Decrypt:
-				err = ECB_Decrypt(algor, KEY, IN, INlen, CAL);CKERR;
+				err = ECB_Decrypt(algor, KEY, IN, INlen, CAL, INlen);CKERR;
 			break;
 
 			default:
@@ -156,12 +157,12 @@ S4Err processCipher(Cipher_Algorithm algor,
 
 			case kCAVPTest_Encrypt:
 				err = CBC_Init(algor,KEY,IV, &cbcCtx); CKERR;
-				err = CBC_Encrypt(cbcCtx, IN, INlen, CAL); CKERR;
+				err = CBC_Encrypt(cbcCtx, IN, INlen, CAL, INlen); CKERR;
 				break;
 
 			case kCAVPTest_Decrypt:
 				err = CBC_Init(algor,KEY,IV, &cbcCtx); CKERR;
-				err = CBC_Decrypt(cbcCtx, IN, INlen, CAL); CKERR;
+				err = CBC_Decrypt(cbcCtx, IN, INlen, CAL, INlen); CKERR;
 				break;
 
 			default:

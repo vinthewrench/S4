@@ -4408,7 +4408,9 @@ EXPORT_FUNCTION S4Err S4Key_SerializeToPassPhrase(S4KeyContextRef  ctx,
                            rounds,
                            keyHash, kS4KeyESK_HashBytes); CKERR;
     
-    err =  ECB_Encrypt(encyptAlgor, unlocking_key, keyToEncrypt, keyBytes, encrypted_key); CKERR;
+    err =  ECB_Encrypt(encyptAlgor, unlocking_key,
+					   keyToEncrypt, keyBytes,
+					   encrypted_key, keyBytes); CKERR;
     
     g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
     
@@ -4725,7 +4727,9 @@ EXPORT_FUNCTION S4Err S4Key_SerializeToS4Key(S4KeyContextRef  ctx,
         tempLen = sizeof(tempBuf);
         
         uint8_t encrypted_key[128] = {0};
-        err =  ECB_Encrypt(encyptAlgor, unlockingKey, keyToEncrypt, keyBytes, encrypted_key); CKERR;
+        err =  ECB_Encrypt(encyptAlgor, unlockingKey,
+						   keyToEncrypt, keyBytes,
+						   encrypted_key,keyBytes); CKERR;
         base64_encode(encrypted_key, keyBytes, tempBuf, &tempLen);
     }
     
@@ -5347,7 +5351,7 @@ EXPORT_FUNCTION S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
 		keyCTX->sym.keylen = expectedKeyBytes;
 
 		err =  ECB_Decrypt(encyptAlgor, unlocking_key, passCtx->pbkdf2.encrypted,
-						   bytesToDecrypt, decrypted_key); CKERR;
+						   bytesToDecrypt, decrypted_key, bytesToDecrypt); CKERR;
 
 		COPY(decrypted_key, keyCTX->sym.symKey, bytesToDecrypt);
 
@@ -5359,7 +5363,7 @@ EXPORT_FUNCTION S4Err S4Key_DecryptFromPassPhrase( S4KeyContextRef  passCtx,
 		keyCTX->tbc.keybits = keyBytes << 3;
 
 		err =  ECB_Decrypt(encyptAlgor, unlocking_key, passCtx->pbkdf2.encrypted,
-						   keyBytes,  decrypted_key); CKERR;
+						   keyBytes,  decrypted_key, keyBytes); CKERR;
 
 		memcpy(keyCTX->tbc.key, decrypted_key, keyBytes);
 
@@ -5461,7 +5465,9 @@ EXPORT_FUNCTION S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
             decryptedLen = 32;
         }
         
-        err =  ECB_Decrypt(encyptAlgor, unlockingKey, keyToDecrypt, decryptedLen, decrypted_key); CKERR;
+        err =  ECB_Decrypt(encyptAlgor, unlockingKey,
+						   keyToDecrypt, decryptedLen,
+						   decrypted_key, decryptedLen); CKERR;
         
         COPY(decrypted_key, keyCTX->sym.symKey, decryptedLen);
         
@@ -5476,7 +5482,9 @@ EXPORT_FUNCTION S4Err S4Key_DecryptFromS4Key( S4KeyContextRef      encodedCtx,
         keyCTX->tbc.tbcAlgor = encodedCtx->symKeyEncoded.cipherAlgor;
         keyCTX->tbc.keybits = decryptedLen << 3;
         
-        err =  ECB_Decrypt(encyptAlgor, unlockingKey, keyToDecrypt, decryptedLen, decrypted_key); CKERR;
+        err =  ECB_Decrypt(encyptAlgor, unlockingKey,
+						   keyToDecrypt, decryptedLen,
+						   decrypted_key, decryptedLen); CKERR;
         
         memcpy(keyCTX->tbc.key, decrypted_key, decryptedLen);
         //        Skein_Get64_LSB_First(keyCTX->tbc.key, decrypted_key, decryptedLen >>2);   /* bytes to words */
@@ -5654,7 +5662,7 @@ EXPORT_FUNCTION S4Err S4Key_SerializeToShares(S4KeyContextRef       ctx,
 	err = RNG_GetBytes(IV,cipherSizeInBytes); CKERR;
 
 	err = CBC_Init(encyptAlgor, unlockingKey, IV,  &cbc);CKERR;
-	err = CBC_Encrypt(cbc, keyToEncrypt, keyBytes, ESK); CKERR;
+	err = CBC_Encrypt(cbc, keyToEncrypt, keyBytes, ESK, keyBytes); CKERR;
 
 	// create the share itself
 	err = S4Shares_New(unlockingKey, cipherSizeInBytes, totalShares, threshold, &shareCTX); CKERR;
@@ -5955,7 +5963,7 @@ S4Err S4Key_RecoverKeyFromShares(   S4KeyContextRef  __S4_NONNULL shareCtx,
 	err = CBC_Init(shareCtx->esk.cipherAlgor, sessionKey, shareCtx->esk.iv,  &cbc);CKERR;
 	err = CBC_Decrypt(cbc,
 					  shareCtx->esk.encrypted, decryptedKeyLen,
-					  decryptedKey); CKERR;
+					  decryptedKey, decryptedKeyLen); CKERR;
 
  	// check the validity of the decode
 	err = sKEY_HASH(decryptedKey, decryptedKeyLen,
@@ -6853,7 +6861,7 @@ static S4Err sP2K_EncryptKeyToPassPhrase( const void 		*keyIn,
 	encryptedKey = XMALLOC(encryptedKeyLen); CKNULL(encryptedKey);
 	err = RNG_GetBytes(IV,cipherSizeInBytes); CKERR;
 	err = CBC_Init(cipherAlgorithm, sessionKey, IV,  &cbc);CKERR;
-	err = CBC_Encrypt(cbc, keyIn, keyInLen, encryptedKey); CKERR;
+	err = CBC_Encrypt(cbc, keyIn, keyInLen, encryptedKey, keyInLen); CKERR;
  	keySuiteString = cipher_algor_table(cipherAlgorithm);
 
 	// encrypt the session key to the passPhrase
@@ -6866,8 +6874,9 @@ static S4Err sP2K_EncryptKeyToPassPhrase( const void 		*keyIn,
 							   p2KParamStr,
 							   keyHash, kS4KeyESK_HashBytes); CKERR;
 
-	err =  ECB_Encrypt(cipherAlgorithm, unlockingKey, sessionKey,
-					   cipherSizeInBytes, ESK); CKERR;
+	err =  ECB_Encrypt(cipherAlgorithm, unlockingKey,
+					   sessionKey, cipherSizeInBytes,
+					   ESK, cipherSizeInBytes); CKERR;
 
 
 	g = yajl_gen_alloc(&allocFuncs); CKNULL(g);
@@ -7085,15 +7094,18 @@ S4Err P2K_DecryptKeyFromPassPhrase(  uint8_t * __S4_NONNULL inData,
 	ASSERTERR(CMP(keyHash, keyHash, kS4KeyESK_HashBytes), kS4Err_BadIntegrity);
 
 	// decrypt the session key
-	err =  ECB_Decrypt(cipherAlgorithm, unlockingKey, esk.data,
-					   cipherSizeInBytes, sessionKey); CKERR;
+	err =  ECB_Decrypt(cipherAlgorithm, unlockingKey,
+					   esk.data, cipherSizeInBytes,
+					   sessionKey,cipherSizeInBytes); CKERR;
 
 	decryptedKeyLen = encrypted.len;
 	decryptedKey = XMALLOC(encrypted.len);
 
 	// decode the encrypted info
 	err = CBC_Init(cipherAlgorithm, sessionKey, iv.data,  &cbc);CKERR;
-	err = CBC_Decrypt(cbc,  encrypted.data, encrypted.len, decryptedKey); CKERR;
+	err = CBC_Decrypt(cbc,
+					  encrypted.data, encrypted.len,
+					  decryptedKey, encrypted.len); CKERR;
 
 	if(outAllocKey)
 		*outAllocKey = decryptedKey;
@@ -7327,15 +7339,17 @@ EXPORT_FUNCTION S4Err S4Key_DecryptFromPassCode(S4KeyContextRef  __S4_NONNULL	 p
 
 	ASSERTERR(CMP(keyHash, eskCtx->keyHash, kS4KeyESK_HashBytes), kS4Err_BadIntegrity)
 
-	err =  ECB_Decrypt(eskCtx->cipherAlgor, unlockingKey, eskCtx->esk,
-					   cipherSizeInBytes, sessionKey); CKERR;
+	err =  ECB_Decrypt(eskCtx->cipherAlgor, unlockingKey,
+					   eskCtx->esk, cipherSizeInBytes,
+					   sessionKey, cipherSizeInBytes); CKERR;
 
 	decryptedKeyLen = eskCtx->encryptedLen;
 	decryptedKey = XMALLOC(eskCtx->encryptedLen);
 
 	// attempt to decode the encrypted info
 	err = CBC_Init(eskCtx->cipherAlgor, sessionKey, eskCtx->iv,  &cbc);CKERR;
-	err = CBC_Decrypt(cbc, eskCtx->encrypted, eskCtx->encryptedLen, decryptedKey); CKERR;
+	err = CBC_Decrypt(cbc, eskCtx->encrypted, eskCtx->encryptedLen,
+					  decryptedKey,decryptedKeyLen); CKERR;
 
 	// create a key with the data
 
