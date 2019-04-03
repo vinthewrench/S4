@@ -1604,6 +1604,60 @@ done:
 	return err;
 }
 
+static  void sJSONVUnescapeValue( uint8_t* inData, size_t inLen, uint8_t **outData, size_t *outLen)
+{
+    size_t beg = 0;
+    size_t end = 0;
+    uint8_t* outP = XMALLOC(inLen);
+    size_t length = 0;
+    
+    *outData = outP;
+    
+    while (end < inLen) {
+        if (inData[end] == '\\')
+        {
+            COPY(inData + beg, outP,  end - beg );
+            outP += (end - beg);
+            length += (end - beg);
+        
+            const char * unescaped = "?";
+            size_t unescapedLen = 0;
+            
+            char c = inData[++end];
+            switch (c) {
+                case 'r': unescaped = "\r"; break;
+                case 'n': unescaped = "\n"; break;
+                case '\\': unescaped = "\\"; break;
+                case '/': unescaped = "/"; break;
+                case '"': unescaped = "\""; break;
+                case 'f': unescaped = "\f"; break;
+                case 'b': unescaped = "\b"; break;
+                case 't': unescaped = "\t"; break;
+                default: ;
+            }
+            
+            unescapedLen = strlen(unescaped);
+            COPY(unescaped, outP, unescapedLen);
+            outP += unescapedLen;
+            length += unescapedLen;
+            beg = ++end;
+        }
+        else {
+            end++;
+        }
+    }
+    if(end-beg > 0)
+    {
+         COPY(inData + beg, outP,  end - beg );
+        outP += (end - beg);
+        length += (end - beg);
+        
+    }
+
+    *outLen = length;
+ }
+
+
 static S4Err sJSONParsePropertiesToS4Key(JSONParseContext* pctx,
 										 int dictTokenNum,
 										 S4KeyContextRef  keyP )
@@ -1730,10 +1784,11 @@ static S4Err sJSONParsePropertiesToS4Key(JSONParseContext* pctx,
 				}
 				else // treat it like a string
 				{
-					prop->value = XMALLOC(value.len);
-					prop->type = S4KeyPropertyType_UTF8String;
-					COPY(value.data, prop->value, value.len );
-					prop->valueLen = value.len;
+ 					prop->type = S4KeyPropertyType_UTF8String;
+                    sJSONVUnescapeValue((uint8_t*)value.data, value.len, &prop->value, &prop->valueLen);
+ //                 prop->value = XMALLOC(value.len);
+//					COPY(value.data, prop->value, value.len );
+//					prop->valueLen = value.len;
 				}
 			}
 		}
@@ -3752,7 +3807,7 @@ done:
     {
         if(keyCTX)
         {
-            memset(keyCTX, sizeof (S4KeyContext), 0);
+            memset(keyCTX, 0, sizeof (S4KeyContext));
             XFREE(keyCTX);
         }
     }
@@ -3816,7 +3871,7 @@ done:
     {
         if(keyCTX)
         {
-            memset(keyCTX, sizeof (S4KeyContext), 0);
+            memset(keyCTX, 0, sizeof (S4KeyContext));
             XFREE(keyCTX);
         }
     }
@@ -3877,7 +3932,7 @@ done:
     {
         if(keyCTX)
         {
-            memset(keyCTX, sizeof (S4KeyContext), 0);
+            memset(keyCTX, 0, sizeof (S4KeyContext));
             XFREE(keyCTX);
         }
     }
@@ -3918,7 +3973,7 @@ done:
     {
         if(keyCTX)
         {
-            memset(keyCTX, sizeof (S4KeyContext), 0);
+            memset(keyCTX, 0, sizeof (S4KeyContext));
             XFREE(keyCTX);
         }
     }
@@ -3989,7 +4044,7 @@ done:
     {
         if(keyCTX)
         {
-            memset(keyCTX, sizeof (S4KeyContext), 0);
+            memset(keyCTX, 0, sizeof (S4KeyContext));
             XFREE(keyCTX);
         }
     }
@@ -4036,7 +4091,7 @@ done:
     {
         if(keyCTX)
         {
-            memset(keyCTX, sizeof (S4KeyContext), 0);
+            memset(keyCTX, 0, sizeof (S4KeyContext));
             XFREE(keyCTX);
         }
     }
@@ -4265,7 +4320,7 @@ done:
     {
         if(keyCTX)
         {
-            memset(keyCTX, sizeof (S4KeyContext), 0);
+            memset(keyCTX, 0, sizeof (S4KeyContext));
             XFREE(keyCTX);
         }
     }
@@ -6648,7 +6703,7 @@ done:
     {
         if(keyCTX)
         {
-            memset(keyCTX, sizeof (S4KeyContext), 0);
+            memset(keyCTX, 0, sizeof (S4KeyContext));
             XFREE(keyCTX);
         }
     }
@@ -7411,7 +7466,7 @@ done:
 	{
 		if(IsntNull(keyCTX))
 		{
-			memset(keyCTX, sizeof (S4KeyContext), 0);
+			memset(keyCTX, 0, sizeof (S4KeyContext));
 			XFREE(keyCTX);
 		}
 	}

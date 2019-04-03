@@ -1529,8 +1529,8 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     err = S4Key_GetExtendedProperty(pubCtx, kS4KeyProp_StartDate, &exProp); CKERR;
     ASSERTERR(exProp && S4KeyPropertyExtended_Signable == S4KeyPropertyExtended_Signable,  kS4Err_SelfTestFailed);
 
-    err = S4Key_SetPropertyExtended(pubCtx, kS4KeyProp_Owner, S4KeyPropertyType_UTF8String , S4KeyPropertyExtended_Signable,
-                                    "PhucLong", 8 ); CKERR;
+    char* userName = "[\"auth0|12345678\"]";
+    err = S4Key_SetPropertyExtended(pubCtx, kS4KeyProp_Owner, S4KeyPropertyType_UTF8String , S4KeyPropertyExtended_Signable, userName, strlen(userName) ); CKERR;
   
     err = S4Key_GetExtendedProperty(pubCtx, kS4KeyProp_Owner, &exProp); CKERR;
     ASSERTERR(exProp && S4KeyPropertyExtended_Signable == S4KeyPropertyExtended_Signable,  kS4Err_SelfTestFailed);
@@ -1538,12 +1538,12 @@ static S4Err sRunPublicKeyTest( Cipher_Algorithm keyAlgorithm)
     err = S4Key_GetAllocatedProperty(pubCtx, kS4KeyProp_KeyIDString, NULL, (void**)&keyIDStr, NULL); CKERR;
     OPTESTLogDebug("KeyID: %s\n",  keyIDStr);
 
+    char* value = "[\"12345678\"]";
     // test add / delete property
-    err = S4Key_SetPropertyExtended(pubCtx, "delete", S4KeyPropertyType_UTF8String , S4KeyPropertyExtended_Signable,
-                                    "12345678", 8 ); CKERR;
+    err = S4Key_SetPropertyExtended(pubCtx, "delete", S4KeyPropertyType_UTF8String , S4KeyPropertyExtended_Signable,  value, strlen(value)); CKERR;
    
     ASSERTERR( S4Key_GetProperty(pubCtx, "delete", NULL, NULL, 0, &dataLen) == kS4Err_NoErr, kS4Err_SelfTestFailed);
-    ASSERTERR(dataLen == 8, kS4Err_SelfTestFailed);
+    ASSERTERR(dataLen == strlen(value), kS4Err_SelfTestFailed);
     
     err = S4Key_RemoveProperty(pubCtx, "delete"); CKERR
     
@@ -1808,14 +1808,14 @@ S4Err  TestKeys()
     
     asprintf(&exported_keys,"[" );
 
-	err = sTestSymmetricKeys(); CKERR;
-	err = sTestTBCKeys(); CKERR;
+    err = sTestSymmetricKeys(); CKERR;
+    err = sTestTBCKeys(); CKERR;
 
-	err = sTestECC_TBCKeys(); CKERR;
-	err = sTestECC_SymmetricKeys(); CKERR;
+    err = sTestECC_TBCKeys(); CKERR;
+    err = sTestECC_SymmetricKeys(); CKERR;
 
-	err = sTest_P2KS4Keys(); CKERR;
-	err = sTest_SharedS4Keys(); CKERR;
+    err = sTest_P2KS4Keys(); CKERR;
+    err = sTest_SharedS4Keys(); CKERR;
 
 	err = sTestPublicKeys(); CKERR;
 
