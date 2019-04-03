@@ -96,7 +96,7 @@ done:
     {
         if(tbcCTX)
         {
-            memset(tbcCTX, sizeof (TBC_Context), 0);
+            memset(tbcCTX, 0, sizeof (TBC_Context));
             XFREE(tbcCTX);
         }
     }

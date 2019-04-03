@@ -219,7 +219,7 @@ done:
     {
         if(cbcCTX)
         {
-            memset(cbcCTX, sizeof (CBC_Context), 0);
+            memset(cbcCTX, 0, sizeof (CBC_Context));
             XFREE(cbcCTX);
         }
         err = sCrypt2S4Err(status);
@@ -340,7 +340,7 @@ CBC_EncryptPAD(Cipher_Algorithm algorithm,
     	*outAllocData = buffer;
 	else if(buffer)
 	{
-		memset(buffer, buffLen, 0);
+		memset(buffer, 0, buffLen);
 		XFREE(buffer);
 		buffer = NULL;
 	}
@@ -351,7 +351,7 @@ done:
     {
         if(buffer)
         {
-            memset(buffer, buffLen, 0);
+            memset(buffer, 0, buffLen);
             XFREE(buffer);
         }
     }
@@ -399,7 +399,7 @@ CBC_DecryptPAD(Cipher_Algorithm algorithm,
 		*outAllocData = buffer;
 	else if(buffer)
 	{
-		memset(buffer, buffLen, 0);
+		memset(buffer, 0, buffLen);
 		XFREE(buffer);
 		buffer = NULL;
 	}
@@ -409,7 +409,7 @@ done:
     {
         if(buffer)
         {
-            memset(buffer, buffLen, 0);
+            memset(buffer, 0, buffLen);
             XFREE(buffer);
         }
     }

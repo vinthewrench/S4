@@ -562,7 +562,7 @@ EXPORT_FUNCTION S4Err  S4Shares_GetPart( S4SharesContextRef  ctx,
 		*shareInfoOut = shareInfo;
 	else if(shareInfo)
 	{
-		memset(shareInfo, bufSize, 0);
+		memset(shareInfo,0,  bufSize);
 		XFREE(shareInfo);
 		shareInfo = NULL;
 	}
