@@ -154,6 +154,9 @@ char *const kS4KeyProp_EncodedObject   		= K_PROP_ENCODED_OBJECT;
 
 char *const kS4KeyProp_ShareOwner   	 = K_PROP_SHAREONWER;
 char *const kS4KeyProp_ShareID       	 = K_PROP_SHAREID;
+char *const kS4KeyProp_ShareIndex      = K_INDEX;
+char *const kS4KeyProp_ShareThreshold  = K_THRESHLOLD;
+char *const kS4KeyProp_ShareTotal  	  = K_TOTALSHARES;
 
 static char *const kS4KeyProp_Version      = K_PROP_VERSION;
 
@@ -179,9 +182,6 @@ static char *const kS4KeyProp_Rounds            = K_PROP_ROUNDS;
 static char *const kS4KeyProp_IV = 				K_IV;
 static char *const kS4KeyProp_ESK =				K_ESK;
 
-static char *const kS4KeyProp_ShareIndex      = K_INDEX;
-static char *const kS4KeyProp_ShareThreshold  = K_THRESHLOLD;
-static char *const kS4KeyProp_ShareTotal  	  = K_TOTALSHARES;
 static char *const kS4KeyProp_ShareHash       = K_SHAREHASH;
 static char *const kS4KeyProp_ShareIDs        = K_SHAREIDS;
 
@@ -2757,6 +2757,27 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
 			{
 				actualLength =  sizeof(uint32_t);
 			}
+			
+			else if(STRCMP2(propName, kS4KeyProp_ShareIndex))
+			{
+				actualLength =  sizeof(uint32_t);
+			}
+			else if(STRCMP2(propName, kS4KeyProp_ShareThreshold))
+			{
+				actualLength =  sizeof(uint32_t);
+			}
+			else if(STRCMP2(propName, kS4KeyProp_ShareTotal))
+			{
+				actualLength =  sizeof(uint32_t);
+			}
+			else if(STRCMP2(propName, kS4KeyProp_ShareID))
+			{
+				actualLength = kS4ShareInfo_HashBytes;
+			}
+			else if(STRCMP2(propName, kS4KeyProp_ShareOwner))
+			{
+				actualLength = kS4ShareInfo_HashBytes;
+			}
 			else if(STRCMP2(propName, kS4KeyProp_p2kParams))
 			{
 				switch (ctx->type) {
@@ -2816,7 +2837,6 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
 						RETERR(kS4Err_BadParams);
 				}
 			}
-			
 			else if(STRCMP2(propName, kS4KeyProp_SignedDate))
 			{
 				switch (ctx->type) {
@@ -2838,11 +2858,6 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
 					default:
 						RETERR(kS4Err_BadParams);
 				}
-			}
-			else if(STRCMP2(propName, kS4KeyProp_ShareID)
-					  || STRCMP2(propName, kS4KeyProp_ShareOwner))
-			{
-				actualLength = kS4ShareInfo_HashBytes;
 			}
 			else if(STRCMP2(propName, kS4KeyProp_KeyID))
 			{
@@ -3207,6 +3222,10 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
 					COPY(ctx->esk.shareOwner , buffer, kS4ShareInfo_HashBytes);
 					break;
 					
+				case kS4KeyType_Share:
+					COPY(ctx->share.shareOwner , buffer, kS4ShareInfo_HashBytes);
+					break;
+					
 				default:
 					RETERR(kS4Err_BadParams);
 			}
@@ -3222,6 +3241,65 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
 					RETERR(kS4Err_BadParams);
 			}
 		}
+		
+		else if(STRCMP2(propName, kS4KeyProp_ShareIndex))
+		{
+			switch (ctx->type) {
+				case kS4KeyType_Share:
+				{
+					uint32_t index = ctx->share.xCoordinate;
+					COPY(&index , buffer, actualLength);
+				}
+					break;
+					
+				case kS4KeyType_Share_ESK:
+				{
+					uint32_t index = ctx->esk.xCoordinate;
+					COPY(&index , buffer, actualLength);
+				}
+					break;
+					
+				default:
+					RETERR(kS4Err_BadParams);
+			}
+		}
+		else if(STRCMP2(propName, kS4KeyProp_ShareThreshold))
+		{
+			switch (ctx->type) {
+				case kS4KeyType_Share:
+				{
+					uint32_t threshold = ctx->share.threshold;
+					COPY(&threshold , buffer, actualLength);
+				}
+					break;
+					
+				case kS4KeyType_Share_ESK:
+				{
+					uint32_t threshold = ctx->esk.threshold;
+					COPY(&threshold , buffer, actualLength);
+				}
+					break;
+					
+				default:
+					RETERR(kS4Err_BadParams);
+			}
+		}
+		else if(STRCMP2(propName, kS4KeyProp_ShareTotal))
+		{
+			switch (ctx->type) {
+				case kS4KeyType_Share_ESK:
+				{
+					uint32_t totalShares = ctx->esk.totalShares;
+					COPY(&totalShares , buffer, actualLength);
+				}
+					
+					break;
+					
+				default:
+					RETERR(kS4Err_BadParams);
+			}
+		}
+		
 		else if(STRCMP2(propName, kS4KeyProp_KeyIDString))
 		{
 			switch (ctx->type) {

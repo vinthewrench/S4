@@ -162,6 +162,9 @@ _kS4KeyProp_p2kParams
 _kS4KeyProp_EncodedObject
 _kS4KeyProp_ShareOwner
 _kS4KeyProp_ShareID
+_kS4KeyProp_ShareIndex
+_kS4KeyProp_ShareThreshold
+_kS4KeyProp_ShareTotal
 
 _S4Key_SerializeToShares
 

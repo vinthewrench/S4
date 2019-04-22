@@ -90,6 +90,10 @@ extern char *const kS4KeyProp_EncodedObject;
 extern char *const kS4KeyProp_ShareOwner;
 extern char *const kS4KeyProp_ShareID;
 
+extern char *const kS4KeyProp_ShareIndex;
+extern char *const kS4KeyProp_ShareThreshold;
+extern char *const kS4KeyProp_ShareTotal;
+
 typedef struct S4KeySigItem  S4KeySigItem;
 
 typedef struct S4KeyProperty  S4KeyProperty;
