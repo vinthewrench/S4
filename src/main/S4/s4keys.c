@@ -1085,6 +1085,11 @@ static S4Err sFindTokenKeyInDictionaryToken(JSONParseContext* pctx,
 			case JSMN_ARRAY:
 				next = valueToken.end;
 				break;
+				
+			case JSMN_OBJECT:	// ignore these - *typically a dictionary
+				next = valueToken.end;
+				break;
+				
 			default:
 				RETERR(kS4Err_CorruptData);
 				break;
