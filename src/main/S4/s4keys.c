@@ -2757,7 +2757,6 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
 			{
 				actualLength =  sizeof(uint32_t);
 			}
-			
 			else if(STRCMP2(propName, kS4KeyProp_ShareIndex))
 			{
 				actualLength =  sizeof(uint32_t);
@@ -2807,8 +2806,10 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
 					case kS4KeyType_P2K_ESK:
 						actualLength = ctx->esk.encryptedLen;
 						break;
-						
-					case kS4KeyType_PBKDF2:
+
+					case kS4KeyType_Share:
+						actualLength = ctx->share.shareSecretLen;
+						break;
 						
 					default:
 						RETERR(kS4Err_BadParams);
@@ -3087,7 +3088,10 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
 					COPY(&ctx->esk.encrypted , buffer, actualLength);
 					break;
 					
-				case kS4KeyType_PBKDF2:
+				case kS4KeyType_Share:
+					COPY(&ctx->share.shareSecretLen , buffer, actualLength);
+					break;
+					
 				default:
 					RETERR(kS4Err_BadParams);
 			}

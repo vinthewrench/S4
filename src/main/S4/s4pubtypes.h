@@ -17,8 +17,8 @@
 #ifndef s4pubtypes_h
 #define s4pubtypes_h
 
-#define S4_BUILD_NUMBER               15
-#define S4_SHORT_VERSION_STRING       "2.2.7"
+#define S4_BUILD_NUMBER               16
+#define S4_SHORT_VERSION_STRING       "2.2.8"
 
 
 #include <limits.h>
