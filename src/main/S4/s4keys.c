@@ -3094,7 +3094,7 @@ static S4Err s4Key_GetPropertyInternal( S4KeyContextRef ctx,
 					break;
 					
 				case kS4KeyType_Share:
-					COPY(&ctx->share.shareSecretLen , buffer, actualLength);
+					COPY(&ctx->share.shareSecret , buffer, actualLength);
 					break;
 					
 				default:
