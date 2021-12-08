@@ -100,6 +100,7 @@ S4_FLAGS = $(CFLAGS) \
 	-Ilibs/yajl/src \
 	-Ilibs/yajl/src/api \
 	-Ilibs/jsmn \
+	-Ilibs/common \
 	-I$(BUILD_DIR)/includes  
 
 TOMCRYPT_SRC = \
